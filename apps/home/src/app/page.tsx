@@ -47,7 +47,7 @@ export default function Home() {
           <p className="flex items-center text-sm text-zinc-400">
             Local invoice origin defaults to{" "}
             <code className="ml-1 rounded bg-black/30 px-2 py-1 text-zinc-200">
-              http://localhost:3002
+              http://localhost:3001
             </code>
           </p>
         </div>

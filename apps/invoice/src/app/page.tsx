@@ -36,7 +36,7 @@ export default function Home() {
           </div>
           <div className="rounded-3xl border border-zinc-200 bg-zinc-50 p-5">
             <p className="text-sm font-medium text-zinc-500">Dev port</p>
-            <p className="mt-3 text-2xl font-semibold">3002</p>
+            <p className="mt-3 text-2xl font-semibold">3001</p>
           </div>
         </div>
 
