@@ -8,14 +8,18 @@ const isVercelDeployment =
   process.env.VERCEL_ENV === "preview" ||
   process.env.VERCEL_ENV === "production";
 
-  console.log("Invoice app origin:", invoiceAppOrigin);
+if (isVercelDeployment && !process.env.INVOICE_APP_ORIGIN) {
+  throw new Error(
+    `INVOICE_APP_ORIGIN is missing for the apps/home Vercel project in ${process.env.VERCEL_ENV}. Vercel environment variables are scoped per project and environment, so set INVOICE_APP_ORIGIN on the home project for this environment to the deployed invoice URL or custom domain.`,
+  );
+}
+
 if (
   isVercelDeployment &&
-  (!process.env.INVOICE_APP_ORIGIN ||
-    /^https?:\/\/localhost(?::\d+)?$/i.test(localInvoiceOrigin))
+  /^https?:\/\/localhost(?::\d+)?$/i.test(invoiceAppOrigin)
 ) {
   throw new Error(
-    "INVOICE_APP_ORIGIN must point to the deployed invoice zone on Vercel. Deploy apps/invoice as a separate Vercel project and set INVOICE_APP_ORIGIN in the apps/home project to that deployment URL or custom domain.",
+    "INVOICE_APP_ORIGIN cannot point to localhost on Vercel. Set it to the deployed apps/invoice URL or custom domain instead.",
   );
 }
 
