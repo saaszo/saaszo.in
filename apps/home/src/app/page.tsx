@@ -1,63 +1,57 @@
-import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="flex flex-1 items-center justify-center bg-zinc-950 px-6 py-16 text-white">
+      <main className="flex w-full max-w-5xl flex-col gap-12 rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/30 backdrop-blur sm:p-12">
+        <div className="space-y-5">
+          <p className="text-sm font-semibold uppercase tracking-[0.35em] text-emerald-300">
+            Saaszo
+          </p>
+          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
+            Home app and invoice app now share one route space.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="max-w-2xl text-base leading-8 text-zinc-300 sm:text-lg">
+            The home app stays at the root and forwards every request under{" "}
+            <span className="font-semibold text-white">/invoice</span> to the
+            dedicated invoice app.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-3xl border border-white/10 bg-black/20 p-6">
+            <p className="text-sm font-medium text-zinc-400">Main app</p>
+            <h2 className="mt-3 text-2xl font-semibold">Home</h2>
+            <p className="mt-3 text-sm leading-7 text-zinc-300">
+              This app owns the domain and exposes the main landing experience.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-emerald-400/30 bg-emerald-400/10 p-6">
+            <p className="text-sm font-medium text-emerald-200">
+              Connected app
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold">Invoice</h2>
+            <p className="mt-3 text-sm leading-7 text-emerald-50/90">
+              Requests to <span className="font-semibold">/invoice</span> are
+              proxied to the invoice app so it feels like part of the same
+              product.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <Link
+            className="inline-flex h-12 items-center justify-center rounded-full bg-emerald-400 px-6 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300"
+            href="/invoice"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Open invoice app
+          </Link>
+          <p className="flex items-center text-sm text-zinc-400">
+            Local invoice origin defaults to{" "}
+            <code className="ml-1 rounded bg-black/30 px-2 py-1 text-zinc-200">
+              http://localhost:3002
+            </code>
+          </p>
         </div>
       </main>
     </div>
