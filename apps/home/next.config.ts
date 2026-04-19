@@ -8,6 +8,7 @@ const isVercelDeployment =
   process.env.VERCEL_ENV === "preview" ||
   process.env.VERCEL_ENV === "production";
 
+  console.log("Invoice app origin:", invoiceAppOrigin);
 if (
   isVercelDeployment &&
   (!process.env.INVOICE_APP_ORIGIN ||
