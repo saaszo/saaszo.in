@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const invoiceAppOrigin = (
-	process.env.INVOICE_APP_ORIGIN ?? "http://localhost:3002"
+	process.env.INVOICE_APP_ORIGIN ?? "http://localhost:3001"
 ).replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
