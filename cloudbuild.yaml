@@ -6,8 +6,6 @@ steps:
       - '-c'
       - |
         npx turbo prune --scope=backend
-        cp -r out/full/* .
-        cp -r out/json/* .
 
   # Step 2: Install dependencies and build the NestJS app
   - name: 'node:lts'
