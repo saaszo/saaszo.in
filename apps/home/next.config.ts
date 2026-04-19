@@ -10,11 +10,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/invoice",
-        destination: `${invoiceAppOrigin}/invoice`,
+        destination: `${invoiceAppOrigin}/`,
       },
       {
         source: "/invoice/:path+",
-        destination: `${invoiceAppOrigin}/invoice/:path+`,
+        destination: `${invoiceAppOrigin}/:path+`,
       },
       {
         source: "/invoice-static/:path+",
