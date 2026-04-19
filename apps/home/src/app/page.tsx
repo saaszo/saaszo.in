@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export default function Home() {
   return (
     <div className="flex flex-1 items-center justify-center bg-zinc-950 px-6 py-16 text-white">
@@ -40,12 +38,12 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col gap-4 sm:flex-row">
-          <Link
+          <a
             className="inline-flex h-12 items-center justify-center rounded-full bg-emerald-400 px-6 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300"
             href="/invoice"
           >
             Open invoice app
-          </Link>
+          </a>
           <p className="flex items-center text-sm text-zinc-400">
             Local invoice origin defaults to{" "}
             <code className="ml-1 rounded bg-black/30 px-2 py-1 text-zinc-200">
