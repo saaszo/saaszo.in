@@ -1,13 +1,5 @@
 steps:
-  # Step 1: Prune the monorepo for the NestJS backend app
-  - name: 'node:lts'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        npx turbo prune --scope=backend
-
-  # Step 2: Install dependencies and build the NestJS app
+  # Step 1: Install dependencies and build the NestJS app
   - name: 'node:lts'
     entrypoint: 'bash'
     args:
@@ -16,7 +8,7 @@ steps:
         npm install
         npm run build --filter=backend
 
-  # Step 3: Deploy to Cloud Run directly from source
+  # Step 2: Deploy to Cloud Run directly from source
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
