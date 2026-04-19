@@ -11,7 +11,7 @@ const isVercelDeployment =
 if (
   isVercelDeployment &&
   (!process.env.INVOICE_APP_ORIGIN ||
-    /^https?:\/\/localhost(?::\d+)?$/i.test(invoiceAppOrigin))
+    /^https?:\/\/localhost(?::\d+)?$/i.test(localInvoiceOrigin))
 ) {
   throw new Error(
     "INVOICE_APP_ORIGIN must point to the deployed invoice zone on Vercel. Deploy apps/invoice as a separate Vercel project and set INVOICE_APP_ORIGIN in the apps/home project to that deployment URL or custom domain.",
