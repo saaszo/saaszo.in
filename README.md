@@ -4,14 +4,9 @@ Saaszo is a Turbo monorepo with a Next.js frontend and a NestJS backend.
 
 ## Apps
 
-- `apps/web`: Next.js App Router frontend on `http://localhost:3000`
-- `apps/api`: NestJS backend on `http://localhost:3001/api`
-
-## Shared Packages
-
-- `packages/ui`: shared React components
-- `packages/eslint-config`: shared flat ESLint configs
-- `packages/typescript-config`: shared TypeScript presets
+- `apps/home`: main Next.js app on `http://localhost:3000`
+- `apps/invoice`: invoice Next.js app, mounted under `/invoice` and running on `http://localhost:3002` in local development
+- `apps/backend`: NestJS backend
 
 ## Getting Started
 
@@ -26,8 +21,6 @@ That starts both apps in parallel through Turbo.
 
 ```sh
 npm run dev
-npm run dev:web
-npm run dev:api
 npm run build
 npm run lint
 npm run check-types
