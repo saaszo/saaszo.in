@@ -1,6 +1,21 @@
-export default function Home() {
+export default async function Home() {
+  let apiStatus = "Checking connection...";
+  
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.saaszo.in';
+    const res = await fetch(`${API_URL}/`, { cache: 'no-store' });
+    if (res.ok) {
+      const text = await res.text();
+      apiStatus = `✅ Backend Connected: ${text}`;
+    } else {
+      apiStatus = `❌ Backend Error: ${res.status}`;
+    }
+  } catch (error) {
+    apiStatus = `❌ Connection Failed. Check if Backend is running.`;
+  }
+
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-950 px-6 py-16 text-white">
+    <div className="flex flex-1 items-center justify-center bg-zinc-950 px-6 py-16 text-white ">
       <main className="flex w-full max-w-5xl flex-col gap-12 rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/30 backdrop-blur sm:p-12">
         <div className="space-y-5">
           <p className="text-sm font-semibold uppercase tracking-[0.35em] text-emerald-300">
@@ -15,6 +30,13 @@ export default function Home() {
             dedicated invoice app.
           </p>
         </div>
+
+        {/* --- API Test Section --- */}
+        <div className="rounded-2xl border border-blue-400/30 bg-blue-400/10 p-5 mt-2">
+          <p className="text-sm font-medium text-blue-200 uppercase tracking-widest mb-1">Live API Test</p>
+          <p className="font-mono text-white/90">{apiStatus}</p>
+        </div>
+        {/* ------------------------ */}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-3xl border border-white/10 bg-black/20 p-6">
