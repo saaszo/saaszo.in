@@ -1,3 +1,5 @@
+import TestServices from './TestServices';
+
 export default async function Home() {
   let apiStatus = "Checking connection...";
   
@@ -15,7 +17,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-950 px-6 py-16 text-white ">
+    <div className="flex flex-1 items-center justify-center bg-zinc-950 px-6 py-16 text-white min-h-screen">
       <main className="flex w-full max-w-5xl flex-col gap-12 rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/30 backdrop-blur sm:p-12">
         <div className="space-y-5">
           <p className="text-sm font-semibold uppercase tracking-[0.35em] text-emerald-300">
@@ -34,7 +36,9 @@ export default async function Home() {
         {/* --- API Test Section --- */}
         <div className="rounded-2xl border border-blue-400/30 bg-blue-400/10 p-5 mt-2">
           <p className="text-sm font-medium text-blue-200 uppercase tracking-widest mb-1">Live API Test</p>
-          <p className="font-mono text-white/90">{apiStatus}</p>
+          <p className="font-mono text-white/90 mb-4">{apiStatus}</p>
+          
+          <TestServices />
         </div>
         {/* ------------------------ */}
 
