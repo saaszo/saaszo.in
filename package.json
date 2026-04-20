@@ -6,7 +6,17 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "check-types": "turbo run check-types",
+    "cf:build:home": "npm run cf-build --workspace=home",
+    "cf:build:invoice": "npm run cf-build --workspace=invoice",
+    "cf:check:home": "npm run cf-check --workspace=home",
+    "cf:check:invoice": "npm run cf-check --workspace=invoice",
+    "cf:preview:home": "npm run preview --workspace=home",
+    "cf:preview:invoice": "npm run preview --workspace=invoice",
+    "cf:deploy:home": "npm run deploy --workspace=home",
+    "cf:deploy:invoice": "npm run deploy --workspace=invoice",
+    "cf:typegen:home": "npm run cf-typegen --workspace=home",
+    "cf:typegen:invoice": "npm run cf-typegen --workspace=invoice"
   },
   "dependencies": {
     "next": "16.2.4",
@@ -23,7 +33,8 @@
     "prettier": "^3.7.4",
     "tailwindcss": "^4",
     "turbo": "^2.9.6",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "wrangler": "^4.83.0"
   },
   "engines": {
     "node": ">=24.x.x"
