@@ -1,85 +1,164 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f7f9fb;
-  --foreground: #191c1e;
-}
+/* =============================================
+   Tailwind v4 Theme — SaaSzo Design Tokens
+   ============================================= */
+@theme {
+  /* Fonts */
+  --font-sans: "Inter", system-ui, sans-serif;
 
-@theme inline {
-  --font-sans: "Inter", sans-serif;
-  --font-headline: "Inter", sans-serif;
-  --font-body: "Inter", sans-serif;
-  --font-label: "Inter", sans-serif;
+  /* Brand Colors */
+  --color-primary:                   #4648d4;
+  --color-on-primary:                #ffffff;
+  --color-primary-container:         #6063ee;
+  --color-on-primary-container:      #fffbff;
+  --color-primary-fixed:             #e1e0ff;
+  --color-primary-fixed-dim:         #c0c1ff;
+  --color-on-primary-fixed:          #07006c;
+  --color-on-primary-fixed-variant:  #2f2ebe;
+  --color-inverse-primary:           #c0c1ff;
 
-  --color-surface-container: #eceef0;
-  --color-on-secondary-fixed: #131b2e;
-  --color-surface-variant: #e0e3e5;
-  --color-surface-container-low: #f2f4f6;
-  --color-on-primary-container: #fffbff;
-  --color-background: #f7f9fb;
-  --color-on-primary-fixed-variant: #2f2ebe;
-  --color-surface-container-high: #e6e8ea;
-  --color-on-surface: #191c1e;
-  --color-on-background: #191c1e;
-  --color-error: #ba1a1a;
-  --color-tertiary-fixed: #e9ddff;
-  --color-surface-container-highest: #e0e3e5;
-  --color-inverse-surface: #2d3133;
-  --color-primary-fixed-dim: #c0c1ff;
-  --color-on-tertiary-container: #fffbff;
-  --color-surface-container-lowest: #ffffff;
-  --color-tertiary: #6b38d4;
-  --color-tertiary-container: #8455ef;
-  --color-surface-tint: #494bd6;
-  --color-primary-container: #6063ee;
-  --color-secondary-fixed: #dae2fd;
-  --color-on-secondary: #ffffff;
+  --color-secondary:                 #565e74;
+  --color-on-secondary:              #ffffff;
+  --color-secondary-container:       #dae2fd;
+  --color-on-secondary-container:    #5c647a;
+  --color-secondary-fixed:           #dae2fd;
+  --color-secondary-fixed-dim:       #bec6e0;
+  --color-on-secondary-fixed:        #131b2e;
+  --color-on-secondary-fixed-variant:#3f465c;
+
+  --color-tertiary:                  #6b38d4;
+  --color-on-tertiary:               #ffffff;
+  --color-tertiary-container:        #8455ef;
+  --color-on-tertiary-container:     #fffbff;
+  --color-tertiary-fixed:            #e9ddff;
+  --color-tertiary-fixed-dim:        #d0bcff;
+  --color-on-tertiary-fixed:         #23005c;
   --color-on-tertiary-fixed-variant: #5516be;
-  --color-outline-variant: #c7c4d7;
-  --color-surface-dim: #d8dadc;
-  --color-on-secondary-fixed-variant: #3f465c;
-  --color-tertiary-fixed-dim: #d0bcff;
-  --color-on-tertiary: #ffffff;
-  --color-on-primary-fixed: #07006c;
-  --color-on-error-container: #93000a;
-  --color-secondary-container: #dae2fd;
-  --color-outline: #767586;
-  --color-on-tertiary-fixed: #23005c;
-  --color-on-secondary-container: #5c647a;
-  --color-primary-fixed: #e1e0ff;
-  --color-on-primary: #ffffff;
-  --color-surface: #f7f9fb;
-  --color-on-surface-variant: #464554;
-  --color-secondary: #565e74;
-  --color-primary: #4648d4;
-  --color-surface-bright: #f7f9fb;
-  --color-inverse-primary: #c0c1ff;
-  --color-error-container: #ffdad6;
-  --color-inverse-on-surface: #eff1f3;
-  --color-on-error: #ffffff;
-  --color-secondary-fixed-dim: #bec6e0;
+
+  --color-error:                     #ba1a1a;
+  --color-on-error:                  #ffffff;
+  --color-error-container:           #ffdad6;
+  --color-on-error-container:        #93000a;
+
+  /* Surfaces */
+  --color-background:                #f7f9fb;
+  --color-on-background:             #191c1e;
+  --color-surface:                   #f7f9fb;
+  --color-surface-bright:            #f7f9fb;
+  --color-surface-dim:               #d8dadc;
+  --color-surface-tint:              #494bd6;
+  --color-surface-variant:           #e0e3e5;
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #f2f4f6;
+  --color-surface-container:         #eceef0;
+  --color-surface-container-high:    #e6e8ea;
+  --color-surface-container-highest: #e0e3e5;
+  --color-on-surface:                #191c1e;
+  --color-on-surface-variant:        #464554;
+
+  /* Misc */
+  --color-outline:                   #767586;
+  --color-outline-variant:           #c7c4d7;
+  --color-inverse-surface:           #2d3133;
+  --color-inverse-on-surface:        #eff1f3;
+
+  /* Shadows */
+  --shadow-card: 0 4px 16px rgba(25, 28, 30, 0.06);
+  --shadow-card-lg: 0 12px 48px rgba(25, 28, 30, 0.10);
+  --shadow-hero: 0 24px 80px rgba(25, 28, 30, 0.08);
+
+  /* Border Radius */
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
 }
 
+/* =============================================
+   Dark Mode Overrides
+   ============================================= */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @theme {
+    --color-background:                #0f0f13;
+    --color-surface:                   #111318;
+    --color-surface-bright:            #37393e;
+    --color-surface-dim:               #111318;
+    --color-surface-container-lowest:  #0c0e13;
+    --color-surface-container-low:     #191c20;
+    --color-surface-container:         #1d2024;
+    --color-surface-container-high:    #282a2f;
+    --color-surface-container-highest: #33353a;
+    --color-on-surface:                #e2e2e9;
+    --color-on-surface-variant:        #c5c4d6;
+    --color-on-background:             #e2e2e9;
+    --color-primary:                   #c0c1ff;
+    --color-on-primary:                #06006e;
+    --color-primary-container:         #2c2ec7;
+    --color-on-primary-container:      #e1e0ff;
+    --color-secondary:                 #c2caed;
+    --color-on-secondary:              #2c3347;
+    --color-secondary-container:       #434b61;
+    --color-on-secondary-container:    #dae2fd;
+    --color-tertiary:                  #d0bcff;
+    --color-on-tertiary:               #381e72;
+    --color-tertiary-container:        #5516be;
+    --color-on-tertiary-container:     #ead6ff;
+    --color-outline:                   #8f8d9f;
+    --color-outline-variant:           #474659;
   }
 }
 
+/* =============================================
+   Base
+   ============================================= */
+html { scroll-behavior: smooth; }
+
 body {
-  background: var(--background);
-  color: var(--foreground);
+  @apply bg-background text-on-surface font-sans antialiased;
 }
 
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-.signature-pulse {
-  background: linear-gradient(135deg, #4648d4 0%, #6b38d4 100%);
-}
-.text-gradient {
-  background: linear-gradient(135deg, #4648d4 0%, #6b38d4 100%);
+/* =============================================
+   Custom Utilities
+   ============================================= */
+@utility text-gradient {
+  background: linear-gradient(135deg, theme(colors.primary) 0%, theme(colors.tertiary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
+
+@utility btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-base text-white no-underline transition-all duration-200 cursor-pointer border-none;
+  background: linear-gradient(135deg, theme(colors.primary) 0%, theme(colors.tertiary) 100%);
+  box-shadow: 0 8px 32px rgba(70, 72, 212, 0.3);
+  &:hover { opacity: 0.92; transform: translateY(-1px); }
+  &:active { transform: scale(0.97); }
+}
+
+@utility btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-base text-on-surface no-underline transition-all duration-200 cursor-pointer bg-surface-container-low border border-outline-variant;
+  &:hover { @apply bg-surface-container; transform: translateY(-1px); }
+}
+
+@utility card-hover {
+  @apply transition-all duration-300;
+  &:hover { transform: translateY(-3px); box-shadow: theme(--shadow-card-lg); }
+}
+
+/* Material Symbols */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  @apply inline-block leading-none align-middle;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes ping-slow {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(2); opacity: 0; }
+}
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-ping-slow { animation: ping-slow 2.5s ease-out infinite; }
