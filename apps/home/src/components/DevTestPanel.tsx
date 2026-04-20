@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://saaszo-backend-225015681530.asia-south2.run.app";
+  "https://app.saaszo.in";
 
 type TestResult = {
   status: "idle" | "loading" | "success" | "error";
