@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      if (firebaseAuth.currentUser) {
+      if (firebaseAuth?.currentUser) {
         const firebaseToken = await firebaseAuth.currentUser.getIdToken();
         await hydrateProfile(firebaseToken);
         return;
@@ -186,9 +186,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       void refreshAuthState();
     });
 
-    const firebaseUnsubscribe = onAuthStateChanged(firebaseAuth, () => {
-      void refreshAuthState();
-    });
+    const firebaseUnsubscribe = firebaseAuth
+      ? onAuthStateChanged(firebaseAuth, () => {
+          void refreshAuthState();
+        })
+      : () => undefined;
 
     return () => {
       isMounted = false;
@@ -204,7 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return data.session.access_token;
     }
 
-    if (firebaseAuth.currentUser) {
+    if (firebaseAuth?.currentUser) {
       return firebaseAuth.currentUser.getIdToken();
     }
 
@@ -286,7 +288,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signOut() {
     await Promise.allSettled([
       supabase.auth.signOut(),
-      signOutFromFirebase(firebaseAuth),
+      firebaseAuth ? signOutFromFirebase(firebaseAuth) : Promise.resolve(),
     ]);
 
     setState(signedOutState);

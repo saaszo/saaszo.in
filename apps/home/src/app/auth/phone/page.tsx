@@ -8,7 +8,7 @@ import {
   signInWithPhoneNumber,
   ConfirmationResult,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, hasFirebaseConfig } from '@/lib/firebase';
 import { API_BASE_URL } from '@/lib/app-config';
 
 /* ─── Types ─────────────────────────────────────────────────── */
@@ -48,6 +48,7 @@ export default function PhoneOtpAuth() {
   /* ── Set up invisible reCAPTCHA once ── */
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!auth || !hasFirebaseConfig) return;
 
     try {
       if (!recaptchaVerifierRef.current) {
@@ -75,6 +76,10 @@ export default function PhoneOtpAuth() {
     setError('');
     if (phone.trim().length < 6) {
       setError('Please enter a valid phone number.');
+      return;
+    }
+    if (!auth || !hasFirebaseConfig) {
+      setError('Mobile OTP is not configured for this deployment yet.');
       return;
     }
     const fullPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
@@ -114,6 +119,10 @@ export default function PhoneOtpAuth() {
     const code = otp.join('');
     if (code.length !== 6) {
       setError('Please enter all 6 digits.');
+      return;
+    }
+    if (!auth) {
+      setError('Mobile OTP is not configured for this deployment yet.');
       return;
     }
     if (!confirmationResult) return;
