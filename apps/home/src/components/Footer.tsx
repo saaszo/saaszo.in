@@ -27,7 +27,7 @@ export default function Footer() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/invoice"
+              href="/register"
               className="bg-white font-bold text-primary px-8 py-3.5 rounded-xl hover:bg-white/90 transition-colors duration-200 text-sm"
             >
               Start for Free — No credit card needed

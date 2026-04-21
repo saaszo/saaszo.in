@@ -19,6 +19,7 @@
     "cf:typegen:invoice": "npm run cf-typegen --workspace=invoice"
   },
   "dependencies": {
+    "firebase": "^11.9.0",
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"

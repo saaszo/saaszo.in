@@ -46,7 +46,7 @@ export default function Hero() {
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
           <Link
-            href="/invoice"
+            href="/register"
             className="w-full sm:w-auto text-center text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-all duration-200 hover:opacity-90 hover:-translate-y-px active:scale-95"
             style={{
               background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",

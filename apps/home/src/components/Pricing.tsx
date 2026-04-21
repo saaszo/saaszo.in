@@ -14,7 +14,7 @@ const plans = [
       "Email support",
     ],
     cta: "Start Free Trial",
-    href: "/invoice",
+    href: "/register",
     highlighted: false,
   },
   {
@@ -32,7 +32,7 @@ const plans = [
       "Priority support",
     ],
     cta: "Get Started",
-    href: "/invoice",
+    href: "/register",
     highlighted: true,
     badge: "Most Popular",
   },

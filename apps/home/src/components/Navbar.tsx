@@ -40,13 +40,13 @@ export default function Navbar() {
         {/* CTAs */}
         <div className="hidden md:flex items-center gap-4 shrink-0">
           <Link
-            href="/invoice"
+            href="/auth"
             className="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors"
           >
             Log In
           </Link>
           <Link
-            href="/invoice"
+            href="/register"
             className="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-all duration-200 hover:opacity-90 hover:-translate-y-px active:scale-95"
             style={{
               background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
@@ -83,11 +83,11 @@ export default function Navbar() {
             </Link>
           ))}
           <hr className="border-outline-variant/30" />
-          <Link href="/invoice" className="text-on-surface-variant font-medium">
+          <Link href="/auth" className="text-on-surface-variant font-medium">
             Log In
           </Link>
           <Link
-            href="/invoice"
+            href="/register"
             className="text-center text-white font-semibold px-5 py-2.5 rounded-lg"
             style={{
               background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
