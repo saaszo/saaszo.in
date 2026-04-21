@@ -13,6 +13,10 @@ type TestResult = {
 
 const initialResult: TestResult = { status: "idle", message: "" };
 
+function isSuccessfulStatus(status: unknown) {
+  return status === "success" || status === "ok";
+}
+
 export default function DevTestPanel() {
   const [backend, setBackend] = useState<TestResult>(initialResult);
   const [supabase, setSupabase] = useState<TestResult>(initialResult);
@@ -34,7 +38,7 @@ export default function DevTestPanel() {
     try {
       const res = await fetch(`${API_URL}/test-supabase`, { cache: "no-store" });
       const json = await res.json();
-      if (json.status === "ok") {
+      if (isSuccessfulStatus(json.status)) {
         setSupabase({ status: "success", message: json.message || "Connected!", data: json });
       } else {
         setSupabase({ status: "error", message: json.message || "Connection failed", data: json });
@@ -49,7 +53,7 @@ export default function DevTestPanel() {
     try {
       const res = await fetch(`${API_URL}/test-r2`, { cache: "no-store" });
       const json = await res.json();
-      if (json.status === "ok") {
+      if (isSuccessfulStatus(json.status)) {
         setR2({ status: "success", message: json.message || "Connected!", data: json });
       } else {
         setR2({ status: "error", message: json.message || "Connection failed", data: json });
