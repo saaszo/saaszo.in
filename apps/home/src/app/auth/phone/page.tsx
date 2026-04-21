@@ -9,6 +9,7 @@ import {
   ConfirmationResult,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { API_BASE_URL } from '@/lib/app-config';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 type Step = 'phone' | 'otp' | 'success';
@@ -124,7 +125,7 @@ export default function PhoneOtpAuth() {
 
       // Verify on backend → upsert user in Supabase
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || ''}/auth/verify-phone-otp`,
+        `${API_BASE_URL}/auth/verify-phone-otp`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

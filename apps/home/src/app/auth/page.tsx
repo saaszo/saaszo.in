@@ -3,10 +3,13 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ApiConnectionStatus from '@/components/ApiConnectionStatus';
+import { useAuthSession } from '@/components/AuthProvider';
+import { supabase } from '@/lib/supabase-browser';
 
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { authenticated, signInWithGoogle } = useAuthSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isHovered, setIsHovered] = useState(false);
@@ -20,6 +23,12 @@ function AuthForm() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (authenticated) {
+      router.replace('/dashboard');
+    }
+  }, [authenticated, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
@@ -28,29 +37,33 @@ function AuthForm() {
     setError('');
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.saaszo.in';
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data?.message || 'Invalid email or password. Please try again.');
-      }
-
-      // Store session/user if needed, then redirect
-      if (data.session) {
-        // You can use a context provider or local storage here
-        localStorage.setItem('saaszo_session', JSON.stringify(data.session));
+      if (signInError) {
+        throw new Error(signInError.message || 'Invalid email or password. Please try again.');
       }
       
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'The authentication server is currently unreachable.');
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await signInWithGoogle();
+    } catch (err: any) {
+      setError(err.message || 'Google sign-in is not available right now.');
       setIsLoading(false);
     }
   };
@@ -227,7 +240,12 @@ function AuthForm() {
 
           <div className="mt-8 grid grid-cols-3 gap-3">
             {/* Google */}
-            <button className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-outline-variant hover:bg-surface-container transition-colors font-medium" title="Sign in with Google">
+            <button
+              onClick={handleGoogleSignIn}
+              type="button"
+              className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-outline-variant hover:bg-surface-container transition-colors font-medium"
+              title="Sign in with Google"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -238,12 +256,10 @@ function AuthForm() {
             </button>
 
             {/* GitHub */}
-            <button className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-outline-variant hover:bg-surface-container transition-colors font-medium" title="Sign in with GitHub">
-              <svg className="w-5 h-5 text-[#181717] dark:text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.379.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z" />
-              </svg>
-              <span className="hidden sm:inline text-sm">GitHub</span>
-            </button>
+            <div className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-outline-variant bg-surface-container/60 text-on-surface-variant font-medium">
+              <span className="material-symbols-outlined text-xl">lock_clock</span>
+              <span className="hidden sm:inline text-sm">GitHub soon</span>
+            </div>
 
             {/* Mobile OTP — links to Firebase phone auth page */}
             <Link
