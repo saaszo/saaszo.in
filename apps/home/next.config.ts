@@ -1,16 +1,18 @@
 import type { NextConfig } from "next";
 
 const localInvoiceOrigin = "http://localhost:3001";
-const invoiceAppOrigin = (
-  process.env.INVOICE_APP_ORIGIN ?? localInvoiceOrigin
-).replace(/\/$/, "");
+const hostedInvoiceOrigin = "https://saaszo-invoice.vercel.app";
 const isVercelDeployment =
   process.env.VERCEL_ENV === "preview" ||
   process.env.VERCEL_ENV === "production";
+const invoiceAppOrigin = (
+  process.env.INVOICE_APP_ORIGIN ??
+  (isVercelDeployment ? hostedInvoiceOrigin : localInvoiceOrigin)
+).replace(/\/$/, "");
 
 if (isVercelDeployment && !process.env.INVOICE_APP_ORIGIN) {
-  throw new Error(
-    `INVOICE_APP_ORIGIN is missing for the apps/home Vercel project in ${process.env.VERCEL_ENV}. Vercel environment variables are scoped per project and environment, so set INVOICE_APP_ORIGIN on the home project for this environment to the deployed invoice URL or custom domain.`,
+  console.warn(
+    `INVOICE_APP_ORIGIN is missing for the apps/home Vercel project in ${process.env.VERCEL_ENV}. Falling back to ${hostedInvoiceOrigin}. Set INVOICE_APP_ORIGIN explicitly in Vercel to override this.`,
   );
 }
 

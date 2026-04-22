@@ -1,10 +1,32 @@
 import Link from "next/link";
 
 const footerLinks = {
-  Product: ["Platform", "HRMS", "CRM", "AI Insights", "Team Chat", "Pricing"],
-  Company: ["About", "Blog", "Careers", "Press", "Partners"],
-  Resources: ["Documentation", "API Reference", "Status", "Changelog"],
-  Legal: ["Privacy Policy", "Terms of Service", "Security"],
+  Product: [
+    { label: "Platform", href: "/#solutions" },
+    { label: "HRMS", href: "/#solutions" },
+    { label: "CRM", href: "/#solutions" },
+    { label: "AI Insights", href: "/#solutions" },
+    { label: "Team Chat", href: "/#solutions" },
+    { label: "Pricing", href: "/#pricing" },
+  ],
+  Company: [
+    { label: "About", href: "/#testimonials" },
+    { label: "Blog", href: "/#testimonials" },
+    { label: "Careers", href: "/#testimonials" },
+    { label: "Press", href: "/#testimonials" },
+    { label: "Partners", href: "/#testimonials" },
+  ],
+  Resources: [
+    { label: "Documentation", href: "/#solutions" },
+    { label: "API Reference", href: "https://api.saaszo.in/health" },
+    { label: "Status", href: "https://api.saaszo.in/health" },
+    { label: "Changelog", href: "/#testimonials" },
+  ],
+  Legal: [
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms & Conditions", href: "/terms" },
+    { label: "Security", href: "/privacy#security" },
+  ],
 };
 
 export default function Footer() {
@@ -67,12 +89,12 @@ export default function Footer() {
               </h4>
               <ul className="space-y-2.5">
                 {links.map((link) => (
-                  <li key={link}>
+                  <li key={link.label}>
                     <Link
-                      href="#"
+                      href={link.href}
                       className="text-sm text-on-surface-variant hover:text-primary transition-colors duration-200"
                     >
-                      {link}
+                      {link.label}
                     </Link>
                   </li>
                 ))}
