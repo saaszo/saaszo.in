@@ -112,9 +112,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Only show loading if we don't have an authenticated session yet
       setState((current) => ({
         ...current,
-        loading: true,
+        loading: !current.authenticated,
         error: '',
       }));
 
