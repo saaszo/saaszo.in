@@ -13,23 +13,73 @@ function AuthCallbackContent() {
   useEffect(() => {
     async function exchangeCode() {
       const code = searchParams.get('code');
+      const tokenHash = searchParams.get('token_hash');
+      const verificationType = searchParams.get('type');
       const nextPath = searchParams.get('next') || '/dashboard';
 
-      if (!code) {
-        setError('Missing OAuth authorization code.');
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(
+          code,
+        );
+
+        if (exchangeError) {
+          setError(exchangeError.message);
+          return;
+        }
+
+        router.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
         return;
       }
 
-      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(
-        code,
-      );
+      if (tokenHash && verificationType) {
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: verificationType as
+            | 'signup'
+            | 'recovery'
+            | 'magiclink'
+            | 'invite'
+            | 'email_change'
+            | 'email',
+        });
 
-      if (exchangeError) {
-        setError(exchangeError.message);
+        if (verifyError) {
+          setError(verifyError.message);
+          return;
+        }
+
+        router.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
         return;
       }
 
-      router.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
+      if (typeof window !== 'undefined') {
+        const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const errorDescription = hashParams.get('error_description');
+
+        if (errorDescription) {
+          setError(errorDescription);
+          return;
+        }
+
+        if (accessToken && refreshToken) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (sessionError) {
+            setError(sessionError.message);
+            return;
+          }
+
+          router.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
+          return;
+        }
+      }
+
+      setError('Missing authentication callback payload.');
     }
 
     void exchangeCode();

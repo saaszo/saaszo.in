@@ -7,14 +7,18 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { onAuthStateChanged, signOut as signOutFromFirebase } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { auth as firebaseAuth } from '@/lib/firebase';
 import { API_BASE_URL } from '@/lib/app-config';
+import {
+  clearPhoneSessionToken,
+  getPhoneSessionToken,
+  PHONE_SESSION_EVENT,
+  PHONE_SESSION_STORAGE_KEY,
+} from '@/lib/auth-utils';
 import { supabase } from '@/lib/supabase-browser';
 
 type AuthPayload = {
-  kind: 'supabase' | 'firebase';
+  kind: 'supabase' | 'phone';
   email: string | null;
   phone: string | null;
   providers: string[];
@@ -25,7 +29,7 @@ type AuthPayload = {
 type ProfilePayload = {
   id: string;
   authUserId: string | null;
-  firebaseUid: string | null;
+  phoneAuthUid: string | null;
   email: string | null;
   phone: string | null;
   fullName: string | null;
@@ -118,13 +122,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const supabaseToken = data.session?.access_token ?? null;
 
       if (supabaseToken) {
-        await hydrateProfile(supabaseToken);
+        await hydrateProfile(supabaseToken, 'supabase');
         return;
       }
 
-      if (firebaseAuth?.currentUser) {
-        const firebaseToken = await firebaseAuth.currentUser.getIdToken();
-        await hydrateProfile(firebaseToken);
+      const phoneSessionToken = getPhoneSessionToken();
+
+      if (phoneSessionToken) {
+        await hydrateProfile(phoneSessionToken, 'phone');
         return;
       }
 
@@ -133,7 +138,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    async function hydrateProfile(accessToken: string) {
+    async function hydrateProfile(
+      accessToken: string,
+      source: 'supabase' | 'phone',
+    ) {
       try {
         const response = await fetch(`${API_BASE_URL}/profile/me`, {
           headers: {
@@ -166,6 +174,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
         }
       } catch (error) {
+        if (source === 'phone') {
+          clearPhoneSessionToken();
+        }
+
         if (isMounted) {
           setState({
             ...signedOutState,
@@ -185,17 +197,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(() => {
       void refreshAuthState();
     });
+    const handlePhoneSessionChanged = () => {
+      void refreshAuthState();
+    };
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === PHONE_SESSION_STORAGE_KEY) {
+        void refreshAuthState();
+      }
+    };
 
-    const firebaseUnsubscribe = firebaseAuth
-      ? onAuthStateChanged(firebaseAuth, () => {
-          void refreshAuthState();
-        })
-      : () => undefined;
+    window.addEventListener(PHONE_SESSION_EVENT, handlePhoneSessionChanged);
+    window.addEventListener('storage', handleStorage);
 
     return () => {
       isMounted = false;
       supabaseSubscription.unsubscribe();
-      firebaseUnsubscribe();
+      window.removeEventListener(PHONE_SESSION_EVENT, handlePhoneSessionChanged);
+      window.removeEventListener('storage', handleStorage);
     };
   }, []);
 
@@ -206,11 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return data.session.access_token;
     }
 
-    if (firebaseAuth?.currentUser) {
-      return firebaseAuth.currentUser.getIdToken();
-    }
-
-    return null;
+    return getPhoneSessionToken();
   }
 
   async function refreshProfile() {
@@ -286,10 +300,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
+    const phoneSessionToken = getPhoneSessionToken();
+
     await Promise.allSettled([
       supabase.auth.signOut(),
-      firebaseAuth ? signOutFromFirebase(firebaseAuth) : Promise.resolve(),
+      phoneSessionToken
+        ? fetch(`${API_BASE_URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${phoneSessionToken}`,
+            },
+          })
+        : Promise.resolve(),
     ]);
+
+    clearPhoneSessionToken();
 
     setState(signedOutState);
     startTransition(() => {

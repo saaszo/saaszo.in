@@ -43,6 +43,13 @@ function AuthForm() {
       });
 
       if (signInError) {
+        if (/email.*confirm/i.test(signInError.message)) {
+          router.push(
+            `/auth/verify-email?email=${encodeURIComponent(email)}`,
+          );
+          return;
+        }
+
         throw new Error(signInError.message || 'Invalid email or password. Please try again.');
       }
       
@@ -238,7 +245,7 @@ function AuthForm() {
             <div className="flex-1 h-px bg-outline-variant" />
           </div>
 
-          <div className="mt-8 grid grid-cols-3 gap-3">
+          <div className="mt-8 grid grid-cols-2 gap-3">
             {/* Google */}
             <button
               onClick={handleGoogleSignIn}
@@ -255,15 +262,9 @@ function AuthForm() {
               <span className="hidden sm:inline text-sm">Google</span>
             </button>
 
-            {/* GitHub */}
-            <div className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-outline-variant bg-surface-container/60 text-on-surface-variant font-medium">
-              <span className="material-symbols-outlined text-xl">lock_clock</span>
-              <span className="hidden sm:inline text-sm">GitHub soon</span>
-            </div>
-
             {/* Mobile OTP — links to Firebase phone auth page */}
             <Link
-              href="/auth/phone"
+              href="/auth/phone?intent=signin"
               className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-primary/40 bg-primary-container/30 hover:bg-primary-container/60 text-primary transition-all duration-200 font-medium group"
               title="Sign in with Mobile OTP"
             >

@@ -178,6 +178,42 @@ export default function DashboardPage() {
           </div>
 
           <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 md:p-8 shadow-[0_16px_48px_rgba(25,28,30,0.08)]">
+            <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">
+              Workspace Apps
+            </p>
+            <h2 className="text-2xl font-bold tracking-tight">
+              Your ready-to-use modules
+            </h2>
+            <p className="text-on-surface-variant mt-2">
+              Every newly authenticated account lands on a trial workspace with these active sections.
+            </p>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <WorkspaceAppCard
+                href="#account-details"
+                icon="badge"
+                title="Account Center"
+                description="Manage your profile, contact details, and account identity."
+              />
+              <WorkspaceAppCard
+                href="#security-controls"
+                icon="shield_lock"
+                title="Security"
+                description="Review your sign-in method, password controls, and recovery status."
+              />
+              <WorkspaceAppCard
+                href="/dashboard/billing"
+                icon="credit_card"
+                title="Billing"
+                description="Open your Free Trial plan details and billing snapshot."
+              />
+            </div>
+          </div>
+
+          <div
+            id="account-details"
+            className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 md:p-8 shadow-[0_16px_48px_rgba(25,28,30,0.08)]"
+          >
             <div className="flex items-start justify-between gap-4 mb-8">
               <div>
                 <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">
@@ -264,7 +300,10 @@ export default function DashboardPage() {
         </section>
 
         <section className="space-y-8">
-          <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 md:p-8 shadow-[0_16px_48px_rgba(25,28,30,0.08)]">
+          <div
+            id="security-controls"
+            className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 md:p-8 shadow-[0_16px_48px_rgba(25,28,30,0.08)]"
+          >
             <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">
               Password
             </p>
@@ -420,5 +459,30 @@ function ReadOnlyCard({ label, value }: { label: string; value: string }) {
       </p>
       <p className="font-semibold text-on-surface">{value}</p>
     </div>
+  );
+}
+
+function WorkspaceAppCard({
+  description,
+  href,
+  icon,
+  title,
+}: {
+  description: string;
+  href: string;
+  icon: string;
+  title: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-2xl border border-outline-variant/20 bg-surface-container px-5 py-5 transition-all hover:border-primary/30 hover:bg-surface-container-high hover:-translate-y-0.5"
+    >
+      <div className="w-11 h-11 rounded-2xl bg-primary-container/40 text-on-primary-container flex items-center justify-center mb-4">
+        <span className="material-symbols-outlined">{icon}</span>
+      </div>
+      <p className="text-lg font-bold text-on-surface">{title}</p>
+      <p className="text-sm text-on-surface-variant mt-2">{description}</p>
+    </Link>
   );
 }

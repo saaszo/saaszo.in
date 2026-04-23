@@ -1,14 +1,19 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import ApiConnectionStatus from '@/components/ApiConnectionStatus';
+import { API_BASE_URL } from '@/lib/app-config';
+import { lookupAuthIdentifier, parseAuthIdentifier } from '@/lib/auth-utils';
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState('');
+  const router = useRouter();
+  const [identifier, setIdentifier] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,13 +21,56 @@ export default function ForgotPassword() {
 
     setIsLoading(true);
     setError('');
+    setSuccessMessage('');
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.saaszo.in';
+      const parsedIdentifier = parseAuthIdentifier(identifier);
+
+      if (parsedIdentifier.type === 'unknown') {
+        throw new Error('Enter a valid email address or mobile number.');
+      }
+
+      const lookup = await lookupAuthIdentifier(
+        parsedIdentifier.type === 'email'
+          ? parsedIdentifier.email
+          : parsedIdentifier.e164,
+      );
+
+      if (!lookup.exists) {
+        throw new Error('No account was found for that email or mobile number.');
+      }
+
+      if (parsedIdentifier.type === 'phone') {
+        if (!lookup.canUsePhoneOtp) {
+          throw new Error(
+            'This number is not enabled for mobile OTP sign-in. Please use your email login method instead.',
+          );
+        }
+
+        router.push(
+          `/auth/phone?intent=recover&countryCode=${encodeURIComponent(
+            parsedIdentifier.countryCode,
+          )}&phone=${encodeURIComponent(parsedIdentifier.nationalNumber)}`,
+        );
+        return;
+      }
+
+      if (!lookup.canUsePassword) {
+        if (lookup.canUseGoogle) {
+          throw new Error(
+            'This account uses Google sign-in. Please continue with Google on the sign-in page.',
+          );
+        }
+
+        throw new Error(
+          'This account does not use password recovery. Please use its original sign-in method.',
+        );
+      }
+
       const response = await fetch(`${API_BASE_URL}/auth/recover`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: parsedIdentifier.email }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -31,6 +79,9 @@ export default function ForgotPassword() {
         throw new Error(data?.message || 'Failed to send recovery link.');
       }
 
+      setSuccessMessage(
+        `We've sent a password reset link to ${parsedIdentifier.email}.`,
+      );
       setIsSent(true);
     } catch (err: any) {
       setError(err.message || 'The server is currently unreachable. Please try again later.');
@@ -101,7 +152,7 @@ export default function ForgotPassword() {
             <>
               <div className="mb-10 text-center lg:text-left">
                 <h2 className="text-3xl font-bold mb-3 tracking-tight">Recover Identity</h2>
-                <p className="text-on-surface-variant">Enter your registered email address and we'll send you a link to reset your password.</p>
+                <p className="text-on-surface-variant">Enter your registered email address or mobile number to recover access.</p>
               </div>
 
               {error && (
@@ -118,11 +169,11 @@ export default function ForgotPassword() {
                       <span className="material-symbols-outlined text-xl">mail</span>
                     </div>
                     <input
-                      type="email"
-                      placeholder="name@company.com"
+                      type="text"
+                      placeholder="name@company.com or +91 98765 43210"
                       className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
                       required
                     />
                   </div>
@@ -137,8 +188,8 @@ export default function ForgotPassword() {
                 >
                   {!isLoading && <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />}
                   <span className="relative z-10 flex items-center justify-center gap-2">
-                    {isLoading ? 'Sending...' : 'Send Recovery Link'}
-                    {!isLoading && <span className={`material-symbols-outlined transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`}>send</span>}
+                    {isLoading ? 'Continuing...' : 'Continue'}
+                    {!isLoading && <span className={`material-symbols-outlined transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`}>arrow_forward</span>}
                   </span>
                 </button>
               </form>
@@ -150,7 +201,7 @@ export default function ForgotPassword() {
               </div>
               <h2 className="text-3xl font-bold mb-3 tracking-tight animate-fade-up" style={{ animationDelay: '0.1s' }}>Check your inbox</h2>
               <p className="text-on-surface-variant mb-8 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-                We've sent a recovery link to <span className="font-semibold text-on-surface">{email}</span>. Click the link to reset your password.
+                {successMessage}
               </p>
             </div>
           )}

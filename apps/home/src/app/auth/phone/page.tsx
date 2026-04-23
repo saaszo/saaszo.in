@@ -3,63 +3,57 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  ConfirmationResult,
-} from 'firebase/auth';
-import { auth, hasFirebaseConfig } from '@/lib/firebase';
 import { API_BASE_URL } from '@/lib/app-config';
+import {
+  AUTH_COUNTRY_OPTIONS,
+  setPhoneSessionToken,
+} from '@/lib/auth-utils';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 type Step = 'phone' | 'otp' | 'success';
-
-/* ─── Country codes list ─────────────────────────────────────── */
-const COUNTRY_CODES = [
-  { flag: '🇮🇳', code: '+91', name: 'India' },
-  { flag: '🇺🇸', code: '+1', name: 'USA' },
-  { flag: '🇬🇧', code: '+44', name: 'UK' },
-  { flag: '🇦🇪', code: '+971', name: 'UAE' },
-  { flag: '🇸🇬', code: '+65', name: 'Singapore' },
-  { flag: '🇦🇺', code: '+61', name: 'Australia' },
-  { flag: '🇨🇦', code: '+1', name: 'Canada' },
-  { flag: '🇩🇪', code: '+49', name: 'Germany' },
-];
+type AuthIntent = 'signin' | 'signup' | 'recover';
 
 export default function PhoneOtpAuth() {
   const router = useRouter();
 
   /* ── State ── */
   const [step, setStep] = useState<Step>('phone');
+  const [intent, setIntent] = useState<AuthIntent>('signin');
   const [countryCode, setCountryCode] = useState('+91');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [confirmationResult, setConfirmationResult] =
-    useState<ConfirmationResult | null>(null);
+  const [challengeToken, setChallengeToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
 
   /* ── Refs ── */
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  /* ── Set up invisible reCAPTCHA once ── */
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!auth || !hasFirebaseConfig) return;
+    if (typeof window === 'undefined') {
+      return;
+    }
 
-    try {
-      if (!recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current = new RecaptchaVerifier(
-          auth,
-          'recaptcha-container',
-          { size: 'invisible' },
-        );
-      }
-    } catch {
-      // Will retry on send
+    const params = new URLSearchParams(window.location.search);
+    const requestedIntent = params.get('intent');
+    const requestedCountryCode = params.get('countryCode');
+    const requestedPhone = params.get('phone');
+
+    if (
+      requestedIntent === 'signin' ||
+      requestedIntent === 'signup' ||
+      requestedIntent === 'recover'
+    ) {
+      setIntent(requestedIntent);
+    }
+
+    if (requestedCountryCode) {
+      setCountryCode(requestedCountryCode);
+    }
+
+    if (requestedPhone) {
+      setPhone(requestedPhone);
     }
   }, []);
 
@@ -70,46 +64,44 @@ export default function PhoneOtpAuth() {
     return () => clearTimeout(t);
   }, [resendTimer]);
 
-  /* ── Send OTP ── */
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const requestPhoneOtp = async () => {
     setError('');
     if (phone.trim().length < 6) {
       setError('Please enter a valid phone number.');
-      return;
+      return false;
     }
-    if (!auth || !hasFirebaseConfig) {
-      setError('Mobile OTP is not configured for this deployment yet.');
-      return;
-    }
+
     const fullPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
 
     setIsLoading(true);
     try {
-      // Ensure verifier exists
-      if (!recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current = new RecaptchaVerifier(
-          auth,
-          'recaptcha-container',
-          { size: 'invisible' },
-        );
+      const response = await fetch(`${API_BASE_URL}/auth/send-phone-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: fullPhone, intent }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data?.challengeToken) {
+        throw new Error(data?.message || 'Failed to send OTP. Please try again.');
       }
-      const result = await signInWithPhoneNumber(
-        auth,
-        fullPhone,
-        recaptchaVerifierRef.current,
-      );
-      setConfirmationResult(result);
+
+      setChallengeToken(data.challengeToken);
       setStep('otp');
       setResendTimer(30);
+      return true;
     } catch (err: any) {
       setError(err?.message ?? 'Failed to send OTP. Please try again.');
-      // Reset reCAPTCHA so it can retry
-      recaptchaVerifierRef.current?.clear();
-      recaptchaVerifierRef.current = null;
+      return false;
     } finally {
       setIsLoading(false);
     }
+  };
+
+  /* ── Send OTP ── */
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await requestPhoneOtp();
   };
 
   /* ── Verify OTP ── */
@@ -121,32 +113,30 @@ export default function PhoneOtpAuth() {
       setError('Please enter all 6 digits.');
       return;
     }
-    if (!auth) {
-      setError('Mobile OTP is not configured for this deployment yet.');
+    if (!challengeToken) {
+      setError('Your OTP session expired. Please request a new OTP.');
       return;
     }
-    if (!confirmationResult) return;
 
     setIsLoading(true);
     try {
-      const userCredential = await confirmationResult.confirm(code);
-      const idToken = await userCredential.user.getIdToken();
+      const fullPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
+      const response = await fetch(`${API_BASE_URL}/auth/verify-phone-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: fullPhone,
+          otp: code,
+          challengeToken,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
 
-      // Verify on backend → upsert user in Supabase
-      const res = await fetch(
-        `${API_BASE_URL}/auth/verify-phone-otp`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken }),
-        },
-      );
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.message || 'Verification failed on server.');
+      if (!response.ok || !data?.accessToken) {
+        throw new Error(data?.message || 'Verification failed. Please try again.');
       }
 
+      setPhoneSessionToken(data.accessToken);
       setStep('success');
       setTimeout(() => router.push('/dashboard'), 1500);
     } catch (err: any) {
@@ -191,9 +181,27 @@ export default function PhoneOtpAuth() {
   const handleResend = async () => {
     if (resendTimer > 0) return;
     setOtp(['', '', '', '', '', '']);
-    setConfirmationResult(null);
-    setStep('phone');
+    setError('');
+    await requestPhoneOtp();
   };
+
+  const isRecoverIntent = intent === 'recover';
+  const isSignupIntent = intent === 'signup';
+  const primaryHeading = isRecoverIntent
+    ? 'Recover with Mobile OTP'
+    : isSignupIntent
+      ? 'Sign up with Mobile'
+      : 'Sign in with Mobile';
+  const primaryDescription = isRecoverIntent
+    ? "We'll verify your number and take you back into your workspace."
+    : isSignupIntent
+      ? "We'll send a 6-digit OTP to create and secure your mobile account."
+      : "We'll send a 6-digit OTP to verify your number.";
+  const submitLabel = isRecoverIntent
+    ? 'Send Recovery OTP'
+    : isSignupIntent
+      ? 'Send Signup OTP'
+      : 'Send OTP';
 
   /* ─── Shared left-panel orb background ─── */
   const LeftPanel = () => (
@@ -238,7 +246,7 @@ export default function PhoneOtpAuth() {
             icon: 'bolt',
             color: 'tertiary',
             title: 'Lightning Fast',
-            desc: 'OTP delivered in under 10 seconds via SMS, powered by Firebase.',
+            desc: 'OTP delivered in seconds through our MSG91-powered mobile verification flow.',
           },
           {
             icon: 'verified_user',
@@ -266,9 +274,6 @@ export default function PhoneOtpAuth() {
   /* ─── Main render ─── */
   return (
     <div className="min-h-screen w-full flex bg-background text-on-background overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
-      {/* invisible reCAPTCHA anchor */}
-      <div id="recaptcha-container" ref={recaptchaContainerRef} />
-
       <LeftPanel />
 
       {/* ── Right Panel ── */}
@@ -292,10 +297,10 @@ export default function PhoneOtpAuth() {
             <>
               <div className="mb-10 text-center lg:text-left">
                 <h2 className="text-3xl font-bold mb-3 tracking-tight">
-                  Sign in with Mobile
+                  {primaryHeading}
                 </h2>
                 <p className="text-on-surface-variant">
-                  We'll send a 6-digit OTP to verify your number.
+                  {primaryDescription}
                 </p>
               </div>
 
@@ -317,7 +322,7 @@ export default function PhoneOtpAuth() {
                       className="h-full pl-3 pr-8 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high outline-none border border-transparent focus:border-primary transition-all duration-300 appearance-none cursor-pointer text-sm font-medium"
                       aria-label="Country code"
                     >
-                      {COUNTRY_CODES.map((c) => (
+                      {AUTH_COUNTRY_OPTIONS.map((c) => (
                         <option key={`${c.code}-${c.name}`} value={c.code}>
                           {c.flag} {c.code}
                         </option>
@@ -365,7 +370,7 @@ export default function PhoneOtpAuth() {
                       </>
                     ) : (
                       <>
-                        Send OTP
+                        {submitLabel}
                         <span className="material-symbols-outlined">send</span>
                       </>
                     )}
@@ -381,11 +386,13 @@ export default function PhoneOtpAuth() {
 
               <div className="mt-8 text-center">
                 <Link
-                  href="/auth"
+                  href={isSignupIntent ? '/register' : '/auth'}
                   className="inline-flex items-center gap-2 font-semibold text-primary hover:text-tertiary transition-colors"
                 >
                   <span className="material-symbols-outlined text-sm">mail</span>
-                  Sign in with Email instead
+                  {isSignupIntent
+                    ? 'Sign up with Email instead'
+                    : 'Sign in with Email instead'}
                 </Link>
               </div>
             </>
@@ -457,7 +464,7 @@ export default function PhoneOtpAuth() {
                       </>
                     ) : (
                       <>
-                        Verify & Sign In
+                        Verify & Continue
                         <span className="material-symbols-outlined">verified</span>
                       </>
                     )}
@@ -485,7 +492,12 @@ export default function PhoneOtpAuth() {
                   )}
                 </p>
                 <button
-                  onClick={() => { setStep('phone'); setError(''); setOtp(['', '', '', '', '', '']); }}
+                  onClick={() => {
+                    setStep('phone');
+                    setError('');
+                    setOtp(['', '', '', '', '', '']);
+                    setChallengeToken(null);
+                  }}
                   className="inline-flex items-center justify-center gap-1 text-sm text-on-surface-variant hover:text-primary transition-colors"
                 >
                   <span className="material-symbols-outlined text-sm">arrow_back</span>
@@ -503,7 +515,11 @@ export default function PhoneOtpAuth() {
               </div>
               <h2 className="text-3xl font-bold mb-3 tracking-tight">Verified!</h2>
               <p className="text-on-surface-variant">
-                Welcome to SaaSzo. Redirecting you to your workspace…
+                {isSignupIntent
+                  ? 'Your mobile account is ready. Redirecting you to your workspace…'
+                  : isRecoverIntent
+                    ? 'Your number is verified. Redirecting you back into your workspace…'
+                    : 'Welcome to SaaSzo. Redirecting you to your workspace…'}
               </p>
               <div className="mt-6 flex justify-center">
                 <span className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />

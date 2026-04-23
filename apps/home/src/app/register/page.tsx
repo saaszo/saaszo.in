@@ -42,7 +42,9 @@ export default function Register() {
         return;
       }
 
-      router.push('/auth?registered=true');
+      router.push(
+        `/auth/verify-email?email=${encodeURIComponent(email)}`,
+      );
     } catch (err: any) {
       setError(err.message || 'The registration server is currently unreachable.');
     } finally {
@@ -227,7 +229,7 @@ export default function Register() {
               Google
             </button>
             <Link
-              href="/auth/phone"
+              href="/auth/phone?intent=signup"
               className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-primary/30 bg-primary-container/30 hover:bg-primary-container/60 transition-colors font-medium text-primary"
             >
               <span className="material-symbols-outlined text-xl">smartphone</span>
