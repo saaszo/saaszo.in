@@ -3,24 +3,39 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { API_BASE_URL } from '@/lib/app-config';
 import {
   AUTH_COUNTRY_OPTIONS,
   lookupAuthIdentifier,
+  setPhoneSessionToken,
 } from '@/lib/auth-utils';
-import { supabase } from '@/lib/supabase-browser';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 type Step = 'phone' | 'otp' | 'success';
 type AuthIntent = 'signin' | 'signup' | 'recover';
+
+type SendPhoneOtpResponse = {
+  success: boolean;
+  challengeToken: string;
+  phone: string;
+  message?: string;
+};
+
+type VerifyPhoneOtpResponse = {
+  success: boolean;
+  accessToken: string;
+  phone: string;
+};
 
 function mapPhoneOtpError(message: string, intent: AuthIntent) {
   const normalizedMessage = message.trim();
   const lowerMessage = normalizedMessage.toLowerCase();
 
   if (
-    lowerMessage.includes('sms provider') ||
-    lowerMessage.includes('send sms') ||
-    lowerMessage.includes('hook')
+    lowerMessage.includes('not fully configured') ||
+    lowerMessage.includes('msg91 is not configured') ||
+    lowerMessage.includes('widget id is missing') ||
+    lowerMessage.includes('phone_auth_secret is missing')
   ) {
     return 'Mobile OTP is not fully configured yet. Please try again in a moment.';
   }
@@ -34,6 +49,7 @@ function mapPhoneOtpError(message: string, intent: AuthIntent) {
   }
 
   if (
+    lowerMessage.includes('already registered') ||
     lowerMessage.includes('user not found') ||
     lowerMessage.includes('signups not allowed for otp')
   ) {
@@ -43,12 +59,21 @@ function mapPhoneOtpError(message: string, intent: AuthIntent) {
   }
 
   if (
+    lowerMessage.includes('challenge token is required') ||
     lowerMessage.includes('token has expired') ||
     lowerMessage.includes('expired') ||
     lowerMessage.includes('token is invalid') ||
     lowerMessage.includes('invalid otp')
   ) {
     return 'Invalid or expired OTP. Please request a new code and try again.';
+  }
+
+  if (
+    lowerMessage.includes('authenticationfailure') ||
+    lowerMessage.includes('could not send') ||
+    lowerMessage.includes('request id')
+  ) {
+    return 'We could not send the OTP right now. Please check the number and try again.';
   }
 
   return normalizedMessage || 'Phone verification failed. Please try again.';
@@ -66,6 +91,7 @@ export default function PhoneOtpAuth() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
+  const [challengeToken, setChallengeToken] = useState('');
 
   /* ── Refs ── */
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -131,18 +157,33 @@ export default function PhoneOtpAuth() {
         }
       }
 
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        phone: fullPhone,
-        options: {
-          shouldCreateUser: true,
-        },
+      const response = await fetch(`${API_BASE_URL}/auth/send-phone-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: fullPhone,
+          intent,
+        }),
       });
+      const data = (await response.json().catch(() => null)) as
+        | SendPhoneOtpResponse
+        | { message?: string }
+        | null;
 
-      if (otpError) {
-        throw new Error(mapPhoneOtpError(otpError.message, intent));
+      if (!response.ok || !data || !('success' in data) || !data.success) {
+        throw new Error(
+          mapPhoneOtpError(
+            data && 'message' in data && typeof data.message === 'string'
+              ? data.message
+              : 'Failed to send OTP. Please try again.',
+            intent,
+          ),
+        );
       }
 
+      setChallengeToken(data.challengeToken);
       setStep('otp');
+      setOtp(['', '', '', '', '', '']);
       setResendTimer(60);
       return true;
     } catch (err: any) {
@@ -172,21 +213,33 @@ export default function PhoneOtpAuth() {
     setIsLoading(true);
     try {
       const fullPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
-      const { data, error: otpError } = await supabase.auth.verifyOtp({
-        phone: fullPhone,
-        token: code,
-        type: 'sms',
+      const response = await fetch(`${API_BASE_URL}/auth/verify-phone-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: fullPhone,
+          otp: code,
+          challengeToken,
+          intent,
+        }),
       });
+      const data = (await response.json().catch(() => null)) as
+        | VerifyPhoneOtpResponse
+        | { message?: string }
+        | null;
 
-      if (otpError || !data.session?.access_token) {
+      if (!response.ok || !data || !('success' in data) || !data.success) {
         throw new Error(
           mapPhoneOtpError(
-            otpError?.message ?? 'Verification failed. Please try again.',
+            data && 'message' in data && typeof data.message === 'string'
+              ? data.message
+              : 'Verification failed. Please try again.',
             intent,
           ),
         );
       }
 
+      setPhoneSessionToken(data.accessToken);
       setStep('success');
       setTimeout(() => router.push('/dashboard'), 1500);
     } catch (err: any) {
@@ -298,13 +351,13 @@ export default function PhoneOtpAuth() {
             icon: 'bolt',
             color: 'tertiary',
             title: 'Lightning Fast',
-            desc: 'OTP delivered in seconds through our secure Supabase and MSG91 mobile verification flow.',
+            desc: 'OTP delivered in seconds through our secure MSG91 mobile verification flow.',
           },
           {
             icon: 'verified_user',
             color: 'secondary',
             title: 'Military-grade Verification',
-            desc: 'Each OTP is single-use and backed by Supabase auth verification.',
+            desc: 'Each OTP is single-use and validated before workspace access is granted.',
           },
         ].map(({ icon, color, title, desc }) => (
           <div key={title} className="flex gap-4 items-start group">
@@ -548,6 +601,7 @@ export default function PhoneOtpAuth() {
                     setStep('phone');
                     setError('');
                     setOtp(['', '', '', '', '', '']);
+                    setChallengeToken('');
                   }}
                   className="inline-flex items-center justify-center gap-1 text-sm text-on-surface-variant hover:text-primary transition-colors"
                 >
