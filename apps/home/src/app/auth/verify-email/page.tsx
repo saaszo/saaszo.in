@@ -14,6 +14,7 @@ export default function VerifyEmailPage() {
   const [notice, setNotice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -25,9 +26,24 @@ export default function VerifyEmailPage() {
 
     if (queryEmail) {
       setEmail(queryEmail);
-      setNotice(`We sent a verification code to ${queryEmail}.`);
+      setNotice(
+        `We sent a verification email to ${queryEmail}. Enter the 6-digit code if your inbox shows one, or open the confirmation link from the email to finish setup.`,
+      );
+      setResendCooldown(60);
     }
   }, []);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setResendCooldown((current) => Math.max(current - 1, 0));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -74,7 +90,7 @@ export default function VerifyEmailPage() {
   }
 
   async function handleResend() {
-    if (isLoading || !email.trim()) {
+    if (isLoading || !email.trim() || resendCooldown > 0) {
       return;
     }
 
@@ -95,11 +111,24 @@ export default function VerifyEmailPage() {
         throw resendError;
       }
 
-      setNotice(`A fresh verification code was sent to ${email.trim()}.`);
+      setNotice(
+        `A fresh verification email was sent to ${email.trim()}. Use the 6-digit code if one is included, or open the confirmation link from the email.`,
+      );
+      setResendCooldown(60);
     } catch (resendFailure: any) {
+      const resendMessage =
+        resendFailure?.message || 'We could not resend your verification email right now.';
+
+      if (/second|wait|rate limit|too many/i.test(resendMessage)) {
+        setResendCooldown(60);
+        setError(
+          'Please wait about a minute before requesting another verification email.',
+        );
+        return;
+      }
+
       setError(
-        resendFailure?.message ||
-          'We could not resend your verification code right now.',
+        resendMessage,
       );
     } finally {
       setIsLoading(false);
@@ -129,7 +158,7 @@ export default function VerifyEmailPage() {
               Confirm your workspace email.
             </h1>
             <p className="text-xl text-on-surface-variant leading-relaxed">
-              Enter the one-time code sent to your official inbox to activate your SaaSzo account.
+              Use the verification code from your inbox, or open the confirmation link from the email, to activate your SaaSzo account.
             </p>
           </div>
         </div>
@@ -152,9 +181,9 @@ export default function VerifyEmailPage() {
               <span className="material-symbols-outlined text-2xl">password</span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-1">6-digit verification</h3>
+              <h3 className="text-lg font-semibold mb-1">Code or secure link</h3>
               <p className="text-on-surface-variant leading-relaxed">
-                Use the code from your email to confirm the account without leaving the app.
+                If your email includes a 6-digit code, enter it here. If it includes a confirmation link, open that link and we will finish the verification automatically.
               </p>
             </div>
           </div>
@@ -177,7 +206,7 @@ export default function VerifyEmailPage() {
               Verify your email
             </h2>
             <p className="text-on-surface-variant">
-              Enter the verification code from your inbox to finish account setup.
+              Enter the verification code from your inbox if your email includes one, or open the confirmation link from the same email.
             </p>
           </div>
 
@@ -219,7 +248,7 @@ export default function VerifyEmailPage() {
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="6-digit code"
+                  placeholder="6-digit code (if provided)"
                   maxLength={6}
                   className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline tracking-[0.35em]"
                   value={token}
@@ -250,16 +279,22 @@ export default function VerifyEmailPage() {
             </button>
           </form>
 
+          <p className="mt-4 text-sm text-center text-on-surface-variant leading-relaxed">
+            Seeing a &quot;Confirm your mail&quot; button in the email instead of a 6-digit code? Open that link in this browser and SaaSzo will complete the verification automatically.
+          </p>
+
           <div className="mt-6 flex flex-col gap-3 text-center">
             <button
               type="button"
               onClick={() => {
                 void handleResend();
               }}
-              disabled={isLoading || !email.trim()}
+              disabled={isLoading || !email.trim() || resendCooldown > 0}
               className="font-semibold text-primary hover:text-tertiary transition-colors disabled:opacity-60"
             >
-              Resend verification code
+              {resendCooldown > 0
+                ? `Resend verification email in ${resendCooldown}s`
+                : 'Resend verification email'}
             </button>
 
             <Link

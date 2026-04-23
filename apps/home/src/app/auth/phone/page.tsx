@@ -3,15 +3,56 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '@/lib/app-config';
 import {
   AUTH_COUNTRY_OPTIONS,
-  setPhoneSessionToken,
+  lookupAuthIdentifier,
 } from '@/lib/auth-utils';
+import { supabase } from '@/lib/supabase-browser';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 type Step = 'phone' | 'otp' | 'success';
 type AuthIntent = 'signin' | 'signup' | 'recover';
+
+function mapPhoneOtpError(message: string, intent: AuthIntent) {
+  const normalizedMessage = message.trim();
+  const lowerMessage = normalizedMessage.toLowerCase();
+
+  if (
+    lowerMessage.includes('sms provider') ||
+    lowerMessage.includes('send sms') ||
+    lowerMessage.includes('hook')
+  ) {
+    return 'Mobile OTP is not fully configured yet. Please try again in a moment.';
+  }
+
+  if (
+    lowerMessage.includes('rate limit') ||
+    lowerMessage.includes('security purposes') ||
+    lowerMessage.includes('too many requests')
+  ) {
+    return 'Too many OTP requests were made. Please wait a minute and try again.';
+  }
+
+  if (
+    lowerMessage.includes('user not found') ||
+    lowerMessage.includes('signups not allowed for otp')
+  ) {
+    return intent === 'signup'
+      ? 'This mobile number is already registered. Please sign in instead.'
+      : 'No account was found for this mobile number. Please sign up first.';
+  }
+
+  if (
+    lowerMessage.includes('token has expired') ||
+    lowerMessage.includes('expired') ||
+    lowerMessage.includes('token is invalid') ||
+    lowerMessage.includes('invalid otp')
+  ) {
+    return 'Invalid or expired OTP. Please request a new code and try again.';
+  }
+
+  return normalizedMessage || 'Phone verification failed. Please try again.';
+}
 
 export default function PhoneOtpAuth() {
   const router = useRouter();
@@ -22,7 +63,6 @@ export default function PhoneOtpAuth() {
   const [countryCode, setCountryCode] = useState('+91');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [challengeToken, setChallengeToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
@@ -64,7 +104,7 @@ export default function PhoneOtpAuth() {
     return () => clearTimeout(t);
   }, [resendTimer]);
 
-  const requestPhoneOtp = async () => {
+  const requestPhoneOtp = async (skipLookupValidation = false) => {
     setError('');
     if (phone.trim().length < 6) {
       setError('Please enter a valid phone number.');
@@ -75,20 +115,35 @@ export default function PhoneOtpAuth() {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/send-phone-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: fullPhone, intent }),
-      });
-      const data = await response.json().catch(() => ({}));
+      if (!skipLookupValidation) {
+        const lookup = await lookupAuthIdentifier(fullPhone);
 
-      if (!response.ok || !data?.challengeToken) {
-        throw new Error(data?.message || 'Failed to send OTP. Please try again.');
+        if (intent === 'signup' && lookup.exists) {
+          throw new Error(
+            'This mobile number is already registered. Please sign in instead.',
+          );
+        }
+
+        if ((intent === 'signin' || intent === 'recover') && !lookup.exists) {
+          throw new Error(
+            'No account was found for this mobile number. Please sign up first.',
+          );
+        }
       }
 
-      setChallengeToken(data.challengeToken);
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        phone: fullPhone,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+
+      if (otpError) {
+        throw new Error(mapPhoneOtpError(otpError.message, intent));
+      }
+
       setStep('otp');
-      setResendTimer(30);
+      setResendTimer(60);
       return true;
     } catch (err: any) {
       setError(err?.message ?? 'Failed to send OTP. Please try again.');
@@ -113,34 +168,31 @@ export default function PhoneOtpAuth() {
       setError('Please enter all 6 digits.');
       return;
     }
-    if (!challengeToken) {
-      setError('Your OTP session expired. Please request a new OTP.');
-      return;
-    }
 
     setIsLoading(true);
     try {
       const fullPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
-      const response = await fetch(`${API_BASE_URL}/auth/verify-phone-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: fullPhone,
-          otp: code,
-          challengeToken,
-        }),
+      const { data, error: otpError } = await supabase.auth.verifyOtp({
+        phone: fullPhone,
+        token: code,
+        type: 'sms',
       });
-      const data = await response.json().catch(() => ({}));
 
-      if (!response.ok || !data?.accessToken) {
-        throw new Error(data?.message || 'Verification failed. Please try again.');
+      if (otpError || !data.session?.access_token) {
+        throw new Error(
+          mapPhoneOtpError(
+            otpError?.message ?? 'Verification failed. Please try again.',
+            intent,
+          ),
+        );
       }
 
-      setPhoneSessionToken(data.accessToken);
       setStep('success');
       setTimeout(() => router.push('/dashboard'), 1500);
     } catch (err: any) {
-      setError(err?.message ?? 'Invalid OTP. Please try again.');
+      setError(
+        err?.message ?? 'Invalid or expired OTP. Please request a new code.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +234,7 @@ export default function PhoneOtpAuth() {
     if (resendTimer > 0) return;
     setOtp(['', '', '', '', '', '']);
     setError('');
-    await requestPhoneOtp();
+    await requestPhoneOtp(true);
   };
 
   const isRecoverIntent = intent === 'recover';
@@ -246,13 +298,13 @@ export default function PhoneOtpAuth() {
             icon: 'bolt',
             color: 'tertiary',
             title: 'Lightning Fast',
-            desc: 'OTP delivered in seconds through our MSG91-powered mobile verification flow.',
+            desc: 'OTP delivered in seconds through our secure Supabase and MSG91 mobile verification flow.',
           },
           {
             icon: 'verified_user',
             color: 'secondary',
             title: 'Military-grade Verification',
-            desc: 'Each OTP is single-use and expires in 60 seconds.',
+            desc: 'Each OTP is single-use and backed by Supabase auth verification.',
           },
         ].map(({ icon, color, title, desc }) => (
           <div key={title} className="flex gap-4 items-start group">
@@ -496,7 +548,6 @@ export default function PhoneOtpAuth() {
                     setStep('phone');
                     setError('');
                     setOtp(['', '', '', '', '', '']);
-                    setChallengeToken(null);
                   }}
                   className="inline-flex items-center justify-center gap-1 text-sm text-on-surface-variant hover:text-primary transition-colors"
                 >
