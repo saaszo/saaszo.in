@@ -3,7 +3,7 @@ export const API_BASE_URL =
 
 export const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  'https://vulsmysstduolqqobjkr.supabase.co';
+  'https://vulsmsstduolqqobjkr.supabase.co';
 
 export const SUPABASE_PUBLISHABLE_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
