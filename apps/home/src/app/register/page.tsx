@@ -4,11 +4,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ApiConnectionStatus from '@/components/ApiConnectionStatus';
 import { useAuthSession } from '@/components/AuthProvider';
-import { supabase } from '@/lib/supabase-browser';
 
 export default function Register() {
   const router = useRouter();
-  const { signInWithGoogle } = useAuthSession();
+  const { signInWithGoogle, signUpWithEmail } = useAuthSession();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,29 +23,16 @@ export default function Register() {
     setError('');
 
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: name },
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-        },
-      });
-
-      if (signUpError) {
-        throw new Error(signUpError.message || 'Registration failed. Please try again.');
-      }
-
-      if (data.session) {
-        router.push('/dashboard');
-        return;
-      }
-
-      router.push(
-        `/auth/verify-email?email=${encodeURIComponent(email)}`,
-      );
+      await signUpWithEmail(email, password, name);
+      // router.push('/dashboard') is handled in AuthProvider
     } catch (err: any) {
-      setError(err.message || 'The registration server is currently unreachable.');
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email is already registered. Please sign in instead.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters.');
+      } else {
+        setError(err.message || 'The registration server is currently unreachable.');
+      }
     } finally {
       setIsLoading(false);
     }

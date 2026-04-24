@@ -4,12 +4,24 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ApiConnectionStatus from '@/components/ApiConnectionStatus';
-import { supabase } from '@/lib/supabase-browser';
+import { useAuthSession } from '@/components/AuthProvider';
+import { auth } from '@/lib/firebase';
+import { applyActionCode, sendEmailVerification } from 'firebase/auth';
+
+function buildVerificationActionSettings() {
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : 'https://saaszo.in';
+
+  return {
+    url: `${origin}/auth/verify-email`,
+    handleCodeInApp: false,
+  };
+}
 
 export default function VerifyEmailPage() {
   const router = useRouter();
+  const { user, reloadUser } = useAuthSession();
   const [email, setEmail] = useState('');
-  const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -23,15 +35,37 @@ export default function VerifyEmailPage() {
 
     const params = new URLSearchParams(window.location.search);
     const queryEmail = params.get('email');
+    const mode = params.get('mode');
+    const actionCode = params.get('oobCode');
+
+    if (mode === 'verifyEmail' && actionCode && auth) {
+      void applyActionCode(auth, actionCode)
+        .then(async () => {
+          await reloadUser();
+          setIsSuccess(true);
+          setNotice('Your email has been verified. Redirecting to dashboard...');
+          setTimeout(() => router.replace('/dashboard'), 1500);
+        })
+        .catch(() => {
+          setError(
+            'This verification link is invalid or has expired. Please request a new one.',
+          );
+        });
+      return;
+    }
 
     if (queryEmail) {
       setEmail(queryEmail);
       setNotice(
-        `We sent a verification email to ${queryEmail}. Enter the 6-digit code if your inbox shows one, or open the confirmation link from the email to finish setup.`,
+        `We sent a verification link to ${queryEmail}. Please check your inbox (and spam folder) to activate your account.`,
       );
       setResendCooldown(60);
+    } else if (auth?.currentUser?.email) {
+      setEmail(auth.currentUser.email);
+    } else if (user?.email) {
+      setEmail(user.email);
     }
-  }, []);
+  }, [reloadUser, router, user]);
 
   useEffect(() => {
     if (resendCooldown <= 0) {
@@ -45,52 +79,44 @@ export default function VerifyEmailPage() {
     return () => window.clearTimeout(timer);
   }, [resendCooldown]);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // Periodically check verification status if user is logged in
+  useEffect(() => {
+    if (!auth?.currentUser || auth.currentUser.emailVerified) return;
 
-    if (isLoading) {
-      return;
-    }
+    const interval = setInterval(async () => {
+      await auth?.currentUser?.reload();
+      if (auth?.currentUser?.emailVerified) {
+        setIsSuccess(true);
+        setNotice('Email verified! Redirecting to dashboard...');
+        setTimeout(() => router.replace('/dashboard'), 2000);
+      }
+    }, 5000);
 
+    return () => clearInterval(interval);
+  }, [router]);
+
+  async function handleCheckVerification() {
     setIsLoading(true);
     setError('');
-    setNotice('');
-
+    
     try {
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        email: email.trim().toLowerCase(),
-        token: token.trim(),
-        type: 'signup',
-      });
-
-      if (verifyError) {
-        throw verifyError;
+      await reloadUser();
+      if (auth?.currentUser?.emailVerified) {
+        setIsSuccess(true);
+        setNotice('Email verified! Redirecting to dashboard...');
+        setTimeout(() => router.replace('/dashboard'), 1500);
+      } else {
+        setError('Email is not verified yet. Please check your inbox and click the link.');
       }
-
-      setIsSuccess(true);
-      setNotice('Email verified successfully. Redirecting to your workspace...');
-
-      const activeSession =
-        data.session ?? (await supabase.auth.getSession()).data.session;
-
-      if (activeSession) {
-        setTimeout(() => router.replace('/dashboard'), 1200);
-        return;
-      }
-
-      router.replace('/auth');
-    } catch (verificationError: any) {
-      setError(
-        verificationError?.message ||
-          'Could not verify that code. Please try again.',
-      );
+    } catch (err: any) {
+      setError(err.message || 'Failed to check verification status.');
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleResend() {
-    if (isLoading || !email.trim() || resendCooldown > 0) {
+    if (isLoading || !auth?.currentUser || resendCooldown > 0) {
       return;
     }
 
@@ -99,37 +125,16 @@ export default function VerifyEmailPage() {
     setNotice('');
 
     try {
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email: email.trim().toLowerCase(),
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-        },
-      });
-
-      if (resendError) {
-        throw resendError;
-      }
-
+      await sendEmailVerification(
+        auth.currentUser,
+        buildVerificationActionSettings(),
+      );
       setNotice(
-        `A fresh verification email was sent to ${email.trim()}. Use the 6-digit code if one is included, or open the confirmation link from the email.`,
+        `A fresh verification link was sent to ${auth.currentUser.email}. Please check your inbox.`,
       );
       setResendCooldown(60);
     } catch (resendFailure: any) {
-      const resendMessage =
-        resendFailure?.message || 'We could not resend your verification email right now.';
-
-      if (/second|wait|rate limit|too many/i.test(resendMessage)) {
-        setResendCooldown(60);
-        setError(
-          'Please wait about a minute before requesting another verification email.',
-        );
-        return;
-      }
-
-      setError(
-        resendMessage,
-      );
+      setError(resendFailure?.message || 'We could not resend your verification email right now.');
     } finally {
       setIsLoading(false);
     }
@@ -158,7 +163,7 @@ export default function VerifyEmailPage() {
               Confirm your workspace email.
             </h1>
             <p className="text-xl text-on-surface-variant leading-relaxed">
-              Use the verification code from your inbox, or open the confirmation link from the email, to activate your SaaSzo account.
+              Open the confirmation link we sent to your email to activate your SaaSzo account and start building.
             </p>
           </div>
         </div>
@@ -169,21 +174,21 @@ export default function VerifyEmailPage() {
               <span className="material-symbols-outlined text-2xl">mark_email_read</span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-1">Official inbox delivery</h3>
+              <h3 className="text-lg font-semibold mb-1">Secure Link Verification</h3>
               <p className="text-on-surface-variant leading-relaxed">
-                Your verification email is ready to work with your configured production SMTP sender.
+                We use secure, single-use links to verify your identity and protect your workspace.
               </p>
             </div>
           </div>
 
           <div className="flex gap-4 items-start group">
             <div className="p-3 rounded-2xl bg-tertiary-container text-on-tertiary-container shrink-0 mt-1 transition-transform duration-300 group-hover:scale-110">
-              <span className="material-symbols-outlined text-2xl">password</span>
+              <span className="material-symbols-outlined text-2xl">auto_mode</span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-1">Code or secure link</h3>
+              <h3 className="text-lg font-semibold mb-1">Automatic Detection</h3>
               <p className="text-on-surface-variant leading-relaxed">
-                If your email includes a 6-digit code, enter it here. If it includes a confirmation link, open that link and we will finish the verification automatically.
+                Once you click the link in your email, this page will automatically update and take you to your dashboard.
               </p>
             </div>
           </div>
@@ -206,7 +211,7 @@ export default function VerifyEmailPage() {
               Verify your email
             </h2>
             <p className="text-on-surface-variant">
-              Enter the verification code from your inbox if your email includes one, or open the confirmation link from the same email.
+              We&apos;ve sent a verification link to <strong>{email || 'your email'}</strong>. Click it to continue.
             </p>
           </div>
 
@@ -224,79 +229,38 @@ export default function VerifyEmailPage() {
             </div>
           )}
 
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-xl">mail</span>
-                </div>
-                <input
-                  type="email"
-                  placeholder="name@company.com"
-                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  required
-                  disabled={isSuccess}
-                />
-              </div>
-
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-xl">password</span>
-                </div>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="6-digit code (if provided)"
-                  maxLength={6}
-                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline tracking-[0.35em]"
-                  value={token}
-                  onChange={(event) =>
-                    setToken(event.target.value.replace(/\D/g, '').slice(0, 6))
-                  }
-                  required
-                  disabled={isSuccess}
-                />
-              </div>
-            </div>
-
+          <div className="flex flex-col gap-4">
             <button
-              type="submit"
-              disabled={isLoading || token.length !== 6 || !email.trim()}
-              className={`mt-4 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
-                isLoading || token.length !== 6 || !email.trim()
+              onClick={handleCheckVerification}
+              disabled={isLoading || isSuccess}
+              className={`relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
+                isLoading || isSuccess
                   ? 'opacity-70 cursor-not-allowed'
                   : 'shadow-lg shadow-primary/20 hover:shadow-primary/40'
               }`}
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
-                {isLoading ? 'Verifying...' : 'Verify Email'}
+                {isLoading ? 'Checking...' : 'I&apos;ve verified my email'}
                 {!isLoading && (
                   <span className="material-symbols-outlined">verified</span>
                 )}
               </span>
             </button>
-          </form>
 
-          <p className="mt-4 text-sm text-center text-on-surface-variant leading-relaxed">
-            Seeing a &quot;Confirm your mail&quot; button in the email instead of a 6-digit code? Open that link in this browser and SaaSzo will complete the verification automatically.
-          </p>
-
-          <div className="mt-6 flex flex-col gap-3 text-center">
             <button
               type="button"
-              onClick={() => {
-                void handleResend();
-              }}
-              disabled={isLoading || !email.trim() || resendCooldown > 0}
-              className="font-semibold text-primary hover:text-tertiary transition-colors disabled:opacity-60"
+              onClick={handleResend}
+              disabled={isLoading || isSuccess || resendCooldown > 0}
+              className="w-full py-4 rounded-xl border border-outline-variant hover:bg-surface-container transition-all duration-300 font-semibold text-on-surface flex items-center justify-center gap-2 disabled:opacity-50"
             >
+              <span className="material-symbols-outlined">send</span>
               {resendCooldown > 0
-                ? `Resend verification email in ${resendCooldown}s`
-                : 'Resend verification email'}
+                ? `Resend link in ${resendCooldown}s`
+                : 'Resend verification link'}
             </button>
+          </div>
 
+          <div className="mt-8 flex flex-col gap-3 text-center">
             <Link
               href="/auth"
               className="inline-flex items-center justify-center gap-2 font-semibold text-on-surface-variant hover:text-primary transition-colors"

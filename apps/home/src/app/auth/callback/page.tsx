@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase-browser';
+import { auth } from '@/lib/firebase';
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -11,78 +11,39 @@ function AuthCallbackContent() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function exchangeCode() {
-      const code = searchParams.get('code');
-      const tokenHash = searchParams.get('token_hash');
-      const verificationType = searchParams.get('type');
-      const nextPath = searchParams.get('next') || '/dashboard';
+    const mode = searchParams.get('mode');
+    const actionCode = searchParams.get('oobCode');
+    const continueUrl = searchParams.get('continueUrl');
+    const nextPath = searchParams.get('next') || '/dashboard';
 
-      if (code) {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(
-          code,
-        );
-
-        if (exchangeError) {
-          setError(exchangeError.message);
-          return;
-        }
-
-        router.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
-        return;
+    if (mode === 'resetPassword' && actionCode) {
+      const resetUrl = new URL('/reset-password', window.location.origin);
+      resetUrl.searchParams.set('mode', mode);
+      resetUrl.searchParams.set('oobCode', actionCode);
+      if (continueUrl) {
+        resetUrl.searchParams.set('continueUrl', continueUrl);
       }
-
-      if (tokenHash && verificationType) {
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: verificationType as
-            | 'signup'
-            | 'recovery'
-            | 'magiclink'
-            | 'invite'
-            | 'email_change'
-            | 'email',
-        });
-
-        if (verifyError) {
-          setError(verifyError.message);
-          return;
-        }
-
-        router.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
-        return;
-      }
-
-      if (typeof window !== 'undefined') {
-        const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const errorDescription = hashParams.get('error_description');
-
-        if (errorDescription) {
-          setError(errorDescription);
-          return;
-        }
-
-        if (accessToken && refreshToken) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (sessionError) {
-            setError(sessionError.message);
-            return;
-          }
-
-          router.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
-          return;
-        }
-      }
-
-      setError('Missing authentication callback payload.');
+      router.replace(`${resetUrl.pathname}${resetUrl.search}`);
+      return;
     }
 
-    void exchangeCode();
+    if (mode === 'verifyEmail' && actionCode) {
+      const verifyUrl = new URL('/auth/verify-email', window.location.origin);
+      verifyUrl.searchParams.set('mode', mode);
+      verifyUrl.searchParams.set('oobCode', actionCode);
+      if (continueUrl) {
+        verifyUrl.searchParams.set('continueUrl', continueUrl);
+      }
+      router.replace(`${verifyUrl.pathname}${verifyUrl.search}`);
+      return;
+    }
+
+    if (auth?.currentUser) {
+      router.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
+      return;
+    }
+
+    setError('Missing or unsupported authentication callback payload.');
   }, [router, searchParams]);
 
   return (

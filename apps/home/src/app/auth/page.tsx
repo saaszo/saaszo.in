@@ -4,12 +4,11 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ApiConnectionStatus from '@/components/ApiConnectionStatus';
 import { useAuthSession } from '@/components/AuthProvider';
-import { supabase } from '@/lib/supabase-browser';
 
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { authenticated, signInWithGoogle } = useAuthSession();
+  const { authenticated, signInWithGoogle, signInWithEmail } = useAuthSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isHovered, setIsHovered] = useState(false);
@@ -37,25 +36,15 @@ function AuthForm() {
     setError('');
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        if (/email.*confirm/i.test(signInError.message)) {
-          router.push(
-            `/auth/verify-email?email=${encodeURIComponent(email)}`,
-          );
-          return;
-        }
-
-        throw new Error(signInError.message || 'Invalid email or password. Please try again.');
-      }
-      
-      router.push('/dashboard');
+      await signInWithEmail(email, password);
     } catch (err: any) {
-      setError(err.message || 'The authentication server is currently unreachable.');
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        setError('Invalid email or password. Please try again.');
+      } else if (err.code === 'auth/email-not-verified') {
+        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+      } else {
+        setError(err.message || 'Authentication failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

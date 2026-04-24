@@ -3,10 +3,14 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ApiConnectionStatus from '@/components/ApiConnectionStatus';
+import { useAuthSession } from '@/components/AuthProvider';
+import { auth } from '@/lib/firebase';
+import { verifyPasswordResetCode } from 'firebase/auth';
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { confirmPasswordReset } = useAuthSession();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,24 +19,36 @@ function ResetPasswordForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [isHovered, setIsHovered] = useState(false);
-  const [accessToken, setAccessToken] = useState('');
+  const [actionCode, setActionCode] = useState('');
+  const [accountEmail, setAccountEmail] = useState('');
 
-  // Supabase puts the access_token in the URL hash after redirect
-  // e.g. /reset-password#access_token=xxx&type=recovery
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash;
-      const params = new URLSearchParams(hash.replace('#', ''));
-      const token = params.get('access_token');
-      const type = params.get('type');
+    const mode = searchParams.get('mode');
+    const oobCode = searchParams.get('oobCode');
 
-      if (token && type === 'recovery') {
-        setAccessToken(token);
-      } else {
-        setError('Invalid or missing reset link. Please request a new password recovery email.');
-      }
+    if (!auth) {
+      setError('Firebase is not initialized.');
+      return;
     }
-  }, []);
+
+    if (!oobCode || (mode && mode !== 'resetPassword')) {
+      setError(
+        'Invalid or missing reset link. Please request a new password recovery email.',
+      );
+      return;
+    }
+
+    void verifyPasswordResetCode(auth, oobCode)
+      .then((email) => {
+        setActionCode(oobCode);
+        setAccountEmail(email);
+      })
+      .catch(() => {
+        setError(
+          'This reset link is invalid or has expired. Please request a new one.',
+        );
+      });
+  }, [searchParams]);
 
   const getPasswordStrength = (pwd: string) => {
     if (pwd.length === 0) return { level: 0, label: '', color: '' };
@@ -58,8 +74,10 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (!accessToken) {
-      setError('Reset token is missing. Please request a new password recovery email.');
+    if (!actionCode) {
+      setError(
+        'Reset token is missing. Please request a new password recovery email.',
+      );
       return;
     }
 
@@ -67,17 +85,10 @@ function ResetPasswordForm() {
     setError('');
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.saaszo.in';
-      const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, accessToken }),
-      });
+      const result = await confirmPasswordReset(actionCode, password);
 
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data?.message || 'Failed to reset password. Please try again.');
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       setIsSuccess(true);
@@ -175,7 +186,9 @@ function ResetPasswordForm() {
               <div className="mb-10 text-center lg:text-left">
                 <h2 className="text-3xl font-bold mb-3 tracking-tight">Set New Password</h2>
                 <p className="text-on-surface-variant">
-                  Choose a strong password for your SaaSzo workspace.
+                  {accountEmail
+                    ? `Choose a strong password for ${accountEmail}.`
+                    : 'Choose a strong password for your SaaSzo workspace.'}
                 </p>
               </div>
 
@@ -202,7 +215,7 @@ function ResetPasswordForm() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={8}
-                        disabled={!accessToken || isLoading}
+                        disabled={!actionCode || isLoading}
                       />
                       <button
                         type="button"
@@ -255,7 +268,7 @@ function ResetPasswordForm() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      disabled={!accessToken || isLoading}
+                      disabled={!actionCode || isLoading}
                     />
                     {confirmPassword.length > 0 && (
                       <div className="absolute inset-y-0 right-0 flex items-center pr-4">
@@ -271,9 +284,9 @@ function ResetPasswordForm() {
 
                 <button
                   type="submit"
-                  disabled={isLoading || !accessToken || password !== confirmPassword}
+                  disabled={isLoading || !actionCode || password !== confirmPassword}
                   className={`mt-4 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
-                    isLoading || !accessToken || password !== confirmPassword
+                    isLoading || !actionCode || password !== confirmPassword
                       ? 'opacity-50 cursor-not-allowed'
                       : 'shadow-lg shadow-primary/20 hover:shadow-primary/40'
                   }`}

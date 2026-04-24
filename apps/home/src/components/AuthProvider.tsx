@@ -9,16 +9,37 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '@/lib/app-config';
+import { auth } from '@/lib/firebase';
 import {
-  clearPhoneSessionToken,
-  getPhoneSessionToken,
-  PHONE_SESSION_EVENT,
-  PHONE_SESSION_STORAGE_KEY,
-} from '@/lib/auth-utils';
-import { supabase } from '@/lib/supabase-browser';
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  onIdTokenChanged,
+  User as FirebaseUser,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile as firebaseUpdateProfile,
+  updatePassword as firebaseUpdatePassword,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  confirmPasswordReset as firebaseConfirmPasswordReset,
+} from 'firebase/auth';
 
-type AuthPayload = {
-  kind: 'supabase' | 'phone';
+type ProfilePayload = {
+  id: string;
+  email: string | null;
+  phone: string | null;
+  fullName: string | null;
+  companyName: string | null;
+  avatarUrl: string | null;
+  profileCompleted: boolean;
+};
+
+type AuthInfo = {
+  kind: string;
   email: string | null;
   phone: string | null;
   providers: string[];
@@ -26,370 +47,298 @@ type AuthPayload = {
   canChangePassword: boolean;
 };
 
-type ProfilePayload = {
-  id: string;
-  authUserId: string | null;
-  phoneAuthUid: string | null;
-  email: string | null;
-  phone: string | null;
-  fullName: string | null;
-  companyName: string | null;
-  avatarUrl: string | null;
-  authProvider: string;
-  profileCompleted: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type SubscriptionPayload = {
-  id: string;
-  profileId: string;
-  planCode: string;
+type SubscriptionInfo = {
   planName: string;
   status: string;
   billingCycle: string;
   seats: number;
   currentPeriodEnd: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type ProfileApiResponse = {
-  success: boolean;
-  auth: AuthPayload;
-  profile: ProfilePayload;
-  subscription: SubscriptionPayload;
-};
-
-type UpdateProfileInput = {
-  fullName?: string;
-  companyName?: string;
-  phone?: string;
-  avatarUrl?: string;
 };
 
 type AuthContextValue = {
-  auth: AuthPayload | null;
+  user: FirebaseUser | null;
   authenticated: boolean;
   error: string;
   loading: boolean;
   profile: ProfilePayload | null;
-  refreshProfile: () => Promise<void>;
+  auth: AuthInfo | null;
+  subscription: SubscriptionInfo | null;
+  reloadUser: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  subscription: SubscriptionPayload | null;
-  updatePassword: (newPassword: string) => Promise<{ error?: string }>;
-  updateProfile: (
-    values: UpdateProfileInput,
-  ) => Promise<{ error?: string }>;
+  setupRecaptcha: (containerId: string) => RecaptchaVerifier;
+  sendPhoneOtp: (phoneNumber: string, appVerifier: RecaptchaVerifier) => Promise<ConfirmationResult>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, name?: string) => Promise<void>;
+  updateProfile: (values: Partial<ProfilePayload>) => Promise<{ error?: string }>;
+  updatePassword: (password: string) => Promise<{ error?: string }>;
+  sendPasswordReset: (email: string) => Promise<{ error?: string }>;
+  confirmPasswordReset: (code: string, password: string) => Promise<{ error?: string }>;
 };
+
+type AuthSessionState = Pick<
+  AuthContextValue,
+  'user' | 'authenticated' | 'error' | 'loading' | 'profile' | 'auth' | 'subscription'
+>;
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const signedOutState = {
-  auth: null,
+  user: null,
   authenticated: false,
   error: '',
   loading: false,
   profile: null,
+  auth: null,
   subscription: null,
 };
 
+function buildActionCodeSettings(path: string) {
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : 'https://saaszo.in';
+
+  return {
+    url: `${origin}${path}`,
+    handleCodeInApp: false,
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [state, setState] = useState<
-    Omit<AuthContextValue, 'refreshProfile' | 'signInWithGoogle' | 'signOut' | 'updatePassword' | 'updateProfile'>
-  >({
+  const [state, setState] = useState<AuthSessionState>({
     ...signedOutState,
     loading: true,
   });
 
+  async function reloadUser() {
+    if (!auth?.currentUser) return;
+    await auth.currentUser.reload();
+    // Trigger the onIdTokenChanged flow manually by getting a new token
+    await auth.currentUser.getIdToken(true);
+  }
+
   useEffect(() => {
     let isMounted = true;
 
-    async function refreshAuthState() {
-      if (!isMounted) {
-        return;
-      }
-
-      // Only show loading if we don't have an authenticated session yet
-      setState((current) => ({
-        ...current,
-        loading: !current.authenticated,
-        error: '',
-      }));
-
-      const { data } = await supabase.auth.getSession();
-      const supabaseToken = data.session?.access_token ?? null;
-
-      if (supabaseToken) {
-        await hydrateProfile(supabaseToken, 'supabase');
-        return;
-      }
-
-      const phoneSessionToken = getPhoneSessionToken();
-
-      if (phoneSessionToken) {
-        await hydrateProfile(phoneSessionToken, 'phone');
-        return;
-      }
-
+    if (!auth) {
       if (isMounted) {
-        setState(signedOutState);
+        setState({ ...signedOutState, error: 'Firebase is not initialized.' });
       }
+      return;
     }
 
-    async function hydrateProfile(
-      accessToken: string,
-      source: 'supabase' | 'phone',
-    ) {
+    const unsubscribe = onIdTokenChanged(auth, async (user) => {
+      if (!isMounted) return;
+
+      if (!user) {
+        setState(signedOutState);
+        return;
+      }
+
+      const providerIds = user.providerData
+        .map((provider) => provider.providerId)
+        .filter(Boolean);
+      const isPasswordUser = providerIds.includes('password');
+
+      if (isPasswordUser && user.email && !user.emailVerified) {
+        setState({
+          user,
+          authenticated: false,
+          error: 'Please verify your email address before continuing.',
+          loading: false,
+          profile: null,
+          auth: null,
+          subscription: null,
+        });
+        return;
+      }
+
+      setState((current) => ({ ...current, loading: true, error: '' }));
+
       try {
-        const response = await fetch(`${API_BASE_URL}/profile/me`, {
+        const token = await user.getIdToken();
+        
+        // Sync user with our backend Supabase database
+        const response = await fetch(`${API_BASE_URL}/auth/sync`, {
+          method: 'POST',
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
-          cache: 'no-store',
         });
 
-        const data = (await response.json().catch(() => null)) as
-          | ProfileApiResponse
-          | { message?: string }
-          | null;
-
-        if (!response.ok || !data || !('profile' in data)) {
-          throw new Error(
-            data && 'message' in data && typeof data.message === 'string'
-              ? data.message
-              : 'Could not load your workspace profile.',
-          );
+        if (!response.ok) {
+          throw new Error('Failed to sync profile with server.');
         }
+
+        const data = await response.json();
 
         if (isMounted) {
           setState({
-            auth: data.auth,
+            user,
             authenticated: true,
             error: '',
             loading: false,
             profile: data.profile,
+            auth: data.auth,
             subscription: data.subscription,
           });
         }
       } catch (error) {
-        if (source === 'phone') {
-          clearPhoneSessionToken();
-        }
-
         if (isMounted) {
           setState({
             ...signedOutState,
-            error:
-              error instanceof Error
-                ? error.message
-                : 'Could not load your workspace profile.',
+            error: error instanceof Error ? error.message : 'Authentication failed.',
           });
         }
       }
-    }
-
-    void refreshAuthState();
-
-    const {
-      data: { subscription: supabaseSubscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      void refreshAuthState();
     });
-    const handlePhoneSessionChanged = () => {
-      void refreshAuthState();
-    };
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === PHONE_SESSION_STORAGE_KEY) {
-        void refreshAuthState();
-      }
-    };
-
-    window.addEventListener(PHONE_SESSION_EVENT, handlePhoneSessionChanged);
-    window.addEventListener('storage', handleStorage);
 
     return () => {
       isMounted = false;
-      supabaseSubscription.unsubscribe();
-      window.removeEventListener(PHONE_SESSION_EVENT, handlePhoneSessionChanged);
-      window.removeEventListener('storage', handleStorage);
+      unsubscribe();
     };
   }, []);
 
-  async function getActiveAccessToken() {
-    const { data } = await supabase.auth.getSession();
-
-    if (data.session?.access_token) {
-      return data.session.access_token;
-    }
-
-    return getPhoneSessionToken();
-  }
-
-  async function refreshProfile() {
-    const accessToken = await getActiveAccessToken();
-
-    if (!accessToken) {
-      setState(signedOutState);
-      return;
-    }
-
-    setState((current) => ({
-      ...current,
-      loading: true,
-    }));
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/profile/me`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        cache: 'no-store',
-      });
-
-      const data = (await response.json().catch(() => null)) as
-        | ProfileApiResponse
-        | { message?: string }
-        | null;
-
-      if (!response.ok || !data || !('profile' in data)) {
-        throw new Error(
-          data && 'message' in data && typeof data.message === 'string'
-            ? data.message
-            : 'Could not refresh your profile.',
-        );
-      }
-
-      setState({
-        auth: data.auth,
-        authenticated: true,
-        error: '',
-        loading: false,
-        profile: data.profile,
-        subscription: data.subscription,
-      });
-    } catch (error) {
-      setState((current) => ({
-        ...current,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Could not refresh your profile.',
-        loading: false,
-      }));
-    }
-  }
-
   async function signInWithGoogle() {
-    const redirectTo = `${window.location.origin}/auth/callback?next=/dashboard`;
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-      },
-    });
+    if (!auth) throw new Error('Firebase not initialized');
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+    router.push('/dashboard');
+  }
 
-    if (error) {
+  function setupRecaptcha(containerId: string) {
+    if (!auth) throw new Error('Firebase not initialized');
+    return new RecaptchaVerifier(auth, containerId, {
+      size: 'invisible',
+    });
+  }
+
+  async function sendPhoneOtp(phoneNumber: string, appVerifier: RecaptchaVerifier) {
+    if (!auth) throw new Error('Firebase not initialized');
+    return await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+  }
+  
+  async function signInWithEmail(email: string, password: string) {
+    if (!auth) throw new Error('Firebase not initialized');
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+
+    if (credential.user.email && !credential.user.emailVerified) {
+      const error = new Error(
+        'Please verify your email address before signing in.',
+      );
+      (error as Error & { code?: string }).code = 'auth/email-not-verified';
       throw error;
     }
 
-    if (data.url) {
-      window.location.assign(data.url);
+    router.push('/dashboard');
+  }
+
+  async function signUpWithEmail(email: string, password: string, name?: string) {
+    if (!auth) throw new Error('Firebase not initialized');
+    const { user } = await createUserWithEmailAndPassword(auth, email, password);
+    if (name) {
+      await firebaseUpdateProfile(user, { displayName: name });
+    }
+    // Always send verification email for new signups
+    await sendEmailVerification(user, buildActionCodeSettings('/auth/verify-email'));
+    // Force token refresh to get updated profile if needed
+    await user.getIdToken(true);
+    
+    router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+  }
+
+  async function updateProfile(values: Partial<ProfilePayload>) {
+    try {
+      const user = auth?.currentUser;
+      if (!user) throw new Error('Not authenticated');
+      
+      const token = await user.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/profile/me`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) throw new Error('Failed to update profile');
+      const data = await response.json();
+      
+      setState(current => ({
+        ...current,
+        profile: data.profile,
+        auth: data.auth,
+        subscription: data.subscription
+      }));
+      
+      return { error: undefined };
+    } catch (err: any) {
+      return { error: err.message };
+    }
+  }
+
+  async function updatePassword(password: string) {
+    try {
+      const user = auth?.currentUser;
+      if (!user) throw new Error('Not authenticated');
+      await firebaseUpdatePassword(user, password);
+      return { error: undefined };
+    } catch (err: any) {
+      return { error: err.message };
+    }
+  }
+
+  async function sendPasswordReset(email: string) {
+    try {
+      if (!auth) throw new Error('Firebase not initialized');
+      await sendPasswordResetEmail(
+        auth,
+        email,
+        buildActionCodeSettings('/reset-password'),
+      );
+      return { error: undefined };
+    } catch (err: any) {
+      return { error: err.message };
+    }
+  }
+
+  async function confirmPasswordReset(code: string, password: string) {
+    try {
+      if (!auth) throw new Error('Firebase not initialized');
+      await firebaseConfirmPasswordReset(auth, code, password);
+      return { error: undefined };
+    } catch (err: any) {
+      return { error: err.message };
     }
   }
 
   async function signOut() {
-    const phoneSessionToken = getPhoneSessionToken();
-
-    await Promise.allSettled([
-      supabase.auth.signOut(),
-      phoneSessionToken
-        ? fetch(`${API_BASE_URL}/auth/logout`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${phoneSessionToken}`,
-            },
-          })
-        : Promise.resolve(),
-    ]);
-
-    clearPhoneSessionToken();
-
+    if (auth) {
+      await firebaseSignOut(auth);
+    }
     setState(signedOutState);
     startTransition(() => {
       router.push('/auth');
     });
   }
 
-  async function updateProfile(values: UpdateProfileInput) {
-    const accessToken = await getActiveAccessToken();
-
-    if (!accessToken) {
-      return { error: 'You need to sign in again.' };
-    }
-
-    const response = await fetch(`${API_BASE_URL}/profile/me`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(values),
-    });
-
-    const data = (await response.json().catch(() => null)) as
-      | ProfileApiResponse
-      | { message?: string }
-      | null;
-
-    if (!response.ok || !data || !('profile' in data)) {
-      return {
-        error:
-          data && 'message' in data && typeof data.message === 'string'
-            ? data.message
-            : 'Profile update failed.',
-      };
-    }
-
-    setState({
-      auth: data.auth,
-      authenticated: true,
-      error: '',
-      loading: false,
-      profile: data.profile,
-      subscription: data.subscription,
-    });
-
-    return {};
-  }
-
-  async function updatePassword(newPassword: string) {
-    if (!state.auth?.canChangePassword) {
-      return { error: 'Password changes are only available for email sign-in.' };
-    }
-
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (error) {
-      return { error: error.message };
-    }
-
-    return {};
-  }
-
   return (
     <AuthContext.Provider
       value={{
         ...state,
-        refreshProfile,
+        reloadUser,
         signInWithGoogle,
         signOut,
-        updatePassword,
+        setupRecaptcha,
+        sendPhoneOtp,
+        signInWithEmail,
+        signUpWithEmail,
         updateProfile,
+        updatePassword,
+        sendPasswordReset,
+        confirmPasswordReset,
       }}
     >
       {children}

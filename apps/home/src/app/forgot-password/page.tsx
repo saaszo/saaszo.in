@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ApiConnectionStatus from '@/components/ApiConnectionStatus';
-import { API_BASE_URL } from '@/lib/app-config';
+import { useAuthSession } from '@/components/AuthProvider';
 import { lookupAuthIdentifier, parseAuthIdentifier } from '@/lib/auth-utils';
 
 export default function ForgotPassword() {
   const router = useRouter();
+  const { sendPasswordReset } = useAuthSession();
   const [identifier, setIdentifier] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [isSent, setIsSent] = useState(false);
@@ -67,16 +68,10 @@ export default function ForgotPassword() {
         );
       }
 
-      const response = await fetch(`${API_BASE_URL}/auth/recover`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: parsedIdentifier.email }),
-      });
+      const result = await sendPasswordReset(parsedIdentifier.email);
 
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data?.message || 'Failed to send recovery link.');
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       setSuccessMessage(
