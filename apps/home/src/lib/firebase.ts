@@ -7,8 +7,7 @@ const firebaseConfig = FIREBASE_PUBLIC_CONFIG;
 export const hasFirebaseConfig = Boolean(
   firebaseConfig.apiKey &&
     firebaseConfig.authDomain &&
-    firebaseConfig.projectId &&
-    firebaseConfig.appId,
+    firebaseConfig.projectId,
 );
 
 let app: FirebaseApp | null = null;
