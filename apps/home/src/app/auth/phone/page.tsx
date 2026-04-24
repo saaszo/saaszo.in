@@ -73,14 +73,39 @@ export default function PhoneOtpAuth() {
 
   useEffect(() => {
     if (step === 'phone' && !recaptchaVerifier) {
-      try {
-        const verifier = setupRecaptcha('recaptcha-container');
-        setRecaptchaVerifier(verifier);
-      } catch (err) {
-        console.error('Failed to setup reCAPTCHA', err);
-      }
+      void ensureRecaptcha();
     }
   }, [step, recaptchaVerifier, setupRecaptcha]);
+
+  useEffect(() => {
+    return () => {
+      if (recaptchaVerifier) {
+        recaptchaVerifier.clear();
+      }
+    };
+  }, [recaptchaVerifier]);
+
+  const ensureRecaptcha = async () => {
+    if (recaptchaVerifier) {
+      return recaptchaVerifier;
+    }
+
+    if (typeof window === 'undefined') {
+      throw new Error('This verification flow must run in the browser.');
+    }
+
+    const buttonElement = document.getElementById('send-phone-otp-button');
+
+    if (!buttonElement) {
+      throw new Error('Phone verification is still loading. Please try again.');
+    }
+
+    const verifier = setupRecaptcha('send-phone-otp-button');
+
+    await verifier.render();
+    setRecaptchaVerifier(verifier);
+    return verifier;
+  };
 
   const requestPhoneOtp = async () => {
     setError('');
@@ -91,13 +116,9 @@ export default function PhoneOtpAuth() {
 
     const fullPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
 
-    if (!recaptchaVerifier) {
-      setError('reCAPTCHA not ready. Please refresh.');
-      return false;
-    }
-
     setIsLoading(true);
     try {
+      const verifier = await ensureRecaptcha();
       const lookup = await lookupAuthIdentifier(fullPhone);
 
       if (intent === 'signup' && lookup.exists) {
@@ -112,7 +133,7 @@ export default function PhoneOtpAuth() {
         );
       }
 
-      const result = await sendPhoneOtp(fullPhone, recaptchaVerifier);
+      const result = await sendPhoneOtp(fullPhone, verifier);
       setConfirmationResult(result);
       setStep('otp');
       setOtp(['', '', '', '', '', '']);
@@ -121,10 +142,8 @@ export default function PhoneOtpAuth() {
     } catch (err: any) {
       setError(mapFirebasePhoneError(err));
       // Reset recaptcha if it fails
-      if (recaptchaVerifier) {
-        recaptchaVerifier.clear();
-        setRecaptchaVerifier(null);
-      }
+      recaptchaVerifier?.clear();
+      setRecaptchaVerifier(null);
       return false;
     } finally {
       setIsLoading(false);
@@ -370,6 +389,7 @@ export default function PhoneOtpAuth() {
                 </div>
 
                 <button
+                  id="send-phone-otp-button"
                   type="submit"
                   disabled={isLoading}
                   className={`mt-2 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
@@ -395,7 +415,6 @@ export default function PhoneOtpAuth() {
                     )}
                   </span>
                 </button>
-                <div id="recaptcha-container"></div>
               </form>
 
               <div className="mt-8 flex items-center justify-center gap-4">

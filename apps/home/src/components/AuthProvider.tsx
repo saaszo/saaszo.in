@@ -211,6 +211,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!auth) throw new Error('Firebase not initialized');
     return new RecaptchaVerifier(auth, containerId, {
       size: 'invisible',
+      callback: () => {
+        // Firebase will continue the pending phone sign-in flow automatically.
+      },
     });
   }
 
