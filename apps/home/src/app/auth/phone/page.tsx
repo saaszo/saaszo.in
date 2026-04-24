@@ -94,13 +94,15 @@ export default function PhoneOtpAuth() {
       throw new Error('This verification flow must run in the browser.');
     }
 
-    const buttonElement = document.getElementById('send-phone-otp-button');
+    const recaptchaContainer = document.getElementById(
+      'phone-otp-recaptcha-container',
+    );
 
-    if (!buttonElement) {
+    if (!recaptchaContainer) {
       throw new Error('Phone verification is still loading. Please try again.');
     }
 
-    const verifier = setupRecaptcha('send-phone-otp-button');
+    const verifier = setupRecaptcha('phone-otp-recaptcha-container');
 
     await verifier.render();
     setRecaptchaVerifier(verifier);
@@ -415,6 +417,12 @@ export default function PhoneOtpAuth() {
                     )}
                   </span>
                 </button>
+
+                <div
+                  id="phone-otp-recaptcha-container"
+                  aria-hidden="true"
+                  className="pointer-events-none h-0 overflow-hidden"
+                />
               </form>
 
               <div className="mt-8 flex items-center justify-center gap-4">
