@@ -66,7 +66,10 @@ type AuthContextValue = {
   reloadUser: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  setupRecaptcha: (containerId: string) => RecaptchaVerifier;
+  setupRecaptcha: (
+    containerId: string,
+    onSolved?: () => void | Promise<void>,
+  ) => RecaptchaVerifier;
   sendPhoneOtp: (phoneNumber: string, appVerifier: RecaptchaVerifier) => Promise<ConfirmationResult>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, name?: string) => Promise<void>;
@@ -207,12 +210,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/dashboard');
   }
 
-  function setupRecaptcha(containerId: string) {
+  function setupRecaptcha(
+    containerId: string,
+    onSolved?: () => void | Promise<void>,
+  ) {
     if (!auth) throw new Error('Firebase not initialized');
     return new RecaptchaVerifier(auth, containerId, {
       size: 'invisible',
       callback: () => {
-        // Firebase will continue the pending phone sign-in flow automatically.
+        void onSolved?.();
       },
     });
   }

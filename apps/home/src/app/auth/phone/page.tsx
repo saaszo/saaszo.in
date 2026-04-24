@@ -43,6 +43,10 @@ export default function PhoneOtpAuth() {
 
   /* ── Refs ── */
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const isRequestInFlightRef = useRef(false);
+  const latestRequestPhoneOtpRef = useRef<() => Promise<boolean>>(
+    async () => false,
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -85,6 +89,10 @@ export default function PhoneOtpAuth() {
     };
   }, [recaptchaVerifier]);
 
+  useEffect(() => {
+    latestRequestPhoneOtpRef.current = () => requestPhoneOtp();
+  });
+
   const ensureRecaptcha = async () => {
     if (recaptchaVerifier) {
       return recaptchaVerifier;
@@ -94,15 +102,19 @@ export default function PhoneOtpAuth() {
       throw new Error('This verification flow must run in the browser.');
     }
 
-    const recaptchaContainer = document.getElementById(
-      'phone-otp-recaptcha-container',
-    );
+    const buttonElement = document.getElementById('send-phone-otp-button');
 
-    if (!recaptchaContainer) {
+    if (!buttonElement) {
       throw new Error('Phone verification is still loading. Please try again.');
     }
 
-    const verifier = setupRecaptcha('phone-otp-recaptcha-container');
+    const verifier = setupRecaptcha('send-phone-otp-button', () => {
+      if (isRequestInFlightRef.current) {
+        return;
+      }
+
+      void latestRequestPhoneOtpRef.current();
+    });
 
     await verifier.render();
     setRecaptchaVerifier(verifier);
@@ -110,9 +122,15 @@ export default function PhoneOtpAuth() {
   };
 
   const requestPhoneOtp = async () => {
+    if (isRequestInFlightRef.current) {
+      return false;
+    }
+
+    isRequestInFlightRef.current = true;
     setError('');
     if (phone.trim().length < 6) {
       setError('Please enter a valid phone number.');
+      isRequestInFlightRef.current = false;
       return false;
     }
 
@@ -148,14 +166,15 @@ export default function PhoneOtpAuth() {
       setRecaptchaVerifier(null);
       return false;
     } finally {
+      isRequestInFlightRef.current = false;
       setIsLoading(false);
     }
   };
 
   /* ── Send OTP ── */
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await requestPhoneOtp();
+  const handleSendOtp = async () => {
+    setError('');
+    await ensureRecaptcha();
   };
 
   /* ── Verify OTP ── */
@@ -351,7 +370,7 @@ export default function PhoneOtpAuth() {
                 </div>
               )}
 
-              <form className="flex flex-col gap-5" onSubmit={handleSendOtp}>
+              <div className="flex flex-col gap-5">
                 {/* Country + phone row */}
                 <div className="flex gap-2">
                   {/* Country code selector */}
@@ -392,7 +411,8 @@ export default function PhoneOtpAuth() {
 
                 <button
                   id="send-phone-otp-button"
-                  type="submit"
+                  type="button"
+                  onClick={handleSendOtp}
                   disabled={isLoading}
                   className={`mt-2 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
                     isLoading
@@ -417,13 +437,7 @@ export default function PhoneOtpAuth() {
                     )}
                   </span>
                 </button>
-
-                <div
-                  id="phone-otp-recaptcha-container"
-                  aria-hidden="true"
-                  className="pointer-events-none h-0 overflow-hidden"
-                />
-              </form>
+              </div>
 
               <div className="mt-8 flex items-center justify-center gap-4">
                 <div className="flex-1 h-px bg-outline-variant" />
