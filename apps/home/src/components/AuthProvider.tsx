@@ -68,7 +68,11 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
   setupRecaptcha: (
     containerId: string,
-    onSolved?: () => void | Promise<void>,
+    options?: {
+      size?: 'normal' | 'invisible';
+      onSolved?: () => void | Promise<void>;
+      onExpired?: () => void | Promise<void>;
+    },
   ) => RecaptchaVerifier;
   sendPhoneOtp: (phoneNumber: string, appVerifier: RecaptchaVerifier) => Promise<ConfirmationResult>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
@@ -212,13 +216,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   function setupRecaptcha(
     containerId: string,
-    onSolved?: () => void | Promise<void>,
+    options?: {
+      size?: 'normal' | 'invisible';
+      onSolved?: () => void | Promise<void>;
+      onExpired?: () => void | Promise<void>;
+    },
   ) {
     if (!auth) throw new Error('Firebase not initialized');
     return new RecaptchaVerifier(auth, containerId, {
-      size: 'invisible',
+      size: options?.size ?? 'normal',
       callback: () => {
-        void onSolved?.();
+        void options?.onSolved?.();
+      },
+      'expired-callback': () => {
+        void options?.onExpired?.();
       },
     });
   }
