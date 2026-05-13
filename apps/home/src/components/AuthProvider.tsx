@@ -82,6 +82,7 @@ type AuthContextValue = {
     code: string,
     password: string,
   ) => Promise<{ error?: string }>;
+  getHandoffToken: (tool: string) => Promise<{ redirectUrl?: string; error?: string }>;
 };
 
 type AuthSessionState = Pick<
@@ -622,6 +623,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function getHandoffToken(tool: string): Promise<{ redirectUrl?: string; error?: string }> {
+    try {
+      const token = backendToken ?? getStoredBackendToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/product-token`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: JSON.stringify({ tool }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as any;
+
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.message || 'Could not generate product access token.');
+      }
+
+      return { redirectUrl: payload.redirect_url as string };
+    } catch (err: any) {
+      return { error: err.message };
+    }
+  }
+
   async function signOut() {
     const token = backendToken ?? getStoredBackendToken();
 
@@ -663,6 +694,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatePassword,
         sendPasswordReset,
         confirmPasswordReset,
+        getHandoffToken,
       }}
     >
       {children}

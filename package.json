@@ -8,15 +8,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "cf:build:home": "npm run cf-build --workspace=home",
-    "cf:build:invoice": "npm run cf-build --workspace=invoice",
     "cf:check:home": "npm run cf-check --workspace=home",
-    "cf:check:invoice": "npm run cf-check --workspace=invoice",
     "cf:preview:home": "npm run preview --workspace=home",
-    "cf:preview:invoice": "npm run preview --workspace=invoice",
     "cf:deploy:home": "npm run deploy --workspace=home",
-    "cf:deploy:invoice": "npm run deploy --workspace=invoice",
-    "cf:typegen:home": "npm run cf-typegen --workspace=home",
-    "cf:typegen:invoice": "npm run cf-typegen --workspace=invoice"
+    "cf:typegen:home": "npm run cf-typegen --workspace=home"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.104.0",
