@@ -81,7 +81,7 @@ export default function PhoneOtpAuth() {
   useEffect(() => {
     return () => {
       if (recaptchaVerifier) {
-        recaptchaVerifier.clear();
+        try { recaptchaVerifier.clear(); } catch { /* already destroyed */ }
       }
     };
   }, [recaptchaVerifier]);
@@ -165,9 +165,10 @@ export default function PhoneOtpAuth() {
       return true;
     } catch (err: any) {
       setError(mapFirebasePhoneError(err));
-      // Reset recaptcha if it fails
-      recaptchaVerifier?.clear();
+      // Reset recaptcha safely — verifier may already be destroyed on error
+      try { recaptchaVerifier?.clear(); } catch { /* already destroyed */ }
       setRecaptchaVerifier(null);
+      setRecaptchaSolved(false);
       return false;
     } finally {
       setIsLoading(false);
@@ -244,7 +245,7 @@ export default function PhoneOtpAuth() {
     setOtp(['', '', '', '', '', '']);
     setError('');
     setRecaptchaSolved(false);
-    recaptchaVerifier?.clear();
+    try { recaptchaVerifier?.clear(); } catch { /* already destroyed */ }
     setRecaptchaVerifier(null);
     await ensureRecaptcha();
     setError('Please complete the refreshed reCAPTCHA, then resend OTP.');
