@@ -53,6 +53,7 @@ function AuthForm() {
       await signInWithGoogle();
     } catch (err: any) {
       setError(err.message || 'Google sign-in is not available right now.');
+    } finally {
       setIsLoading(false);
     }
   };

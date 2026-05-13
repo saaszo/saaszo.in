@@ -248,6 +248,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const [backendToken, setBackendToken] = useState<string | null>(null);
 
+  async function syncFirebaseUserSession(firebaseUser: FirebaseUser) {
+    const token = await firebaseUser.getIdToken();
+    const response = await fetch(`${API_BASE_URL}/auth/sync`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as
+        | BackendAuthResponse
+        | null;
+
+      throw new Error(
+        getErrorMessage(payload, 'Failed to sync profile with server.'),
+      );
+    }
+
+    const data = (await response.json()) as BackendAuthResponse;
+
+    setBackendToken(null);
+    clearStoredBackendToken();
+    setState({
+      user: firebaseUser,
+      authenticated: true,
+      error: '',
+      loading: false,
+      profile: data.profile ?? null,
+      auth: data.auth ?? null,
+      subscription: data.subscription ?? null,
+    });
+
+    return data;
+  }
+
   async function fetchBackendJson(
     path: string,
     init: RequestInit = {},
@@ -367,34 +404,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setState((current) => ({ ...current, loading: true, error: '' }));
 
       try {
-        const token = await user.getIdToken();
-        const response = await fetch(`${API_BASE_URL}/auth/sync`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to sync profile with server.');
-        }
-
-        const data = (await response.json()) as BackendAuthResponse;
-
-        if (isMounted) {
-          setBackendToken(null);
-          clearStoredBackendToken();
-          setState({
-            user,
-            authenticated: true,
-            error: '',
-            loading: false,
-            profile: data.profile ?? null,
-            auth: data.auth ?? null,
-            subscription: data.subscription ?? null,
-          });
-        }
+        await syncFirebaseUserSession(user);
       } catch (error) {
         if (isMounted) {
           setState({
@@ -420,8 +430,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-    router.push('/dashboard');
+    const result = await signInWithPopup(auth, provider);
+    await syncFirebaseUserSession(result.user);
+    navigateAfterAuth(router, '/dashboard');
   }
 
   function setupRecaptcha(

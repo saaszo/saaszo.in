@@ -27,7 +27,7 @@ function mapFirebasePhoneError(error: any) {
 }
 export default function PhoneOtpAuth() {
   const router = useRouter();
-  const { setupRecaptcha, sendPhoneOtp } = useAuthSession();
+  const { authenticated, loading, setupRecaptcha, sendPhoneOtp } = useAuthSession();
 
   /* ── State ── */
   const [step, setStep] = useState<Step>('phone');
@@ -85,6 +85,12 @@ export default function PhoneOtpAuth() {
       }
     };
   }, [recaptchaVerifier]);
+
+  useEffect(() => {
+    if (!loading && authenticated) {
+      router.replace('/dashboard');
+    }
+  }, [authenticated, loading, router]);
 
   const ensureRecaptcha = async () => {
     if (recaptchaVerifier) {
@@ -194,7 +200,6 @@ export default function PhoneOtpAuth() {
     try {
       await confirmationResult.confirm(code);
       setStep('success');
-      setTimeout(() => router.push('/dashboard'), 1500);
     } catch (err: any) {
       setError(mapFirebasePhoneError(err));
     } finally {
