@@ -27,6 +27,40 @@ if (
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  async redirects() {
+    return [
+      {
+        source: "/signup",
+        destination: "/register",
+        permanent: false,
+      },
+      {
+        source: "/login",
+        destination: "/auth",
+        permanent: false,
+      },
+      {
+        source: "/setup",
+        destination: "/dashboard",
+        permanent: false,
+      },
+      {
+        source: "/pricing",
+        destination: "/dashboard/billing",
+        permanent: false,
+      },
+      {
+        source: "/terms-and-conditions",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/privacy-policy",
+        destination: "/privacy",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return {
       beforeFiles: [
