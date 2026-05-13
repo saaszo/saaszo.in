@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import ApiConnectionStatus from '@/components/ApiConnectionStatus';
 import { useAuthSession } from '@/components/AuthProvider';
 
 export default function Register() {
@@ -264,7 +263,6 @@ export default function Register() {
 
         </div>
       </div>
-      <ApiConnectionStatus />
     </div>
   );
 }

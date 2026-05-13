@@ -2,12 +2,12 @@ export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'https://api.saaszo.in/api';
 
 const FIREBASE_FALLBACK_CONFIG = {
-  apiKey: 'AIzaSyAIqz29k_DFOAYDQvdxDmLj8H-jke4gSFc',
-  authDomain: 'saaszo.firebaseapp.com',
-  projectId: 'saaszo',
-  storageBucket: 'saaszo.firebasestorage.app',
-  messagingSenderId: '92234131478',
-  appId: '1:92234131478:web:560c698b11c5b1daeced37',
+  apiKey: 'AIzaSyDCzvZFghhyIZ5p1-ZJ9MmgIvDkt34gws4',
+  authDomain: 'full-project-saaszo.firebaseapp.com',
+  projectId: 'full-project-saaszo',
+  storageBucket: 'full-project-saaszo.firebasestorage.app',
+  messagingSenderId: '808658963162',
+  appId: '1:808658963162:web:3831bd837b2a054d7a33e3',
 };
 
 export const FIREBASE_PUBLIC_CONFIG = {

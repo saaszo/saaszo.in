@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ApiConnectionStatus from '@/components/ApiConnectionStatus';
 import { useAuthSession } from '@/components/AuthProvider';
 import { auth } from '@/lib/firebase';
 import { applyActionCode, sendEmailVerification } from 'firebase/auth';
@@ -271,7 +270,6 @@ export default function VerifyEmailPage() {
           </div>
         </div>
       </div>
-      <ApiConnectionStatus />
     </div>
   );
 }

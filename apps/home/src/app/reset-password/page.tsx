@@ -2,7 +2,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import ApiConnectionStatus from '@/components/ApiConnectionStatus';
 import { useAuthSession } from '@/components/AuthProvider';
 import { auth } from '@/lib/firebase';
 import { verifyPasswordResetCode } from 'firebase/auth';
@@ -316,7 +315,6 @@ function ResetPasswordForm() {
         </div>
       </div>
 
-      <ApiConnectionStatus />
     </div>
   );
 }

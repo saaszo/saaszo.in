@@ -2,7 +2,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import ApiConnectionStatus from '@/components/ApiConnectionStatus';
 import { useAuthSession } from '@/components/AuthProvider';
 
 function AuthForm() {
@@ -280,7 +279,6 @@ function AuthForm() {
 
         </div>
       </div>
-      <ApiConnectionStatus />
     </div>
   );
 }

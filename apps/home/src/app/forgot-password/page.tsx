@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import ApiConnectionStatus from '@/components/ApiConnectionStatus';
 import { useAuthSession } from '@/components/AuthProvider';
 import { lookupAuthIdentifier, parseAuthIdentifier } from '@/lib/auth-utils';
 
@@ -210,7 +209,6 @@ export default function ForgotPassword() {
 
         </div>
       </div>
-      <ApiConnectionStatus />
     </div>
   );
 }
