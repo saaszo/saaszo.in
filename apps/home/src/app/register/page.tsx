@@ -29,13 +29,7 @@ export default function Register() {
       await signUpWithEmail(email, password, name);
       // router.push('/dashboard') is handled in AuthProvider
     } catch (err: any) {
-      if (err.code === 'auth/email-already-in-use') {
-        setError('This email is already registered. Please sign in instead.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('Password should be at least 6 characters.');
-      } else {
-        setError(err.message || 'The registration server is currently unreachable.');
-      }
+      setError(err?.message || 'The registration server is currently unreachable.');
     } finally {
       setIsLoading(false);
     }

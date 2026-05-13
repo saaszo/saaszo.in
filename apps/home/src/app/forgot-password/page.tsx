@@ -74,9 +74,14 @@ export default function ForgotPassword() {
       }
 
       setSuccessMessage(
-        `We've sent a password reset link to ${parsedIdentifier.email}.`,
+        `We've sent a 6-digit reset code to ${parsedIdentifier.email}.`,
       );
       setIsSent(true);
+      setTimeout(() => {
+        router.push(
+          `/reset-password?email=${encodeURIComponent(parsedIdentifier.email)}`,
+        );
+      }, 1200);
     } catch (err: any) {
       setError(err.message || 'The server is currently unreachable. Please try again later.');
     } finally {

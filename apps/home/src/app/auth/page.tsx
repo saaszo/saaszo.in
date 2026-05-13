@@ -37,13 +37,7 @@ function AuthForm() {
     try {
       await signInWithEmail(email, password);
     } catch (err: any) {
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError('Invalid email or password. Please try again.');
-      } else if (err.code === 'auth/email-not-verified') {
-        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
-      } else {
-        setError(err.message || 'Authentication failed. Please try again.');
-      }
+      setError(err?.message || 'Authentication failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

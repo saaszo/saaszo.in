@@ -3,14 +3,13 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthSession } from '@/components/AuthProvider';
-import { auth } from '@/lib/firebase';
-import { verifyPasswordResetCode } from 'firebase/auth';
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { confirmPasswordReset } = useAuthSession();
 
+  const [otpCode, setOtpCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -18,35 +17,19 @@ function ResetPasswordForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [isHovered, setIsHovered] = useState(false);
-  const [actionCode, setActionCode] = useState('');
   const [accountEmail, setAccountEmail] = useState('');
 
   useEffect(() => {
-    const mode = searchParams.get('mode');
-    const oobCode = searchParams.get('oobCode');
+    const email = searchParams.get('email');
 
-    if (!auth) {
-      setError('Firebase is not initialized.');
-      return;
-    }
-
-    if (!oobCode || (mode && mode !== 'resetPassword')) {
+    if (!email) {
       setError(
-        'Invalid or missing reset link. Please request a new password recovery email.',
+        'Reset email is missing. Please restart the forgot password flow.',
       );
       return;
     }
 
-    void verifyPasswordResetCode(auth, oobCode)
-      .then((email) => {
-        setActionCode(oobCode);
-        setAccountEmail(email);
-      })
-      .catch(() => {
-        setError(
-          'This reset link is invalid or has expired. Please request a new one.',
-        );
-      });
+    setAccountEmail(email);
   }, [searchParams]);
 
   const getPasswordStrength = (pwd: string) => {
@@ -73,10 +56,13 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (!actionCode) {
-      setError(
-        'Reset token is missing. Please request a new password recovery email.',
-      );
+    if (!accountEmail) {
+      setError('Reset email is missing. Please request a new code again.');
+      return;
+    }
+
+    if (otpCode.trim().length !== 6) {
+      setError('Please enter the 6-digit reset code sent to your email.');
       return;
     }
 
@@ -84,7 +70,7 @@ function ResetPasswordForm() {
     setError('');
 
     try {
-      const result = await confirmPasswordReset(actionCode, password);
+      const result = await confirmPasswordReset(accountEmail, otpCode, password);
 
       if (result.error) {
         throw new Error(result.error);
@@ -186,7 +172,7 @@ function ResetPasswordForm() {
                 <h2 className="text-3xl font-bold mb-3 tracking-tight">Set New Password</h2>
                 <p className="text-on-surface-variant">
                   {accountEmail
-                    ? `Choose a strong password for ${accountEmail}.`
+                    ? `Enter the 6-digit code sent to ${accountEmail}, then choose a strong password.`
                     : 'Choose a strong password for your SaaSzo workspace.'}
                 </p>
               </div>
@@ -200,6 +186,26 @@ function ResetPasswordForm() {
 
               <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
                 <div className="space-y-4">
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
+                      <span className="material-symbols-outlined text-xl">pin</span>
+                    </div>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      placeholder="6-digit reset code"
+                      className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
+                      value={otpCode}
+                      onChange={(e) =>
+                        setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                      }
+                      required
+                      disabled={!accountEmail || isLoading}
+                    />
+                  </div>
+
                   {/* New Password */}
                   <div className="space-y-2">
                     <div className="relative group">
@@ -214,7 +220,7 @@ function ResetPasswordForm() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={8}
-                        disabled={!actionCode || isLoading}
+                        disabled={!accountEmail || isLoading}
                       />
                       <button
                         type="button"
@@ -267,7 +273,7 @@ function ResetPasswordForm() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      disabled={!actionCode || isLoading}
+                      disabled={!accountEmail || isLoading}
                     />
                     {confirmPassword.length > 0 && (
                       <div className="absolute inset-y-0 right-0 flex items-center pr-4">
@@ -283,9 +289,17 @@ function ResetPasswordForm() {
 
                 <button
                   type="submit"
-                  disabled={isLoading || !actionCode || password !== confirmPassword}
+                  disabled={
+                    isLoading ||
+                    !accountEmail ||
+                    otpCode.length !== 6 ||
+                    password !== confirmPassword
+                  }
                   className={`mt-4 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
-                    isLoading || !actionCode || password !== confirmPassword
+                    isLoading ||
+                    !accountEmail ||
+                    otpCode.length !== 6 ||
+                    password !== confirmPassword
                       ? 'opacity-50 cursor-not-allowed'
                       : 'shadow-lg shadow-primary/20 hover:shadow-primary/40'
                   }`}
