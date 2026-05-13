@@ -412,7 +412,7 @@ export default function PhoneOtpAuth() {
 
                 <div
                   id="phone-otp-recaptcha-container"
-                  className="min-h-[78px] rounded-xl bg-surface-container-low border border-outline-variant/40 p-2"
+                  className="min-h-[96px] rounded-xl bg-surface-container-low border border-outline-variant/40 p-3 flex items-center justify-center"
                 />
 
                 <button
@@ -444,7 +444,7 @@ export default function PhoneOtpAuth() {
                 </button>
 
                 <p className="text-sm text-on-surface-variant">
-                  Complete the reCAPTCHA above, then send your OTP.
+                  First tick the "I'm not a robot" reCAPTCHA above, then send your OTP.
                 </p>
               </form>
 

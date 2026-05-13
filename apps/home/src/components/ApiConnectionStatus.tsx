@@ -1,15 +1,21 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '@/lib/app-config';
+
+const showDevStatus = process.env.NEXT_PUBLIC_SHOW_DEV_STATUS === 'true';
 
 export default function ApiConnectionStatus() {
   const [status, setStatus] = useState<'checking' | 'online' | 'offline'>('checking');
   const [details, setDetails] = useState<any>(null);
 
   const checkConnection = async () => {
+    if (!showDevStatus) {
+      return;
+    }
+
     setStatus('checking');
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.saaszo.in';
-      const response = await fetch(`${API_BASE_URL}/health`);
+      const response = await fetch(API_BASE_URL, { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
         setDetails(data);
@@ -25,6 +31,10 @@ export default function ApiConnectionStatus() {
   useEffect(() => {
     checkConnection();
   }, []);
+
+  if (!showDevStatus) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
