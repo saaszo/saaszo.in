@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'https://api.saaszo.in';
+  process.env.NEXT_PUBLIC_API_URL || 'https://api.saaszo.in/api';
 
 const FIREBASE_FALLBACK_CONFIG = {
   apiKey: 'AIzaSyAIqz29k_DFOAYDQvdxDmLj8H-jke4gSFc',

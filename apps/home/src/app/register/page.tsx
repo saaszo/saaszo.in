@@ -14,6 +14,7 @@ export default function Register() {
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +24,9 @@ export default function Register() {
     setError('');
 
     try {
+      if (!acceptedLegal) {
+        throw new Error('Please accept the Terms of Service and Privacy Policy to create your account.');
+      }
       await signUpWithEmail(email, password, name);
       // router.push('/dashboard') is handled in AuthProvider
     } catch (err: any) {
@@ -178,6 +182,26 @@ export default function Register() {
                 />
               </div>
             </div>
+
+            <label className="flex items-start gap-3 rounded-xl border border-outline-variant/70 bg-surface-container-lowest p-4 text-sm leading-6 text-on-surface-variant">
+              <input
+                type="checkbox"
+                checked={acceptedLegal}
+                onChange={(event) => setAcceptedLegal(event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-outline accent-primary"
+              />
+              <span>
+                I agree to SaaSzo's{' '}
+                <Link href="/terms" className="font-semibold text-primary hover:text-tertiary">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link href="/privacy" className="font-semibold text-primary hover:text-tertiary">
+                  Privacy Policy
+                </Link>
+                .
+              </span>
+            </label>
 
             <button
               type="submit"
