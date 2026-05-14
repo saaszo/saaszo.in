@@ -538,13 +538,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(payload.message || 'Login failed.');
     }
 
-    if (!payload.access_token) {
+    // Backend wraps token inside a 'data' object: { success, message, data: { access_token, redirect } }
+    const loginData = (payload as any).data ?? payload;
+    const accessToken = loginData.access_token;
+    const redirectUrl = loginData.redirect ?? payload.redirect;
+
+    if (!accessToken) {
       throw new Error('Login succeeded but no API token was returned.');
     }
 
-    setStoredBackendToken(payload.access_token);
-    await hydrateBackendSession(payload.access_token);
-    navigateAfterAuth(router, payload.redirect);
+    setStoredBackendToken(accessToken);
+    await hydrateBackendSession(accessToken);
+    navigateAfterAuth(router, redirectUrl);
   }
 
   async function signUpWithEmail(email: string, password: string, name?: string) {
@@ -581,12 +586,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(payload.message || 'Could not create your account.');
     }
 
-    if (!payload.access_token) {
+    // Backend wraps token inside a 'data' object: { success, message, data: { access_token } }
+    const signupData = (payload as any).data ?? payload;
+    const accessToken = signupData.access_token;
+
+    if (!accessToken) {
       throw new Error('Account created but no API token was returned.');
     }
 
-    setStoredBackendToken(payload.access_token);
-    await hydrateBackendSession(payload.access_token);
+    setStoredBackendToken(accessToken);
+    await hydrateBackendSession(accessToken);
     router.push('/dashboard/setup');
   }
 
