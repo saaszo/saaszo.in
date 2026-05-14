@@ -149,8 +149,12 @@ export default function DashboardPage() {
       return;
     }
 
-    // Open product in a new tab (keeps saaszo.in dashboard open)
-    window.open(redirectUrl, '_blank', 'noopener,noreferrer');
+    // Try to open in new tab; fallback to same tab if popup blocker active
+    const newWin = window.open(redirectUrl, '_blank', 'noopener,noreferrer');
+    if (!newWin) {
+      // Popup was blocked — navigate in same tab as fallback
+      window.location.href = redirectUrl;
+    }
   }
 
   async function handleProfileSubmit(event: React.FormEvent<HTMLFormElement>) {
