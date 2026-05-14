@@ -2,10 +2,10 @@
 
 import { appConfig, toAbsoluteApiUrl } from "@/lib/config";
 
-export const authStorageKey = "invoice_saaszo_token";
-export const lastActivityKey = "invoice_saaszo_last_activity";
-export const deviceIdKey = "invoice_saaszo_device_id";
-export const authCookieKey = "invoice_saaszo_session";
+export const authStorageKey = "saaszo_home_token";
+export const lastActivityKey = "saaszo_home_last_activity";
+export const deviceIdKey = "saaszo_home_device_id";
+export const authCookieKey = "saaszo_session";
 const sharedCookieDomain = ".saaszo.in";
 
 export type ApiResult<T = Record<string, unknown>> = T & {
@@ -42,7 +42,7 @@ export async function requestJson<T extends Record<string, unknown>>(
   if (isMutation && !getCookie('XSRF-TOKEN')) {
     await fetch(toAbsoluteApiUrl('/sanctum/csrf-cookie').replace('/api/sanctum', '/sanctum'), {
       method: 'GET',
-      credentials: 'omit',
+      credentials: 'include',
     }).catch(() => null);
   }
 
@@ -61,7 +61,7 @@ export async function requestJson<T extends Record<string, unknown>>(
 
   const response = await fetch(toAbsoluteApiUrl(path), {
     ...init,
-    credentials: "omit", // Use omit so we don't accidentally send session cookies when relying on Bearer
+    credentials: "include",
     headers,
   });
 
@@ -83,6 +83,9 @@ export function persistAccessToken(token?: string) {
   }
 
   window.localStorage.setItem(authStorageKey, token);
+  const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${authCookieKey}=1; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
+  document.cookie = `${authCookieKey}=1; Path=/; Domain=${sharedCookieDomain}; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
   updateActivityTimestamp();
 }
 
@@ -123,14 +126,16 @@ export function readAccessToken() {
   return window.localStorage.getItem(authStorageKey);
 }
 
-export async function fetchProfile(accessToken: string) {
+export async function fetchProfile(accessToken?: string | null) {
   return requestJson<{ user?: { name?: string; email?: string } }>(
     "/api/auth/profile",
     {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: accessToken
+        ? {
+            Authorization: `Bearer ${accessToken}`,
+          }
+        : undefined,
     },
   );
 }

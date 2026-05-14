@@ -149,12 +149,7 @@ export default function DashboardPage() {
       return;
     }
 
-    // Try to open in new tab; fallback to same tab if popup blocker active
-    const newWin = window.open(redirectUrl, '_blank', 'noopener,noreferrer');
-    if (!newWin) {
-      // Popup was blocked — navigate in same tab as fallback
-      window.location.href = redirectUrl;
-    }
+    window.location.assign(redirectUrl);
   }
 
   async function handleProfileSubmit(event: React.FormEvent<HTMLFormElement>) {

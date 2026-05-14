@@ -1,5 +1,5 @@
 const fallbackApiBaseUrl = "https://api.saaszo.in";
-const fallbackAppUrl = "https://invoice.saaszo.in";
+const fallbackAppUrl = "https://saaszo.in";
 const fallbackFirebaseConfig = {
   apiKey: "AIzaSyDCzvZFghhyIZ5p1-ZJ9MmgIvDkt34gws4",
   authDomain: "full-project-saaszo.firebaseapp.com",
@@ -11,7 +11,7 @@ const fallbackFirebaseConfig = {
 };
 
 export const appConfig = {
-  appName: process.env.NEXT_PUBLIC_APP_NAME || "Invoice Saaszo",
+  appName: process.env.NEXT_PUBLIC_APP_NAME || "SaaSzo",
   appUrl: process.env.NEXT_PUBLIC_APP_URL || fallbackAppUrl,
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || fallbackApiBaseUrl,
   firebase: {
