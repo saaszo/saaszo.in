@@ -712,6 +712,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function getHandoffToken(tool: string): Promise<{ redirectUrl?: string; error?: string }> {
     try {
+      console.log('🔍 getHandoffToken called for tool:', tool);
+      console.log('🔍 backendToken state:', backendToken);
+      console.log('🔍 stored token:', getStoredBackendToken());
+
       // Primary: use Sanctum backend token (set after login or Firebase sync)
       let bearerToken = backendToken ?? getStoredBackendToken();
 
@@ -741,8 +745,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(payload?.message || 'Could not generate product access token.');
       }
 
+      console.log('🔍 handoff redirectUrl:', payload.redirect_url);
       return { redirectUrl: payload.redirect_url as string };
     } catch (err: any) {
+      console.error('🔴 getHandoffToken error:', err);
       return { error: err.message };
     }
   }
