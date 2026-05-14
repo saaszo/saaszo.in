@@ -304,13 +304,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return data;
   }
 
+  async function hydrateCookieSession() {
+    const payload = await fetchBackendJson('/auth/profile', {
+      method: 'GET',
+    });
+
+    const session = normalizeBackendSession(payload);
+
+    setState({
+      user: null,
+      authenticated: true,
+      error: '',
+      loading: false,
+      profile: session.profile,
+      auth: session.auth,
+      subscription: session.subscription,
+    });
+  }
+
   async function fetchWithCsrf(url: string, init: RequestInit = {}) {
     const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(init.method?.toUpperCase() || 'GET');
     
     if (isMutation && !getCookie('XSRF-TOKEN')) {
       await fetch(`${API_BASE_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
         method: 'GET',
-        credentials: 'omit', // Sanctum returns cookie regardless of credentials flag
+        credentials: 'include',
       }).catch(() => null);
     }
 
@@ -326,7 +344,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return fetch(url, {
       ...init,
       headers,
-      credentials: 'omit', // We remain stateless, only sending X-XSRF-TOKEN header
+      credentials: 'include',
     });
   }
 
@@ -361,9 +379,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function hydrateBackendSession(token: string) {
     const payload = await fetchBackendJson('/auth/profile', {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : undefined,
     });
 
     const session = normalizeBackendSession(payload);
@@ -402,11 +422,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedToken = getStoredBackendToken();
 
       if (!storedToken) {
-        if (isMounted) {
-          setBackendToken(null);
-          setState(signedOutState);
+        try {
+          await hydrateCookieSession();
+          if (isMounted) {
+            setBackendToken(null);
+          }
+          return;
+        } catch {
+          if (isMounted) {
+            setBackendToken(null);
+            setState(signedOutState);
+          }
+          return;
         }
-        return;
       }
 
       if (isMounted) {
@@ -418,15 +446,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         clearStoredBackendToken();
 
-        if (isMounted) {
-          setBackendToken(null);
-          setState({
-            ...signedOutState,
-            error:
-              error instanceof Error
-                ? error.message
-                : 'Authentication failed.',
-          });
+        try {
+          await hydrateCookieSession();
+          if (isMounted) {
+            setBackendToken(null);
+          }
+        } catch {
+          if (isMounted) {
+            setBackendToken(null);
+            setState({
+              ...signedOutState,
+              error:
+                error instanceof Error
+                  ? error.message
+                  : 'Authentication failed.',
+            });
+          }
         }
       }
     }
@@ -554,12 +589,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const accessToken = loginData.access_token;
     const redirectUrl = loginData.redirect ?? payload.redirect;
 
-    if (!accessToken) {
-      throw new Error('Login succeeded but no API token was returned.');
+    if (accessToken) {
+      setStoredBackendToken(accessToken);
+      await hydrateBackendSession(accessToken);
+    } else {
+      await hydrateCookieSession();
     }
-
-    setStoredBackendToken(accessToken);
-    await hydrateBackendSession(accessToken);
     navigateAfterAuth(router, redirectUrl);
   }
 
@@ -601,12 +636,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const signupData = (payload as any).data ?? payload;
     const accessToken = signupData.access_token;
 
-    if (!accessToken) {
-      throw new Error('Account created but no API token was returned.');
+    if (accessToken) {
+      setStoredBackendToken(accessToken);
+      await hydrateBackendSession(accessToken);
+    } else {
+      await hydrateCookieSession();
     }
-
-    setStoredBackendToken(accessToken);
-    await hydrateBackendSession(accessToken);
     router.push('/dashboard/setup');
   }
 
@@ -719,14 +754,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Primary: use Sanctum backend token (set after login or Firebase sync)
       let bearerToken = backendToken ?? getStoredBackendToken();
 
-      // Fallback: if Firebase user exists but Sanctum token was not stored,
-      // use the live Firebase ID token (WorkspaceAuthMiddleware accepts both)
       if (!bearerToken && auth?.currentUser) {
         bearerToken = await auth.currentUser.getIdToken();
-      }
-
-      if (!bearerToken) {
-        throw new Error('Not authenticated. Please log in again.');
       }
 
       const response = await fetchWithCsrf(`${API_BASE_URL}/auth/product-token`, {
@@ -734,7 +763,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${bearerToken}`,
+          ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
         },
         body: JSON.stringify({ tool }),
       });
