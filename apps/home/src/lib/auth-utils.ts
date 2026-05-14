@@ -86,9 +86,30 @@ export function parseAuthIdentifier(
 }
 
 export async function lookupAuthIdentifier(identifier: string) {
+  function getCookie(name: string) {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    if (match) return decodeURIComponent(match[2]);
+    return null;
+  }
+
+  if (!getCookie('XSRF-TOKEN')) {
+    await fetch(`${API_BASE_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
+      method: 'GET',
+      credentials: 'omit',
+    }).catch(() => null);
+  }
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const xsrfToken = getCookie('XSRF-TOKEN');
+  if (xsrfToken) {
+    headers['X-XSRF-TOKEN'] = xsrfToken;
+  }
+
   const response = await fetch(`${API_BASE_URL}/auth/check-identifier`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
+    credentials: 'omit',
     body: JSON.stringify({ identifier }),
   });
 

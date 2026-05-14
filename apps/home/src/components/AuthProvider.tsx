@@ -249,9 +249,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const [backendToken, setBackendToken] = useState<string | null>(null);
 
+  function getCookie(name: string) {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    if (match) return decodeURIComponent(match[2]);
+    return null;
+  }
+
   async function syncFirebaseUserSession(firebaseUser: FirebaseUser) {
     const token = await firebaseUser.getIdToken();
-    const response = await fetch(`${API_BASE_URL}/auth/sync`, {
+    const response = await fetchWithCsrf(`${API_BASE_URL}/auth/sync`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -286,17 +293,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return data;
   }
 
+  async function fetchWithCsrf(url: string, init: RequestInit = {}) {
+    const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(init.method?.toUpperCase() || 'GET');
+    
+    if (isMutation && !getCookie('XSRF-TOKEN')) {
+      await fetch(`${API_BASE_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
+        method: 'GET',
+        credentials: 'omit', // Sanctum returns cookie regardless of credentials flag
+      }).catch(() => null);
+    }
+
+    const headers: Record<string, string> = {
+      ...(init.headers as Record<string, string> ?? {}),
+    };
+
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    if (xsrfToken && isMutation) {
+      headers['X-XSRF-TOKEN'] = xsrfToken;
+    }
+
+    return fetch(url, {
+      ...init,
+      headers,
+      credentials: 'omit', // We remain stateless, only sending X-XSRF-TOKEN header
+    });
+  }
+
   async function fetchBackendJson(
     path: string,
     init: RequestInit = {},
   ): Promise<BackendAuthResponse> {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(init.headers as Record<string, string> ?? {}),
+    };
+
+    const response = await fetchWithCsrf(`${API_BASE_URL}${path}`, {
       ...init,
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(init.headers ?? {}),
-      },
+      headers,
     });
 
     const payload = (await response.json().catch(() => null)) as
@@ -472,7 +507,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signInWithEmail(email: string, password: string) {
     // 1. Check if identifier exists first
-    const checkResponse = await fetch(`${API_BASE_URL}/auth/check-identifier`, {
+    const checkResponse = await fetchWithCsrf(`${API_BASE_URL}/auth/check-identifier`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identifier: email }),
@@ -514,7 +549,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signUpWithEmail(email: string, password: string, name?: string) {
     // 1. Check if identifier already exists
-    const checkResponse = await fetch(`${API_BASE_URL}/auth/check-identifier`, {
+    const checkResponse = await fetchWithCsrf(`${API_BASE_URL}/auth/check-identifier`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identifier: email }),
@@ -567,7 +602,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const token = await firebaseUser.getIdToken();
-      const response = await fetch(`${API_BASE_URL}/profile/me`, {
+      const response = await fetchWithCsrf(`${API_BASE_URL}/profile/me`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -663,7 +698,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${API_BASE_URL}/auth/product-token`, {
+      const response = await fetchWithCsrf(`${API_BASE_URL}/auth/product-token`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -696,7 +731,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (token) {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
+      await fetchWithCsrf(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
