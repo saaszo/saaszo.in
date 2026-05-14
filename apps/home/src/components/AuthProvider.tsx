@@ -276,10 +276,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
     }
 
-    const data = (await response.json()) as BackendAuthResponse;
+    const data = (await response.json()) as BackendAuthResponse & { access_token?: string };
 
-    setBackendToken(null);
-    clearStoredBackendToken();
+    // ✅ CRITICAL: Store the Sanctum token returned by /auth/sync.
+    // Without this, Firebase-authenticated users have no backend token,
+    // which causes getHandoffToken → product-token API to fail (401),
+    // preventing SSO redirect to invoice.saaszo.in and other subdomain apps.
+    const sanctumToken = data.access_token ?? null;
+    if (sanctumToken) {
+      setBackendToken(sanctumToken);
+      setStoredBackendToken(sanctumToken);
+    } else {
+      setBackendToken(null);
+      clearStoredBackendToken();
+    }
+
     setState({
       user: firebaseUser,
       authenticated: true,
@@ -701,10 +712,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function getHandoffToken(tool: string): Promise<{ redirectUrl?: string; error?: string }> {
     try {
-      const token = backendToken ?? getStoredBackendToken();
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      // Primary: use Sanctum backend token (set after login or Firebase sync)
+      let bearerToken = backendToken ?? getStoredBackendToken();
+
+      // Fallback: if Firebase user exists but Sanctum token was not stored,
+      // use the live Firebase ID token (WorkspaceAuthMiddleware accepts both)
+      if (!bearerToken && auth?.currentUser) {
+        bearerToken = await auth.currentUser.getIdToken();
+      }
+
+      if (!bearerToken) {
+        throw new Error('Not authenticated. Please log in again.');
       }
 
       const response = await fetchWithCsrf(`${API_BASE_URL}/auth/product-token`, {
@@ -712,7 +730,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          ...headers,
+          Authorization: `Bearer ${bearerToken}`,
         },
         body: JSON.stringify({ tool }),
       });
