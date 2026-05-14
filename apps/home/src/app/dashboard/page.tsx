@@ -149,7 +149,11 @@ export default function DashboardPage() {
       return;
     }
 
-    window.location.assign(redirectUrl);
+    const newWin = window.open(redirectUrl, '_blank', 'noopener,noreferrer');
+    if (!newWin) {
+      setLaunchError('Popup blocked. Please allow popups for SaaSzo and try again.');
+      setLaunchingTool(null);
+    }
   }
 
   async function handleProfileSubmit(event: React.FormEvent<HTMLFormElement>) {
