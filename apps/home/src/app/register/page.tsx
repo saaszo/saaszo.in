@@ -1,14 +1,21 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthSession } from '@/components/AuthProvider';
 
-export default function Register() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signInWithGoogle, signUpWithEmail } = useAuthSession();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  
+  useEffect(() => {
+    const emailParam = searchParams.get('email');
+    if (emailParam) setEmail(emailParam);
+  }, [searchParams]);
+
   const [password, setPassword] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -259,5 +266,13 @@ export default function Register() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Register() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }

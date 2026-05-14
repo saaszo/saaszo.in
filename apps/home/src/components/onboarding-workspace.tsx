@@ -1,0 +1,842 @@
+"use client";
+
+import Link from "next/link";
+import { ChangeEvent, useEffect, useState } from "react";
+import { toAbsoluteApiUrl } from "@/lib/config";
+import { apiErrorMessage, authedRequest } from "@/lib/workspace-action-client";
+import { getDeviceId, readAccessToken, navigateTo } from "@/lib/auth-client";
+import { CheckCircle2, ChevronLeft, ChevronRight, UploadCloud, Hexagon, Loader2 } from "lucide-react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Card } from "./ui/card";
+import { cn } from "@/lib/utils";
+import { SearchableSelect } from "./ui/searchable-select";
+import { useLocations } from "@/lib/shared-masters";
+
+type OnboardingProfile = {
+  owner_name?: string; business_name?: string; email?: string; phone?: string;
+  city?: string; state?: string; user_type?: string; business_category?: string;
+  other_business_category?: string; team_size?: string; monthly_invoice_volume?: string;
+  gst_registered?: string; gst_number?: string; legal_business_name?: string;
+  gst_state?: string; gst_type?: string; legal_entity_type?: string; registration_types?: string[];
+  pan_number?: string; cin_number?: string; llpin_number?: string; tan_number?: string;
+  udyam_registration_number?: string; udyog_aadhaar_number?: string; ngo_darpan_id?: string;
+  trust_registration_number?: string; society_registration_number?: string; fssai_number?: string;
+  iec_number?: string; professional_tax_number?: string; invoice_item_type?: string; needs_inventory?: string;
+  needs_quotation?: string; needs_payment_tracking?: string; needs_customer_records?: string;
+  required_reports?: string[]; payment_methods?: string[]; wants_upi_qr?: string;
+  upi_id?: string; bank_details?: string; bank_account_holder_name?: string; bank_name?: string;
+  bank_account_number?: string; bank_ifsc?: string; bank_swift_code?: string; bank_micr_code?: string;
+  bank_branch_name?: string; bank_account_type?: string; bank_notes?: string; logo_path?: string; logo_url?: string;
+  invoice_template_preference?: string; show_on_invoice?: string[]; branch_model?: string;
+  setup_completed?: boolean; setup_skipped?: boolean; current_step?: number; first_invoice_created_at?: string | null;
+};
+
+type OnboardingOptions = {
+  user_types: string[]; business_categories: string[]; team_sizes: string[]; monthly_invoice_volumes: string[];
+  gst_registered_options: string[]; gst_type_options: string[]; invoice_item_types: string[];
+  legal_entity_type_options: string[]; registration_type_options: string[];
+  yes_no_future_options: string[]; yes_no_options: string[]; yes_no_later_options: string[];
+  required_report_options: string[]; payment_method_options: string[]; template_options: string[];
+  show_on_invoice_options: string[]; branch_model_options: string[];
+};
+
+type Personalization = {
+  segment?: string; headline?: string; focus?: string[]; reminder?: string | null;
+  show_gst_reports?: boolean; show_hsn_sac?: boolean; show_batch_fields?: boolean;
+  show_upi_qr?: boolean; business_profile?: any;
+};
+
+type OnboardingResponse = {
+  success?: boolean; message?: string; profile?: OnboardingProfile | null;
+  options?: OnboardingOptions; personalization?: Personalization;
+};
+
+const stepLabels = ["Basics", "Category", "Size", "GST", "Needs", "Payments", "Branding", "Done"];
+
+const defaultOptions: OnboardingOptions = {
+  user_types: ["Individual", "Business Owner", "Company", "Freelancer"],
+  business_categories: ["Freelancer", "Digital Marketing Agency", "Web Development / IT Services", "Retail Shop", "Wholesale Business", "Medical / Pharmacy", "Restaurant / Cafe", "Consultant", "Manufacturer", "Trader / Distributor", "Salon / Beauty", "Real Estate", "Other"],
+  team_sizes: ["Solo", "2-5", "6-10", "11-25", "25+"],
+  monthly_invoice_volumes: ["1-10", "11-50", "51-100", "100+", "Just starting"],
+  gst_registered_options: ["Yes", "No", "Not Sure", "Applying Soon"],
+  gst_type_options: ["Regular", "Composition", "Not Sure"],
+  legal_entity_type_options: ["Proprietorship", "Partnership Firm", "Limited Liability Partnership (LLP)", "Private Limited Company", "Public Limited Company", "One Person Company (OPC)", "HUF", "Cooperative Society", "Society", "Trust", "Section 8 / Non-Profit Company", "NGO / Voluntary Organization", "Non-Profit Organization", "Government Entity", "Other"],
+  registration_type_options: ["GST Registration", "MSME / Udyam Registration", "Udyog Aadhaar (Legacy UAM)", "CIN", "LLPIN", "PAN", "TAN", "NGO Darpan", "Trust Registration", "Society Registration", "FSSAI", "Import Export Code (IEC)", "Professional Tax"],
+  invoice_item_types: ["Products", "Services", "Both", "Subscription/Recurring", "Project Based"],
+  yes_no_future_options: ["Yes", "No", "Future"],
+  yes_no_options: ["Yes", "No"],
+  yes_no_later_options: ["Yes", "No", "Later"],
+  required_report_options: ["Sales Report", "GST Report", "Pending Payments", "Customer Wise Sales", "Product Wise Sales", "Monthly Income", "Expense Report", "Inventory Report"],
+  payment_method_options: ["Cash", "UPI", "Bank Transfer", "Card", "Payment Gateway", "Cheque"],
+  template_options: ["Simple", "Professional", "GST Format", "Modern Branded", "Retail Bill Style", "Minimal Black & White"],
+  show_on_invoice_options: ["Logo", "GST Number", "Bank Details", "UPI ID", "Terms & Conditions", "Signature", "Seal", "Notes"],
+  branch_model_options: ["Single Branch", "Multi-Branch (Multiple Outlets)"],
+};
+
+const defaultForm: OnboardingProfile = {
+  required_reports: [], payment_methods: [], show_on_invoice: [], registration_types: [], user_type: "Business Owner",
+  gst_registered: "No", needs_inventory: "No", needs_quotation: "Yes", needs_payment_tracking: "Yes",
+  needs_customer_records: "Yes", wants_upi_qr: "Later", invoice_template_preference: "Professional", branch_model: "Single Branch",
+};
+
+function toggleArrayValue(values: string[] | undefined, value: string) {
+  const safeValues = values || [];
+  return safeValues.includes(value) ? safeValues.filter((item) => item !== value) : [...safeValues, value];
+}
+
+function syncGstRegistrationType(values: string[] | undefined, gstStatus: string) {
+  const safeValues = values || [];
+  if (gstStatus === "Yes" && !safeValues.includes("GST Registration")) {
+    return ["GST Registration", ...safeValues];
+  }
+  return safeValues;
+}
+
+export function OnboardingWorkspace() {
+  const [form, setForm] = useState<OnboardingProfile>(defaultForm);
+  const [options, setOptions] = useState<OnboardingOptions>(defaultOptions);
+  const [personalization, setPersonalization] = useState<Personalization | null>(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [started, setStarted] = useState(false);
+  const { states } = useLocations();
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const result = await authedRequest<OnboardingResponse>("/api/auth/onboarding");
+      if (!active) return;
+      if (!result.ok || !result.data.success) {
+        setError(apiErrorMessage("Could not load onboarding setup.", result.data));
+        setLoading(false);
+        return;
+      }
+      const profile = result.data.profile || {};
+      setOptions(result.data.options || defaultOptions);
+      // Filter null values from profile so they don't override defaultForm defaults
+      // This prevents null DB fields (e.g. needs_quotation: null) from causing 422 on save
+      const safeProfile = Object.fromEntries(
+        Object.entries(profile).filter(([, v]) => v !== null && v !== undefined)
+      );
+      setForm({
+        ...defaultForm,
+        ...safeProfile,
+        required_reports: profile.required_reports || [],
+        payment_methods: profile.payment_methods || [],
+        show_on_invoice: profile.show_on_invoice || [],
+        registration_types: profile.registration_types || [],
+      });
+      setPersonalization(result.data.personalization || null);
+      if (profile.setup_completed) {
+        navigateTo("/dashboard/settings");
+        return;
+      }
+      setStarted(Boolean(profile.current_step || profile.setup_completed || profile.setup_skipped));
+      setCurrentStep(profile.setup_completed ? 8 : Math.max(1, Math.min(profile.current_step || 1, 8)));
+      setLoading(false);
+    })();
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!started || form.setup_completed) return;
+    const handleUnload = () => {
+      const token = readAccessToken();
+      if (!token) return;
+      const payload = JSON.stringify({ event_name: "setup_abandoned", step: currentStep, meta: { source: "browser-unload" } });
+      void fetch(toAbsoluteApiUrl("/api/auth/onboarding/track"), {
+        method: "POST", keepalive: true, credentials: "include",
+        headers: { Accept: "application/json", "Content-Type": "application/json", Authorization: `Bearer ${token}`, "X-Device-ID": getDeviceId() },
+        body: payload,
+      });
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, [currentStep, form.setup_completed, started]);
+
+  function setValue<K extends keyof OnboardingProfile>(key: K, value: OnboardingProfile[K]) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function stepPayload(step: number): Record<string, unknown> {
+    switch (step) {
+      case 1: return { owner_name: form.owner_name || "", business_name: form.business_name || "", email: form.email || "", phone: form.phone || null, city: form.city || null, state: form.state || null, user_type: form.user_type || "" };
+      case 2: return { business_category: form.business_category || "", other_business_category: form.other_business_category || null };
+      case 3: return { team_size: form.team_size || "", monthly_invoice_volume: form.monthly_invoice_volume || "" };
+      case 4: return {
+        gst_registered: form.gst_registered || "",
+        gst_number: form.gst_number || null,
+        legal_business_name: form.legal_business_name || null,
+        gst_state: form.gst_state || null,
+        gst_type: form.gst_type || null,
+        legal_entity_type: form.legal_entity_type || null,
+        registration_types: form.registration_types || [],
+        pan_number: form.pan_number || null,
+        cin_number: form.cin_number || null,
+        llpin_number: form.llpin_number || null,
+        tan_number: form.tan_number || null,
+        udyam_registration_number: form.udyam_registration_number || null,
+        udyog_aadhaar_number: form.udyog_aadhaar_number || null,
+        ngo_darpan_id: form.ngo_darpan_id || null,
+        trust_registration_number: form.trust_registration_number || null,
+        society_registration_number: form.society_registration_number || null,
+        fssai_number: form.fssai_number || null,
+        iec_number: form.iec_number || null,
+        professional_tax_number: form.professional_tax_number || null,
+      };
+      case 5: return { invoice_item_type: form.invoice_item_type || "", needs_inventory: form.needs_inventory || "", needs_quotation: form.needs_quotation || "", needs_payment_tracking: form.needs_payment_tracking || "", needs_customer_records: form.needs_customer_records || "", required_reports: form.required_reports || [], branch_model: form.branch_model || null };
+      case 6: return {
+        payment_methods: form.payment_methods || [],
+        wants_upi_qr: form.wants_upi_qr || "",
+        upi_id: form.upi_id || null,
+        bank_details: form.bank_details || null,
+        bank_account_holder_name: form.bank_account_holder_name || null,
+        bank_name: form.bank_name || null,
+        bank_account_number: form.bank_account_number || null,
+        bank_ifsc: form.bank_ifsc || null,
+        bank_swift_code: form.bank_swift_code || null,
+        bank_micr_code: form.bank_micr_code || null,
+        bank_branch_name: form.bank_branch_name || null,
+        bank_account_type: form.bank_account_type || null,
+        bank_notes: form.bank_notes || null,
+      };
+      case 7: return { logo_path: form.logo_path || null, logo_url: form.logo_url || null, invoice_template_preference: form.invoice_template_preference || "", show_on_invoice: form.show_on_invoice || [] };
+      default: return {};
+    }
+  }
+
+  async function saveStep(step: number, moveNext = false) {
+    setSaving(true); setError(""); setSuccess("");
+    const result = await authedRequest<OnboardingResponse>("/api/auth/onboarding/save", {
+      method: "POST", body: JSON.stringify({ step, payload: stepPayload(step) }),
+    });
+    setSaving(false);
+    if (!result.ok || !result.data.success) { setError(apiErrorMessage("Could not save onboarding step.", result.data)); return; }
+    setStarted(true);
+    setSuccess(result.data.message || "Progress saved.");
+    if (result.data.profile) {
+      setForm((current) => ({
+        ...current, ...result.data.profile,
+        required_reports: result.data.profile?.required_reports || current.required_reports || [],
+        payment_methods: result.data.profile?.payment_methods || current.payment_methods || [],
+        show_on_invoice: result.data.profile?.show_on_invoice || current.show_on_invoice || [],
+        registration_types: result.data.profile?.registration_types || current.registration_types || [],
+      }));
+    }
+    if (result.data.personalization) setPersonalization(result.data.personalization);
+    if (moveNext && step < 8) setCurrentStep(step + 1);
+  }
+
+  async function handleComplete() {
+    setSaving(true); setError(""); setSuccess("");
+    const result = await authedRequest<OnboardingResponse>("/api/auth/onboarding/complete", {
+      method: "POST", body: JSON.stringify({ payload: form }),
+    });
+    setSaving(false);
+    if (!result.ok || !result.data.success) { setError(apiErrorMessage("Could not complete onboarding.", result.data)); return; }
+    setStarted(true); setCurrentStep(8);
+    setForm((current) => ({ ...current, ...(result.data.profile || {}), setup_completed: true }));
+    setPersonalization(result.data.personalization || null);
+    setSuccess(result.data.message || "Setup completed.");
+  }
+
+  async function handleSkip() {
+    setSaving(true); setError(""); setSuccess("");
+    const result = await authedRequest<OnboardingResponse>("/api/auth/onboarding/skip", { method: "POST" });
+    setSaving(false);
+    if (!result.ok || !result.data.success) { setError(apiErrorMessage("Could not skip setup right now.", result.data)); return; }
+    setStarted(true);
+    setForm((current) => ({ ...current, ...(result.data.profile || {}), setup_skipped: true }));
+    setSuccess(result.data.message || "Setup skipped.");
+    navigateTo("/dashboard");
+  }
+
+  async function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const body = new FormData(); body.append("file", file); body.append("folder", "branding/logos");
+    setUploading(true); setError("");
+    const result = await authedRequest<{ file_path?: string; public_url?: string; message?: string; success?: boolean }>("/api/files/upload", { method: "POST", body });
+    setUploading(false); event.target.value = "";
+    if (!result.ok || !result.data.success) { setError(apiErrorMessage("Logo upload failed.", result.data)); return; }
+    setValue("logo_path", result.data.file_path || ""); setValue("logo_url", result.data.public_url || "");
+    setSuccess("Logo uploaded successfully.");
+  }
+
+  function renderPills(items: string[], activeValue: string | undefined, onPick: (value: string) => void) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {items.map((item) => (
+          <button
+            key={item} type="button" onClick={() => onPick(item)}
+            className={cn(
+              "flex items-center justify-center p-3 text-sm font-semibold rounded-xl border-2 transition-all duration-200 text-center",
+              activeValue === item 
+                ? "border-primary bg-primary/10 text-primary shadow-sm" 
+                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+            )}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-slate-500 font-medium">Preparing your setup wizard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen w-full bg-slate-50 overflow-hidden">
+      
+      {/* LEFT PANE - Hero & Context */}
+      <div className="hidden lg:flex flex-col w-[400px] xl:w-[500px] bg-gradient-to-br from-indigo-600 to-violet-700 p-10 text-white flex-shrink-0 relative overflow-hidden">
+        {/* Abstract graphics */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-[20%] right-[-10%] w-64 h-64 bg-white rounded-full blur-3xl mix-blend-overlay"></div>
+          <div className="absolute bottom-[10%] left-[-20%] w-80 h-80 bg-white rounded-full blur-3xl mix-blend-overlay"></div>
+        </div>
+
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="flex items-center gap-3 mb-16">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/30">
+              <Hexagon className="w-6 h-6 fill-white" />
+            </div>
+            <span className="text-xl font-bold tracking-tight">SaaSzo</span>
+          </div>
+
+          <div className="mt-auto mb-auto">
+            <h1 className="text-4xl font-extrabold mb-6 leading-tight">
+              {currentStep === 8 ? "You're all set!" : "Let's set up your business."}
+            </h1>
+            <p className="text-white/80 text-lg leading-relaxed mb-8">
+              {personalization?.headline || "We'll configure your dashboard, invoices, and reports exactly how your business needs them."}
+            </p>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-green-300" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold">Personalized Dashboard</div>
+                  <div className="text-xs text-white/70">Custom widgets based on your choices</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-green-300" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold">Smart Templates</div>
+                  <div className="text-xs text-white/70">GST ready, professional formats</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT PANE - Form & Wizard */}
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50">
+        
+        {/* Top Header */}
+        <div className="flex items-center justify-between p-6 md:px-12 border-b border-slate-200 bg-white sticky top-0 z-10">
+          <div className="flex items-center gap-2 lg:hidden">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <Hexagon className="w-5 h-5 text-white fill-white/20" />
+            </div>
+            <span className="font-bold text-slate-900">SaaSzo</span>
+          </div>
+          
+          <div className="hidden lg:flex flex-1 items-center gap-2 max-w-2xl mx-auto px-4">
+            {stepLabels.map((label, idx) => (
+              <div key={label} className="flex items-center gap-2 flex-1">
+                <div className={cn(
+                  "flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold transition-colors",
+                  currentStep > idx + 1 ? "bg-green-500 text-white" :
+                  currentStep === idx + 1 ? "bg-primary text-white ring-4 ring-primary/20" : "bg-slate-200 text-slate-500"
+                )}>
+                  {currentStep > idx + 1 ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
+                </div>
+                {idx < stepLabels.length - 1 && (
+                  <div className={cn("flex-1 h-1 rounded-full", currentStep > idx + 1 ? "bg-green-500" : "bg-slate-200")} />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {currentStep < 8 && (
+            <Button variant="ghost" className="text-slate-500 hover:text-slate-900" onClick={handleSkip} disabled={saving}>
+              Skip Setup
+            </Button>
+          )}
+        </div>
+
+        {/* Form Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-12">
+          <div className="max-w-2xl mx-auto w-full h-full flex flex-col">
+            
+            {/* Error/Success Messages */}
+            {(error || success) && (
+              <div className={cn(
+                "p-4 rounded-xl mb-8 font-medium text-sm flex items-start gap-3",
+                error ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"
+              )}>
+                {error || success}
+              </div>
+            )}
+
+            <div className="flex-1">
+              <h2 className="text-3xl font-extrabold text-slate-900 mb-2">{stepLabels[currentStep - 1]}</h2>
+              <p className="text-slate-500 mb-8 font-medium text-lg">Please provide the necessary details below.</p>
+
+              {currentStep === 1 && (
+                <div className="grid sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-2">
+                    <Label className="text-slate-700">Owner Name <span className="text-red-500">*</span></Label>
+                    <Input className="h-12 bg-white" value={form.owner_name || ""} placeholder="Pankaj Kumar" onChange={e => setValue("owner_name", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700">Business Name <span className="text-red-500">*</span></Label>
+                    <Input className="h-12 bg-white" value={form.business_name || ""} placeholder="SaaSzo Digital" onChange={e => setValue("business_name", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700">Email Address <span className="text-red-500">*</span></Label>
+                    <Input className="h-12 bg-white" value={form.email || ""} placeholder="name@business.com" onChange={e => setValue("email", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700">Mobile Number</Label>
+                    <Input className="h-12 bg-white" value={form.phone || ""} placeholder="+91 98765 43210" onChange={e => setValue("phone", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700">City</Label>
+                    <Input className="h-12 bg-white" value={form.city || ""} placeholder="Jaipur" onChange={e => setValue("city", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700">State</Label>
+                    <SearchableSelect
+                      options={states.map((s) => ({ label: s.label, value: s.state_name }))}
+                      value={form.state || ""}
+                      onChange={(val) => setValue("state", val)}
+                    />
+                  </div>
+                  <div className="col-span-full space-y-3 mt-4">
+                    <Label className="text-slate-700">Who are you? <span className="text-red-500">*</span></Label>
+                    {renderPills(options.user_types, form.user_type, val => setValue("user_type", val))}
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 2 && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">What describes your business best? <span className="text-red-500">*</span></Label>
+                    {renderPills(options.business_categories, form.business_category, val => setValue("business_category", val))}
+                  </div>
+                  {form.business_category === "Other" && (
+                    <div className="space-y-2 animate-in fade-in zoom-in-95">
+                      <Label className="text-slate-700">Specify Category</Label>
+                      <Input className="h-12 bg-white" value={form.other_business_category || ""} placeholder="E.g. Event Management" onChange={e => setValue("other_business_category", e.target.value)} />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Team Size <span className="text-red-500">*</span></Label>
+                    {renderPills(options.team_sizes, form.team_size, val => setValue("team_size", val))}
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Monthly Invoice Volume <span className="text-red-500">*</span></Label>
+                    {renderPills(options.monthly_invoice_volumes, form.monthly_invoice_volume, val => setValue("monthly_invoice_volume", val))}
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 4 && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Are you GST Registered? <span className="text-red-500">*</span></Label>
+                    {renderPills(options.gst_registered_options, form.gst_registered, val => {
+                      setValue("gst_registered", val);
+                      setValue("registration_types", syncGstRegistrationType(form.registration_types, val));
+                    })}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Business / Legal Entity Type</Label>
+                    {renderPills(options.legal_entity_type_options, form.legal_entity_type, val => setValue("legal_entity_type", val))}
+                    <p className="text-xs text-slate-500">Select NGO, Trust, Society, Section 8, LLP, company, proprietorship, ya jo bhi aapke business ka legal structure hai.</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Registrations You Have (Select multiple)</Label>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {options.registration_type_options.map(opt => (
+                        <label key={opt} className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                          (form.registration_types || []).includes(opt) ? "bg-primary/5 border-primary text-primary font-medium" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                        )}>
+                          <input type="checkbox" className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
+                            checked={(form.registration_types || []).includes(opt)}
+                            onChange={() => setValue("registration_types", toggleArrayValue(form.registration_types, opt))}
+                          />
+                          <span className="text-sm">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {form.gst_registered === "Yes" && (
+                    <Card className="p-6 bg-white border-slate-200 shadow-sm animate-in fade-in zoom-in-95 grid sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label>GST Number <span className="text-red-500">*</span></Label>
+                        <Input className="h-11 bg-slate-50" value={form.gst_number || ""} placeholder="22AAAAA0000A1Z5" onChange={e => setValue("gst_number", e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Legal Business Name <span className="text-red-500">*</span></Label>
+                        <Input className="h-11 bg-slate-50" value={form.legal_business_name || ""} placeholder="Legal Entity Name" onChange={e => setValue("legal_business_name", e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>GST State <span className="text-red-500">*</span></Label>
+                        <SearchableSelect
+                          options={states.map((s) => ({ label: s.label, value: s.state_name }))}
+                          value={form.gst_state || ""}
+                          onChange={(val) => setValue("gst_state", val)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>GST Type <span className="text-red-500">*</span></Label>
+                        {renderPills(options.gst_type_options, form.gst_type, val => setValue("gst_type", val))}
+                      </div>
+                    </Card>
+                  )}
+
+                  <Card className="p-6 bg-white border-slate-200 shadow-sm grid sm:grid-cols-2 gap-6">
+                    {(form.registration_types || []).includes("PAN") && (
+                      <div className="space-y-2">
+                        <Label>PAN Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.pan_number || ""} placeholder="ABCDE1234F" onChange={e => setValue("pan_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("CIN") && (
+                      <div className="space-y-2">
+                        <Label>CIN Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.cin_number || ""} placeholder="U12345DL2020PTC123456" onChange={e => setValue("cin_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("LLPIN") && (
+                      <div className="space-y-2">
+                        <Label>LLPIN Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.llpin_number || ""} placeholder="ABC-1234" onChange={e => setValue("llpin_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("TAN") && (
+                      <div className="space-y-2">
+                        <Label>TAN Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.tan_number || ""} placeholder="DELA12345B" onChange={e => setValue("tan_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("MSME / Udyam Registration") && (
+                      <div className="space-y-2">
+                        <Label>Udyam Registration Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.udyam_registration_number || ""} placeholder="UDYAM-XX-00-0000000" onChange={e => setValue("udyam_registration_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("Udyog Aadhaar (Legacy UAM)") && (
+                      <div className="space-y-2">
+                        <Label>Udyog Aadhaar / UAM Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.udyog_aadhaar_number || ""} placeholder="Legacy UAM number" onChange={e => setValue("udyog_aadhaar_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("NGO Darpan") && (
+                      <div className="space-y-2">
+                        <Label>NGO Darpan ID</Label>
+                        <Input className="h-11 bg-slate-50" value={form.ngo_darpan_id || ""} placeholder="NITI Aayog Darpan ID" onChange={e => setValue("ngo_darpan_id", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("Trust Registration") && (
+                      <div className="space-y-2">
+                        <Label>Trust Registration Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.trust_registration_number || ""} placeholder="Trust deed / registration no." onChange={e => setValue("trust_registration_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("Society Registration") && (
+                      <div className="space-y-2">
+                        <Label>Society Registration Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.society_registration_number || ""} placeholder="Society registration no." onChange={e => setValue("society_registration_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("FSSAI") && (
+                      <div className="space-y-2">
+                        <Label>FSSAI Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.fssai_number || ""} placeholder="Food license no." onChange={e => setValue("fssai_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("Import Export Code (IEC)") && (
+                      <div className="space-y-2">
+                        <Label>IEC Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.iec_number || ""} placeholder="Import Export Code" onChange={e => setValue("iec_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).includes("Professional Tax") && (
+                      <div className="space-y-2">
+                        <Label>Professional Tax Number</Label>
+                        <Input className="h-11 bg-slate-50" value={form.professional_tax_number || ""} placeholder="State professional tax no." onChange={e => setValue("professional_tax_number", e.target.value)} />
+                      </div>
+                    )}
+                    {(form.registration_types || []).length === 0 && (
+                      <p className="sm:col-span-2 text-sm text-slate-500">Agar abhi registration details nahi hain to blank chhod sakte hain. Baad mein settings se update ho jayega.</p>
+                    )}
+                  </Card>
+                </div>
+              )}
+
+              {currentStep === 5 && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Invoice Item Type <span className="text-red-500">*</span></Label>
+                    {renderPills(options.invoice_item_types, form.invoice_item_type, val => setValue("invoice_item_type", val))}
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <Label className="text-slate-700">Need Inventory? <span className="text-red-500">*</span></Label>
+                      {renderPills(options.yes_no_future_options, form.needs_inventory, val => setValue("needs_inventory", val))}
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-slate-700">Need Payment Tracking? <span className="text-red-500">*</span></Label>
+                      {renderPills(options.yes_no_options, form.needs_payment_tracking, val => setValue("needs_payment_tracking", val))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Branch Model <span className="text-red-500">*</span></Label>
+                    {renderPills(options.branch_model_options, form.branch_model, val => setValue("branch_model", val))}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Required Reports (Select multiple)</Label>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {options.required_report_options.map(opt => (
+                        <label key={opt} className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                          (form.required_reports || []).includes(opt) ? "bg-primary/5 border-primary text-primary font-medium" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                        )}>
+                          <input type="checkbox" className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
+                            checked={(form.required_reports || []).includes(opt)}
+                            onChange={() => setValue("required_reports", toggleArrayValue(form.required_reports, opt))}
+                          />
+                          <span className="text-sm">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 6 && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Payment Methods Accepted <span className="text-red-500">*</span></Label>
+                    <div className="grid sm:grid-cols-3 gap-3">
+                      {options.payment_method_options.map(opt => (
+                        <label key={opt} className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                          (form.payment_methods || []).includes(opt) ? "bg-primary/5 border-primary text-primary font-medium" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                        )}>
+                          <input type="checkbox" className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
+                            checked={(form.payment_methods || []).includes(opt)}
+                            onChange={() => setValue("payment_methods", toggleArrayValue(form.payment_methods, opt))}
+                          />
+                          <span className="text-sm">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Accept UPI Payments?</Label>
+                    {renderPills(options.yes_no_later_options, form.wants_upi_qr, val => setValue("wants_upi_qr", val))}
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-slate-700">UPI ID</Label>
+                      <Input className="h-12 bg-white" value={form.upi_id || ""} placeholder="business@okbank" onChange={e => setValue("upi_id", e.target.value)} />
+                    </div>
+                  </div>
+
+                  <Card className="p-6 bg-white border-slate-200 shadow-sm">
+                    <div className="mb-5">
+                      <h3 className="text-lg font-bold text-slate-900">Bank Details</h3>
+                      <p className="text-sm text-slate-500 mt-1">Invoice payment ke liye proper bank fields add karein. Jo fields optional hain unhe blank chhod sakte hain.</p>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-slate-700">Account Holder Name</Label>
+                        <Input className="h-12 bg-slate-50" value={form.bank_account_holder_name || ""} placeholder="Business / account holder name" onChange={e => setValue("bank_account_holder_name", e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700">Bank Name</Label>
+                        <Input className="h-12 bg-slate-50" value={form.bank_name || ""} placeholder="HDFC Bank" onChange={e => setValue("bank_name", e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700">Account Number</Label>
+                        <Input className="h-12 bg-slate-50" value={form.bank_account_number || ""} placeholder="123456789012" onChange={e => setValue("bank_account_number", e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700">IFSC Code</Label>
+                        <Input className="h-12 bg-slate-50 uppercase" value={form.bank_ifsc || ""} placeholder="HDFC0001234" onChange={e => setValue("bank_ifsc", e.target.value.toUpperCase())} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700">SWIFT Code</Label>
+                        <Input className="h-12 bg-slate-50 uppercase" value={form.bank_swift_code || ""} placeholder="HDFCINBBXXX" onChange={e => setValue("bank_swift_code", e.target.value.toUpperCase())} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700">MICR Code</Label>
+                        <Input className="h-12 bg-slate-50" value={form.bank_micr_code || ""} placeholder="302240001" onChange={e => setValue("bank_micr_code", e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700">Bank Branch</Label>
+                        <Input className="h-12 bg-slate-50" value={form.bank_branch_name || ""} placeholder="Jaipur Main Branch" onChange={e => setValue("bank_branch_name", e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700">Account Type</Label>
+                        <Input className="h-12 bg-slate-50" value={form.bank_account_type || ""} placeholder="Current / Savings / OD" onChange={e => setValue("bank_account_type", e.target.value)} />
+                      </div>
+                      <div className="sm:col-span-2 space-y-2">
+                        <Label className="text-slate-700">Other Bank Notes</Label>
+                        <Input className="h-12 bg-slate-50" value={form.bank_notes || form.bank_details || ""} placeholder="Any extra payment instruction or old bank detail text" onChange={e => { setValue("bank_notes", e.target.value); setValue("bank_details", e.target.value); }} />
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              )}
+
+              {currentStep === 7 && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  
+                  <div className="space-y-4">
+                    <Label className="text-slate-700">Brand Logo</Label>
+                    <div className="flex items-center gap-6 p-6 border-2 border-dashed border-slate-300 rounded-2xl bg-white hover:border-primary/50 transition-colors">
+                      <div className="w-20 h-20 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                        {form.logo_url ? (
+                          <img src={form.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                        ) : (
+                          <UploadCloud className="w-8 h-8 text-slate-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <Label htmlFor="logo-upload" className="bg-primary text-white px-4 py-2 rounded-lg cursor-pointer inline-block text-sm font-semibold hover:bg-primary/90">
+                          {uploading ? "Uploading..." : "Choose File"}
+                        </Label>
+                        <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploading} />
+                        <p className="text-xs text-slate-500">Square PNG or JPG recommended. Max 2MB.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Invoice Template <span className="text-red-500">*</span></Label>
+                    {renderPills(options.template_options, form.invoice_template_preference, val => setValue("invoice_template_preference", val))}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-slate-700">Show on Invoice</Label>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {options.show_on_invoice_options.map(opt => (
+                        <label key={opt} className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                          (form.show_on_invoice || []).includes(opt) ? "bg-primary/5 border-primary text-primary font-medium" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                        )}>
+                          <input type="checkbox" className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
+                            checked={(form.show_on_invoice || []).includes(opt)}
+                            onChange={() => setValue("show_on_invoice", toggleArrayValue(form.show_on_invoice, opt))}
+                          />
+                          <span className="text-sm">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 8 && (
+                <div className="space-y-8 animate-in zoom-in duration-500 flex flex-col items-center text-center py-12">
+                  <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 ring-8 ring-green-50">
+                    <CheckCircle2 className="w-12 h-12 text-green-600" />
+                  </div>
+                  <h2 className="text-3xl font-extrabold text-slate-900">Your workspace is ready.</h2>
+                  <p className="text-lg text-slate-500 mt-2 max-w-md">
+                    {personalization?.headline || "We have configured SaaSzo specifically for your business operations."}
+                  </p>
+                  
+                  <div className="w-full max-w-md mt-8 grid gap-4">
+                    <Button size="lg" className="h-14 text-base w-full shadow-lg" onClick={() => navigateTo("/dashboard")}>
+                      Enter Dashboard
+                    </Button>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button variant="outline" className="h-12 w-full" onClick={() => navigateTo("/dashboard/invoices")}>Create Bill</Button>
+                      <Button variant="outline" className="h-12 w-full" onClick={() => navigateTo("/dashboard/products")}>Add Products</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Bottom Actions */}
+            {currentStep < 8 && (
+              <div className="flex items-center justify-between pt-8 mt-8 border-t border-slate-200">
+                <Button 
+                  variant="ghost" 
+                  className="text-slate-600 font-semibold"
+                  onClick={() => setCurrentStep(s => Math.max(1, s - 1))} 
+                  disabled={currentStep === 1 || saving}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" /> Back
+                </Button>
+                
+                <div className="flex gap-3">
+                  <Button variant="secondary" onClick={() => saveStep(currentStep, false)} disabled={saving}>
+                    {saving ? "Saving..." : "Save Progress"}
+                  </Button>
+                  
+                  {currentStep < 7 ? (
+                    <Button onClick={() => saveStep(currentStep, true)} disabled={saving} className="px-8 shadow-md">
+                      {saving ? "Saving..." : "Continue"} <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  ) : (
+                    <Button onClick={handleComplete} disabled={saving} className="px-8 shadow-md bg-green-600 hover:bg-green-700">
+                      {saving ? "Completing..." : "Complete Setup"} <CheckCircle2 className="w-4 h-4 ml-1" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

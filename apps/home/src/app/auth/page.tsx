@@ -16,6 +16,9 @@ function AuthForm() {
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
+    const emailParam = searchParams.get('email');
+    if (emailParam) setEmail(emailParam);
+
     if (searchParams.get('registered') === 'true') {
       setSuccessMsg('Account created! Please sign in.');
     }

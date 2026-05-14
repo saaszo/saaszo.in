@@ -1,0 +1,89 @@
+import { useState, useRef, useEffect } from "react";
+import { Input } from "./input";
+import { Label } from "./label";
+
+type Option = { label: string; value: string };
+
+type SearchableSelectProps = {
+  label?: string;
+  placeholder?: string;
+  options: Option[];
+  value: string;
+  onChange: (val: string) => void;
+};
+
+export function SearchableSelect({
+  label,
+  placeholder = "Select...",
+  options,
+  value,
+  onChange,
+}: SearchableSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filteredOptions = options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()));
+  const selectedOption = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (val: string) => {
+    onChange(val);
+    setIsOpen(false);
+    setSearch("");
+  };
+
+  return (
+    <div className="relative" ref={containerRef}>
+      {label && <Label className="mb-2 block">{label}</Label>}
+      <div
+        className="flex min-h-10 w-full items-center justify-between rounded-xl border border-border bg-white px-3 py-2 text-sm ring-offset-background cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={selectedOption ? "text-ink" : "text-muted"}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <svg className="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-white p-1 shadow-md">
+          <div className="p-1">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search..."
+              className="h-8"
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          <div className="max-h-40 overflow-y-auto">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <div
+                  key={option.value}
+                  className="relative flex w-full cursor-pointer select-none items-center rounded-lg py-1.5 pl-3 pr-2 text-sm outline-none hover:bg-canvas"
+                  onClick={() => handleSelect(option.value)}
+                >
+                  {option.label}
+                </div>
+              ))
+            ) : (
+              <div className="py-2 text-center text-sm text-muted">No results found.</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

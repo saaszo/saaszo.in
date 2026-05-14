@@ -471,6 +471,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signInWithEmail(email: string, password: string) {
+    // 1. Check if identifier exists first
+    const checkResponse = await fetch(`${API_BASE_URL}/auth/check-identifier`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier: email }),
+    });
+    
+    if (checkResponse.ok) {
+      const checkData = await checkResponse.json();
+      if (checkData.success && !checkData.exists) {
+        navigateAfterAuth(router, `/register?email=${encodeURIComponent(email)}`);
+        throw new Error('Not registered. Redirecting to signup...');
+      }
+    }
+
+    // 2. Perform Login
     const payload = await fetchBackendJson('/auth/login', {
       method: 'POST',
       body: JSON.stringify({
@@ -497,6 +513,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signUpWithEmail(email: string, password: string, name?: string) {
+    // 1. Check if identifier already exists
+    const checkResponse = await fetch(`${API_BASE_URL}/auth/check-identifier`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier: email }),
+    });
+    
+    if (checkResponse.ok) {
+      const checkData = await checkResponse.json();
+      if (checkData.success && checkData.exists) {
+        navigateAfterAuth(router, `/auth?email=${encodeURIComponent(email)}`);
+        throw new Error('Account already exists. Redirecting to login...');
+      }
+    }
+
+    // 2. Perform Signup
     const displayName = name?.trim() || email.split('@')[0] || 'SaaSzo User';
     const companyName = `${displayName} Workspace`;
 
@@ -520,7 +552,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setStoredBackendToken(payload.access_token);
     await hydrateBackendSession(payload.access_token);
-    router.push('/dashboard');
+    router.push('/dashboard/setup');
   }
 
   async function updateProfile(values: Partial<ProfilePayload>) {
