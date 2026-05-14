@@ -149,8 +149,8 @@ export default function DashboardPage() {
       return;
     }
 
-    // Navigate to the product's auth-bridge with the handoff token
-    window.location.href = redirectUrl;
+    // Open product in a new tab (keeps saaszo.in dashboard open)
+    window.open(redirectUrl, '_blank', 'noopener,noreferrer');
   }
 
   async function handleProfileSubmit(event: React.FormEvent<HTMLFormElement>) {
