@@ -49,6 +49,12 @@ type SubscriptionInfo = {
   currentPeriodEnd: string | null;
 };
 
+type OnboardingInfo = {
+  setup_completed?: boolean;
+  setup_skipped?: boolean;
+  current_step?: number | null;
+};
+
 type AuthContextValue = {
   user: FirebaseUser | null;
   authenticated: boolean;
@@ -57,6 +63,8 @@ type AuthContextValue = {
   profile: ProfilePayload | null;
   auth: AuthInfo | null;
   subscription: SubscriptionInfo | null;
+  onboarding: OnboardingInfo | null;
+  postAuthRedirect: string | null;
   reloadUser: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -87,7 +95,7 @@ type AuthContextValue = {
 
 type AuthSessionState = Pick<
   AuthContextValue,
-  'user' | 'authenticated' | 'error' | 'loading' | 'profile' | 'auth' | 'subscription'
+  'user' | 'authenticated' | 'error' | 'loading' | 'profile' | 'auth' | 'subscription' | 'onboarding'
 >;
 
 type BackendAuthResponse = {
@@ -99,6 +107,7 @@ type BackendAuthResponse = {
   profile?: ProfilePayload;
   auth?: AuthInfo;
   subscription?: SubscriptionInfo;
+  onboarding?: OnboardingInfo;
   user?: {
     id?: number | string;
     name?: string | null;
@@ -127,6 +136,7 @@ const signedOutState = {
   profile: null,
   auth: null,
   subscription: null,
+  onboarding: null,
 };
 
 function getStoredBackendToken() {
@@ -185,6 +195,7 @@ function normalizeBackendSession(payload: BackendAuthResponse): Omit<AuthSession
       profile: payload.profile,
       auth: payload.auth,
       subscription: payload.subscription,
+      onboarding: payload.onboarding ?? null,
     };
   }
 
@@ -219,6 +230,7 @@ function normalizeBackendSession(payload: BackendAuthResponse): Omit<AuthSession
       seats: 1,
       currentPeriodEnd: null,
     },
+    onboarding: payload.onboarding ?? null,
   };
 }
 
@@ -248,6 +260,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading: true,
   });
   const [backendToken, setBackendToken] = useState<string | null>(null);
+  const [postAuthRedirect, setPostAuthRedirect] = useState<string | null>(null);
 
   function getCookie(name: string) {
     if (typeof document === 'undefined') return null;
@@ -277,6 +290,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const data = (await response.json()) as BackendAuthResponse & { access_token?: string };
+    setPostAuthRedirect(data.redirect ?? '/dashboard');
 
     // ✅ CRITICAL: Store the Sanctum token returned by /auth/sync.
     // Without this, Firebase-authenticated users have no backend token,
@@ -299,6 +313,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profile: data.profile ?? null,
       auth: data.auth ?? null,
       subscription: data.subscription ?? null,
+      onboarding: data.onboarding ?? null,
     });
 
     return data;
@@ -310,6 +325,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const session = normalizeBackendSession(payload);
+    setPostAuthRedirect(payload.redirect ?? '/dashboard');
 
     setState({
       user: null,
@@ -319,6 +335,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profile: session.profile,
       auth: session.auth,
       subscription: session.subscription,
+      onboarding: session.onboarding,
     });
   }
 
@@ -387,6 +404,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const session = normalizeBackendSession(payload);
+    setPostAuthRedirect(payload.redirect ?? '/dashboard');
 
     setBackendToken(token);
     setState({
@@ -397,6 +415,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profile: session.profile,
       auth: session.auth,
       subscription: session.subscription,
+      onboarding: session.onboarding,
     });
   }
 
@@ -513,8 +532,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
-    await syncFirebaseUserSession(result.user);
-    navigateAfterAuth(router, '/dashboard');
+    const data = await syncFirebaseUserSession(result.user);
+    navigateAfterAuth(router, data.redirect ?? '/dashboard');
   }
 
   function setupRecaptcha(
@@ -677,6 +696,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profile: data.profile ?? current.profile,
         auth: data.auth ?? current.auth,
         subscription: data.subscription ?? current.subscription,
+        onboarding: data.onboarding ?? current.onboarding,
       }));
 
       return { error: undefined };
@@ -812,6 +832,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         ...state,
+        postAuthRedirect,
         reloadUser,
         signInWithGoogle,
         signOut,

@@ -79,6 +79,8 @@ export default function DashboardPage() {
     authenticated,
     error,
     loading,
+    onboarding,
+    postAuthRedirect,
     profile,
     signOut,
     subscription,
@@ -111,6 +113,14 @@ export default function DashboardPage() {
       });
     }
   }, [authenticated, loading, router]);
+
+  useEffect(() => {
+    if (!loading && authenticated && postAuthRedirect?.includes('/dashboard/setup')) {
+      startTransition(() => {
+        router.replace('/dashboard/setup');
+      });
+    }
+  }, [authenticated, loading, onboarding, postAuthRedirect, router]);
 
   useEffect(() => {
     if (!profile) return;

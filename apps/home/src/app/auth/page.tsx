@@ -7,7 +7,7 @@ import { useAuthSession } from '@/components/AuthProvider';
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { authenticated, signInWithGoogle, signInWithEmail } = useAuthSession();
+  const { authenticated, signInWithGoogle, signInWithEmail, postAuthRedirect } = useAuthSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isHovered, setIsHovered] = useState(false);
@@ -26,9 +26,9 @@ function AuthForm() {
 
   useEffect(() => {
     if (authenticated) {
-      router.replace('/dashboard');
+      router.replace(postAuthRedirect || '/dashboard');
     }
-  }, [authenticated, router]);
+  }, [authenticated, postAuthRedirect, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

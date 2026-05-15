@@ -11,7 +11,7 @@ import Pricing from '../components/Pricing';
 import Footer from '../components/Footer';
 
 export default function Home() {
-  const { authenticated, loading } = useAuthSession();
+  const { authenticated, loading, postAuthRedirect } = useAuthSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -24,9 +24,9 @@ export default function Home() {
 
     // If already authenticated and not loading, go to dashboard
     if (!loading && authenticated) {
-      router.replace('/dashboard');
+      router.replace(postAuthRedirect || '/dashboard');
     }
-  }, [authenticated, loading, router]);
+  }, [authenticated, loading, postAuthRedirect, router]);
 
   // If loading or authenticated (redirecting), show a minimal loader or nothing to prevent flicker
   if (loading || authenticated) {
