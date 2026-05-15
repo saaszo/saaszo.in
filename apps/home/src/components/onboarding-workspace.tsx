@@ -5,7 +5,9 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { toAbsoluteApiUrl } from "@/lib/config";
 import { apiErrorMessage, authedRequest } from "@/lib/workspace-action-client";
 import { getDeviceId, readAccessToken, navigateTo } from "@/lib/auth-client";
+import { getVerificationAuth } from "@/lib/firebase";
 import { CheckCircle2, ChevronLeft, ChevronRight, UploadCloud, Hexagon, Loader2 } from "lucide-react";
+import { ConfirmationResult, RecaptchaVerifier, signInWithPhoneNumber, signOut } from "firebase/auth";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -264,6 +266,18 @@ export function OnboardingWorkspace() {
   const [success, setSuccess] = useState("");
   const [started, setStarted] = useState(false);
   const [useCustomBank, setUseCustomBank] = useState(false);
+  const [emailOtp, setEmailOtp] = useState("");
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailOtpSending, setEmailOtpSending] = useState(false);
+  const [emailOtpVerifying, setEmailOtpVerifying] = useState(false);
+  const [emailOtpVerified, setEmailOtpVerified] = useState(false);
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [phoneOtpSending, setPhoneOtpSending] = useState(false);
+  const [phoneOtpVerifying, setPhoneOtpVerifying] = useState(false);
+  const [phoneOtpVerified, setPhoneOtpVerified] = useState(false);
+  const [verificationConfirmation, setVerificationConfirmation] = useState<ConfirmationResult | null>(null);
+  const [phoneVerifier, setPhoneVerifier] = useState<RecaptchaVerifier | null>(null);
   const { states, isLoading: locationsLoading } = useLocations();
   const { user, profile, auth } = useAuthSession();
 
@@ -342,9 +356,12 @@ export function OnboardingWorkspace() {
 
   const signedInWithGoogle = firebaseProviderIds.includes("google.com");
   const signedInWithPhoneOtp = firebaseProviderIds.includes("phone");
-  const signedInWithPassword = firebaseProviderIds.includes("password");
 
   const emailVerified = useMemo(() => {
+    if (emailOtpVerified) {
+      return true;
+    }
+
     if (signedInWithGoogle && (auth?.email || profile?.email || user?.email)) {
       return true;
     }
@@ -353,36 +370,34 @@ export function OnboardingWorkspace() {
       return true;
     }
 
-    if (!user && signedInWithPassword && (auth?.email || profile?.email)) {
-      return true;
-    }
-
-    if (!user && auth?.primaryProvider === "Password" && (auth?.email || profile?.email)) {
-      return true;
-    }
-
     return false;
-  }, [auth?.email, auth?.primaryProvider, profile?.email, signedInWithGoogle, signedInWithPassword, user]);
+  }, [auth?.email, emailOtpVerified, profile?.email, signedInWithGoogle, user]);
 
   const phoneVerified = useMemo(() => {
+    if (phoneOtpVerified) {
+      return true;
+    }
+
     if (signedInWithPhoneOtp && normalizeIndianPhone(auth?.phone || profile?.phone || user?.phoneNumber || "")) {
       return true;
     }
 
     return false;
-  }, [auth?.phone, profile?.phone, signedInWithPhoneOtp, user?.phoneNumber]);
+  }, [auth?.phone, phoneOtpVerified, profile?.phone, signedInWithPhoneOtp, user?.phoneNumber]);
 
   const emailVerificationLabel = emailVerified
     ? signedInWithGoogle
       ? "Verified by Google sign-in"
-      : signedInWithPassword || auth?.primaryProvider === "Password"
-        ? "Verified by your signed-in email account"
+      : emailOtpVerified
+        ? "Verified by email OTP"
         : "Verified"
     : "Pending verification";
 
   const phoneVerificationLabel = phoneVerified
     ? "Verified by mobile OTP sign-in"
     : "Pending verification";
+
+  const contactsFullyVerified = emailVerified && phoneVerified;
 
   useEffect(() => {
     if (!started || form.setup_completed) return;
@@ -399,6 +414,16 @@ export function OnboardingWorkspace() {
     window.addEventListener("beforeunload", handleUnload);
     return () => window.removeEventListener("beforeunload", handleUnload);
   }, [currentStep, form.setup_completed, started]);
+
+  useEffect(() => {
+    return () => {
+      if (phoneVerifier) {
+        try {
+          phoneVerifier.clear();
+        } catch {}
+      }
+    };
+  }, [phoneVerifier]);
 
   function setValue<K extends keyof OnboardingProfile>(key: K, value: OnboardingProfile[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -435,6 +460,18 @@ export function OnboardingWorkspace() {
   }
 
   function validateStepBeforeSave(step: number) {
+    if (step === 2) {
+      if (!contactsFullyVerified) {
+        return "Please verify both your email and mobile number before continuing.";
+      }
+
+      if (!(form.business_category || "").trim()) {
+        return "Select the category that best describes your business.";
+      }
+
+      return null;
+    }
+
     if (step !== 1) return null;
 
     const email = (form.email || "").trim();
@@ -532,6 +569,182 @@ export function OnboardingWorkspace() {
     }
     if (result.data.personalization) setPersonalization(result.data.personalization);
     if (moveNext && step < 8) setCurrentStep(step + 1);
+  }
+
+  async function sendEmailVerificationOtp() {
+    if (!form.email) {
+      setError("Enter your email address first.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setEmailOtpSending(true);
+
+    const result = await authedRequest<{ success?: boolean; message?: string }>("/api/auth/account/send-email-otp", {
+      method: "POST",
+      body: JSON.stringify({
+        purpose: "current_email",
+        email: sanitizeEmail(form.email || ""),
+      }),
+    });
+
+    setEmailOtpSending(false);
+
+    if (!result.ok || !result.data.success) {
+      setError(apiErrorMessage("Could not send email OTP.", result.data));
+      return;
+    }
+
+    setEmailOtpSent(true);
+    setSuccess(result.data.message || "Email OTP sent successfully.");
+  }
+
+  async function verifyEmailVerificationOtp() {
+    if (emailOtp.length !== 4) {
+      setError("Enter the 4-digit email OTP.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setEmailOtpVerifying(true);
+
+    const result = await authedRequest<{ success?: boolean; message?: string }>("/api/auth/account/verify-email-otp", {
+      method: "POST",
+      body: JSON.stringify({
+        purpose: "current_email",
+        email: sanitizeEmail(form.email || ""),
+        otp: emailOtp,
+      }),
+    });
+
+    setEmailOtpVerifying(false);
+
+    if (!result.ok || !result.data.success) {
+      setError(apiErrorMessage("Could not verify email OTP.", result.data));
+      return;
+    }
+
+    setEmailOtp("");
+    setEmailOtpSent(false);
+    setEmailOtpVerified(true);
+    setSuccess(result.data.message || "Email verified successfully.");
+  }
+
+  async function ensurePhoneVerifier() {
+    if (phoneVerifier) {
+      return phoneVerifier;
+    }
+
+    const verificationAuth = getVerificationAuth();
+    if (!verificationAuth) {
+      throw new Error("Phone verification is not available right now.");
+    }
+
+    const verifier = new RecaptchaVerifier(verificationAuth, "onboarding-phone-recaptcha", {
+      size: "normal",
+      callback: () => {
+        setError("");
+      },
+      "expired-callback": () => {
+        setError("Phone verification CAPTCHA expired. Please complete it again.");
+      },
+    });
+
+    await verifier.render();
+    setPhoneVerifier(verifier);
+    return verifier;
+  }
+
+  async function sendPhoneVerificationOtp() {
+    if (!/^\+91\d{10}$/.test(form.phone || "")) {
+      setError("Enter a valid mobile number in +91XXXXXXXXXX format first.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setPhoneOtpSending(true);
+
+    try {
+      const verificationAuth = getVerificationAuth();
+      if (!verificationAuth) {
+        throw new Error("Phone verification is not available right now.");
+      }
+
+      try {
+        await signOut(verificationAuth);
+      } catch {}
+
+      const verifier = await ensurePhoneVerifier();
+      const confirmation = await signInWithPhoneNumber(verificationAuth, form.phone || "", verifier);
+      setVerificationConfirmation(confirmation);
+      setPhoneOtpSent(true);
+      setSuccess("Mobile OTP sent successfully.");
+    } catch (verificationError: any) {
+      setError(verificationError?.message || "Could not send mobile OTP.");
+      try {
+        phoneVerifier?.clear();
+      } catch {}
+      setPhoneVerifier(null);
+    } finally {
+      setPhoneOtpSending(false);
+    }
+  }
+
+  async function verifyPhoneVerificationOtp() {
+    if (!verificationConfirmation) {
+      setError("Please send the mobile OTP first.");
+      return;
+    }
+
+    if (phoneOtp.length !== 6) {
+      setError("Enter the 6-digit mobile OTP.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setPhoneOtpVerifying(true);
+
+    try {
+      const verificationAuth = getVerificationAuth();
+      if (!verificationAuth) {
+        throw new Error("Phone verification is not available right now.");
+      }
+
+      const verifiedUser = await verificationConfirmation.confirm(phoneOtp);
+      const idToken = await verifiedUser.user.getIdToken();
+
+      const result = await authedRequest<{ success?: boolean; message?: string; verified_phone?: string }>("/api/auth/account/verify-phone", {
+        method: "POST",
+        body: JSON.stringify({
+          purpose: "current_phone",
+          expected_phone: form.phone,
+          id_token: idToken,
+        }),
+      });
+
+      if (!result.ok || !result.data.success) {
+        throw new Error(apiErrorMessage("Could not verify mobile OTP.", result.data));
+      }
+
+      setPhoneOtp("");
+      setPhoneOtpSent(false);
+      setVerificationConfirmation(null);
+      setPhoneOtpVerified(true);
+      setSuccess(result.data.message || "Mobile verified successfully.");
+      await signOut(verificationAuth);
+      try {
+        phoneVerifier?.clear();
+      } catch {}
+      setPhoneVerifier(null);
+    } catch (verificationError: any) {
+      setError(verificationError?.message || "Could not verify mobile OTP.");
+    } finally {
+      setPhoneOtpVerifying(false);
+    }
   }
 
   async function handleComplete() {
@@ -749,7 +962,7 @@ export function OnboardingWorkspace() {
 
               {currentStep === 2 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid xl:grid-cols-2 gap-4">
                     <Card className="p-5 border-slate-200 shadow-sm">
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -765,6 +978,24 @@ export function OnboardingWorkspace() {
                         </div>
                         <CheckCircle2 className={cn("w-5 h-5 shrink-0", emailVerified ? "text-emerald-500" : "text-amber-500")} />
                       </div>
+                      {!emailVerified && (
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                          <Button type="button" onClick={sendEmailVerificationOtp} disabled={emailOtpSending || emailOtpVerifying} className="h-10 px-4">
+                            {emailOtpSending ? "Sending..." : emailOtpSent ? "Resend OTP" : "Send OTP"}
+                          </Button>
+                          <Input
+                            className="h-10 w-32 bg-white"
+                            value={emailOtp}
+                            placeholder="4-digit OTP"
+                            maxLength={4}
+                            inputMode="numeric"
+                            onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                          />
+                          <Button type="button" variant="outline" onClick={verifyEmailVerificationOtp} disabled={emailOtpVerifying || emailOtp.length !== 4}>
+                            {emailOtpVerifying ? "Verifying..." : "Verify OTP"}
+                          </Button>
+                        </div>
+                      )}
                     </Card>
 
                     <Card className="p-5 border-slate-200 shadow-sm">
@@ -782,6 +1013,27 @@ export function OnboardingWorkspace() {
                         </div>
                         <CheckCircle2 className={cn("w-5 h-5 shrink-0", phoneVerified ? "text-emerald-500" : "text-amber-500")} />
                       </div>
+                      {!phoneVerified && (
+                        <div className="mt-4 space-y-3">
+                          <div id="onboarding-phone-recaptcha" className="min-h-[78px] w-full overflow-hidden" />
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Button type="button" onClick={sendPhoneVerificationOtp} disabled={phoneOtpSending || phoneOtpVerifying} className="h-10 px-4">
+                              {phoneOtpSending ? "Sending..." : phoneOtpSent ? "Resend OTP" : "Send OTP"}
+                            </Button>
+                            <Input
+                              className="h-10 w-32 bg-white"
+                              value={phoneOtp}
+                              placeholder="6-digit OTP"
+                              maxLength={6}
+                              inputMode="numeric"
+                              onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            />
+                            <Button type="button" variant="outline" onClick={verifyPhoneVerificationOtp} disabled={phoneOtpVerifying || phoneOtp.length !== 6 || !phoneOtpSent}>
+                              {phoneOtpVerifying ? "Verifying..." : "Verify OTP"}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </Card>
                   </div>
 
@@ -1183,7 +1435,7 @@ export function OnboardingWorkspace() {
                 </Button>
                 
                 <div className="flex gap-3">
-                  {currentStep > 1 && currentStep < 8 && (
+                  {currentStep > 1 && currentStep < 8 && currentStep !== 2 && (
                     <Button variant="outline" onClick={skipCurrentStep} disabled={saving}>
                       Skip this step
                     </Button>
