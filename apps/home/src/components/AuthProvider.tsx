@@ -55,6 +55,61 @@ type OnboardingInfo = {
   current_step?: number | null;
 };
 
+export type BranchInfo = {
+  id: number;
+  name: string;
+  branch_code: string | null;
+  branch_type: string;
+  business_name: string | null;
+  admin_name: string | null;
+  manager_id: number | null;
+  location: string | null;
+  state: string | null;
+  city: string | null;
+  town?: string | null;
+  address?: string | null;
+  email: string | null;
+  phone: string | null;
+  is_active: boolean;
+  employee_count: number;
+};
+
+export type StaffMember = {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  role: string;
+  branch_id: number;
+  branch_scope: 'all' | 'single';
+  branch_name: string | null;
+  employee_id: string | null;
+  department: string | null;
+  designation: string | null;
+  salary: number;
+  joining_date: string | null;
+  work_type: string;
+  notes?: string | null;
+  is_active: boolean;
+  tool_access: string[];
+  permission_overrides: Record<string, boolean>;
+  password?: string;
+};
+
+export type RoleTemplate = {
+  name: string;
+  description: string;
+  tools: string[];
+  branch_scope: 'all' | 'single';
+  permissions: Record<string, boolean>;
+};
+
+export type PermissionGroup = {
+  label: string;
+  actions: Record<string, string>;
+};
+
+
 type AuthContextValue = {
   user: FirebaseUser | null;
   authenticated: boolean;
@@ -91,7 +146,15 @@ type AuthContextValue = {
     password: string,
   ) => Promise<{ error?: string }>;
   getHandoffToken: (tool: string) => Promise<{ redirectUrl?: string; error?: string }>;
+  getBranches: () => Promise<BranchInfo[]>;
+  saveBranch: (data: any) => Promise<{ success: boolean; message?: string; branch?: BranchInfo }>;
+  deleteBranch: (id: number) => Promise<{ success: boolean; message?: string }>;
+  getStaff: (filters?: any) => Promise<StaffMember[]>;
+  saveStaff: (data: any) => Promise<{ success: boolean; message?: string; staff?: StaffMember }>;
+  deleteStaff: (id: number) => Promise<{ success: boolean; message?: string }>;
+  getStaffTemplates: () => Promise<{ roles: Record<string, RoleTemplate>; groups: Record<string, PermissionGroup> }>;
 };
+
 
 type AuthSessionState = Pick<
   AuthContextValue,
@@ -828,25 +891,127 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }
 
+  async function getBranches(): Promise<BranchInfo[]> {
+    try {
+      const payload = await fetchBackendJson('/workspace/branches');
+      return ((payload as any).data || []) as BranchInfo[];
+    } catch (err) {
+      console.error('getBranches error:', err);
+      return [];
+    }
+  }
+
+  async function saveBranch(data: any): Promise<{ success: boolean; message?: string; branch?: BranchInfo }> {
+    try {
+      const isUpdate = !!data.id;
+      const path = isUpdate ? `/workspace/branches/${data.id}` : '/workspace/branches';
+      const method = isUpdate ? 'PUT' : 'POST';
+
+      const payload = await fetchBackendJson(path, {
+        method,
+        body: JSON.stringify(data),
+      });
+
+      return {
+        success: !!payload.success,
+        message: payload.message,
+        branch: (payload as any).data as BranchInfo | undefined,
+      };
+    } catch (err: any) {
+      return { success: false, message: err.message };
+    }
+  }
+
+  async function deleteBranch(id: number): Promise<{ success: boolean; message?: string }> {
+    try {
+      const payload = await fetchBackendJson(`/workspace/branches/${id}`, {
+        method: 'DELETE',
+      });
+      return { success: !!payload.success, message: payload.message };
+    } catch (err: any) {
+      return { success: false, message: err.message };
+    }
+  }
+
+  async function getStaff(filters?: any): Promise<StaffMember[]> {
+    try {
+      const query = new URLSearchParams(filters).toString();
+      const payload = await fetchBackendJson(`/workspace/staff?${query}`);
+      return ((payload as any).data || []) as StaffMember[];
+    } catch (err) {
+      console.error('getStaff error:', err);
+      return [];
+    }
+  }
+
+  async function saveStaff(data: any): Promise<{ success: boolean; message?: string; staff?: StaffMember }> {
+    try {
+      const isUpdate = !!data.id;
+      const path = isUpdate ? `/workspace/staff/${data.id}` : '/workspace/staff';
+      const method = isUpdate ? 'PUT' : 'POST';
+
+      const payload = await fetchBackendJson(path, {
+        method,
+        body: JSON.stringify(data),
+      });
+
+      return {
+        success: !!payload.success,
+        message: payload.message,
+        staff: (payload as any).data as StaffMember | undefined,
+      };
+    } catch (err: any) {
+      return { success: false, message: err.message };
+    }
+  }
+
+  async function deleteStaff(id: number): Promise<{ success: boolean; message?: string }> {
+    try {
+      const payload = await fetchBackendJson(`/workspace/staff/${id}`, {
+        method: 'DELETE',
+      });
+      return { success: !!payload.success, message: payload.message };
+    } catch (err: any) {
+      return { success: false, message: err.message };
+    }
+  }
+
+  async function getStaffTemplates() {
+    try {
+      const res = await fetchBackendJson('/workspace/staff/templates');
+      return (res as any).data || { roles: {}, groups: {} };
+    } catch (err) {
+      console.error('getStaffTemplates error:', err);
+      return { roles: {}, groups: {} };
+    }
+  }
+
+  const contextValue: AuthContextValue = {
+    ...state,
+    postAuthRedirect,
+    reloadUser,
+    signInWithGoogle,
+    signOut,
+    setupRecaptcha,
+    sendPhoneOtp,
+    signInWithEmail,
+    signUpWithEmail,
+    updateProfile,
+    updatePassword,
+    sendPasswordReset,
+    confirmPasswordReset,
+    getHandoffToken,
+    getBranches,
+    saveBranch,
+    deleteBranch,
+    getStaff,
+    saveStaff,
+    deleteStaff,
+    getStaffTemplates,
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        ...state,
-        postAuthRedirect,
-        reloadUser,
-        signInWithGoogle,
-        signOut,
-        setupRecaptcha,
-        sendPhoneOtp,
-        signInWithEmail,
-        signUpWithEmail,
-        updateProfile,
-        updatePassword,
-        sendPasswordReset,
-        confirmPasswordReset,
-        getHandoffToken,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
