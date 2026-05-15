@@ -66,10 +66,10 @@ const stepHelp = [
   },
   {
     title: "Confirm your contacts and business type",
-    description: "Yahan hum dekhte hain kaunsi contact detail already verified hai aur aapka business kis category me aata hai.",
+    description: "Review which contact details are already verified and choose the category that best matches your business.",
     highlights: [
-      "Google signup me email ko trusted maana jata hai aur phone OTP signup me mobile ko.",
-      "Business category se product defaults aur reports better personalize hote hain.",
+      "Google sign-up usually verifies email first, while phone OTP sign-up verifies mobile first.",
+      "Your business category helps personalize product defaults and reports.",
     ],
   },
   {
@@ -759,8 +759,8 @@ export function OnboardingWorkspace() {
                           </div>
                           <p className="mt-2 text-xs text-slate-500">
                             {emailVerified
-                              ? "Ye email trusted login source se aayi hai, isliye isse dobara verify karne ki zaroorat nahi hai."
-                              : "Agar account email se bana hai to next secure email verification flow me isi address ko confirm kiya jayega."}
+                              ? "This email came from a trusted sign-in source, so it does not need to be verified again."
+                              : "If this account was created with email, this address will be confirmed in the secure email verification flow."}
                           </p>
                         </div>
                         <CheckCircle2 className={cn("w-5 h-5 shrink-0", emailVerified ? "text-emerald-500" : "text-amber-500")} />
@@ -776,8 +776,8 @@ export function OnboardingWorkspace() {
                           </div>
                           <p className="mt-2 text-xs text-slate-500">
                             {phoneVerified
-                              ? "Ye mobile number OTP sign-in source se trusted hai."
-                              : "Abhi hum is number ko business contact ke roop me save kar rahe hain. OTP-based mobile verification ko next secure contact flow me use kiya jayega."}
+                              ? "This mobile number was verified through OTP sign-in."
+                              : "We are currently saving this number as your business contact. OTP-based mobile verification will be used in the next secure contact step."}
                           </p>
                         </div>
                         <CheckCircle2 className={cn("w-5 h-5 shrink-0", phoneVerified ? "text-emerald-500" : "text-amber-500")} />
