@@ -282,6 +282,7 @@ export function OnboardingWorkspace() {
   const [registrationPickerOpen, setRegistrationPickerOpen] = useState(false);
   const [registrationDetailsModalOpen, setRegistrationDetailsModalOpen] = useState(false);
   const [gstDetailsModalOpen, setGstDetailsModalOpen] = useState(false);
+  const [reportsModalOpen, setReportsModalOpen] = useState(false);
   const [verificationNotice, setVerificationNotice] = useState("");
   const [verificationError, setVerificationError] = useState("");
   const [emailResendTimer, setEmailResendTimer] = useState(0);
@@ -308,6 +309,22 @@ export function OnboardingWorkspace() {
   const gstTypeOptions = useMemo(
     () => options.gst_type_options.map((item) => ({ label: item, value: item })),
     [options.gst_type_options],
+  );
+  const invoiceItemTypeOptions = useMemo(
+    () => options.invoice_item_types.map((item) => ({ label: item, value: item })),
+    [options.invoice_item_types],
+  );
+  const inventoryNeedOptions = useMemo(
+    () => options.yes_no_future_options.map((item) => ({ label: item, value: item })),
+    [options.yes_no_future_options],
+  );
+  const paymentTrackingOptions = useMemo(
+    () => options.yes_no_options.map((item) => ({ label: item, value: item })),
+    [options.yes_no_options],
+  );
+  const branchModelSelectOptions = useMemo(
+    () => options.branch_model_options.map((item) => ({ label: item, value: item })),
+    [options.branch_model_options],
   );
 
   const gstNumberNormalized = (form.gst_number || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
@@ -1306,45 +1323,82 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 5 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Invoice Item Type <span className="text-red-500">*</span></Label>
-                    {renderPills(options.invoice_item_types, form.invoice_item_type, val => setValue("invoice_item_type", val))}
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Label className="text-slate-700">Need Inventory? <span className="text-red-500">*</span></Label>
-                      {renderPills(options.yes_no_future_options, form.needs_inventory, val => setValue("needs_inventory", val))}
+                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label className="text-slate-700">What do you invoice most? <span className="text-red-500">*</span></Label>
+                      <SearchableSelect
+                        placeholder="Select invoice item type..."
+                        options={invoiceItemTypeOptions}
+                        value={form.invoice_item_type || ""}
+                        onChange={(val) => setValue("invoice_item_type", val)}
+                        emptyMessage="No item type found."
+                      />
                     </div>
-                    <div className="space-y-3">
-                      <Label className="text-slate-700">Need Payment Tracking? <span className="text-red-500">*</span></Label>
-                      {renderPills(options.yes_no_options, form.needs_payment_tracking, val => setValue("needs_payment_tracking", val))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Branch Model <span className="text-red-500">*</span></Label>
-                    {renderPills(options.branch_model_options, form.branch_model, val => setValue("branch_model", val))}
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Required Reports (Select multiple)</Label>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {options.required_report_options.map(opt => (
-                        <label key={opt} className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
-                          (form.required_reports || []).includes(opt) ? "bg-primary/5 border-primary text-primary font-medium" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                        )}>
-                          <input type="checkbox" className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
-                            checked={(form.required_reports || []).includes(opt)}
-                            onChange={() => setValue("required_reports", toggleArrayValue(form.required_reports, opt))}
-                          />
-                          <span className="text-sm">{opt}</span>
-                        </label>
-                      ))}
+                    <div className="space-y-2">
+                      <Label className="text-slate-700">Branch model <span className="text-red-500">*</span></Label>
+                      <SearchableSelect
+                        placeholder="Select branch model..."
+                        options={branchModelSelectOptions}
+                        value={form.branch_model || ""}
+                        onChange={(val) => setValue("branch_model", val)}
+                        emptyMessage="No branch model found."
+                      />
                     </div>
                   </div>
+
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                      <div className="space-y-2">
+                        <div className="text-sm font-semibold text-slate-900">Inventory preference</div>
+                        <p className="text-xs text-slate-500">Choose whether you want stock tracking right now, later, or not at all.</p>
+                        <SearchableSelect
+                          placeholder="Select inventory need..."
+                          options={inventoryNeedOptions}
+                          value={form.needs_inventory || ""}
+                          onChange={(val) => setValue("needs_inventory", val)}
+                          emptyMessage="No option found."
+                        />
+                      </div>
+                    </Card>
+
+                    <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                      <div className="space-y-2">
+                        <div className="text-sm font-semibold text-slate-900">Payment tracking</div>
+                        <p className="text-xs text-slate-500">Turn this on if you want due amounts, collections and outstanding tracking.</p>
+                        <SearchableSelect
+                          placeholder="Select payment tracking..."
+                          options={paymentTrackingOptions}
+                          value={form.needs_payment_tracking || ""}
+                          onChange={(val) => setValue("needs_payment_tracking", val)}
+                          emptyMessage="No option found."
+                        />
+                      </div>
+                    </Card>
+                  </div>
+
+                  <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">Required reports</div>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Select only the reports your team will actually use. This helps keep the dashboard cleaner.
+                        </p>
+                        {!!(form.required_reports || []).length && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {(form.required_reports || []).map((item) => (
+                              <span key={item} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <Button type="button" onClick={() => setReportsModalOpen(true)} className="w-full sm:w-auto">
+                        {(form.required_reports || []).length ? "Edit reports" : "Select reports"}
+                      </Button>
+                    </div>
+                  </Card>
                 </div>
               )}
 
@@ -1754,6 +1808,54 @@ export function OnboardingWorkspace() {
               </Button>
               <Button type="button" onClick={() => setRegistrationDetailsModalOpen(false)}>
                 Save registration details
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {reportsModalOpen && (
+        <div className="fixed inset-0 z-[76] flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Select required reports</h3>
+                <p className="mt-1 text-sm text-slate-500">Pick the reports you want to see more prominently after setup.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReportsModalOpen(false)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
+              {options.required_report_options.map((opt) => (
+                <label
+                  key={opt}
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl border p-3 cursor-pointer transition-colors",
+                    (form.required_reports || []).includes(opt)
+                      ? "border-primary bg-primary/5 text-primary font-medium"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                    checked={(form.required_reports || []).includes(opt)}
+                    onChange={() => setValue("required_reports", toggleArrayValue(form.required_reports, opt))}
+                  />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button type="button" onClick={() => setReportsModalOpen(false)}>
+                Done
               </Button>
             </div>
           </div>
