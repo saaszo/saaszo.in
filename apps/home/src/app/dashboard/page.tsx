@@ -189,6 +189,22 @@ export default function DashboardPage() {
   }, [authenticated, loading, onboarding, postAuthRedirect, router]);
 
   useEffect(() => {
+    const syncTabFromUrl = () => {
+      const requestedTab = new URLSearchParams(window.location.search).get('tab');
+      if (requestedTab === 'branches' || requestedTab === 'team' || requestedTab === 'settings' || requestedTab === 'overview') {
+        setActiveTab(requestedTab);
+        return;
+      }
+
+      setActiveTab('overview');
+    };
+
+    syncTabFromUrl();
+    window.addEventListener('popstate', syncTabFromUrl);
+    return () => window.removeEventListener('popstate', syncTabFromUrl);
+  }, []);
+
+  useEffect(() => {
     if (!profile) return;
     setFormValues({
       fullName: profile.fullName ?? '',
@@ -300,6 +316,11 @@ export default function DashboardPage() {
 
   if (!authenticated || !profile || !auth || !subscription) {
     return null;
+  }
+
+  function navigateToTab(tab: 'overview' | 'branches' | 'team' | 'settings') {
+    setActiveTab(tab);
+    router.replace(tab === 'overview' ? '/dashboard' : `/dashboard?tab=${tab}`, { scroll: false });
   }
 
   async function handleLaunchProduct(product: Product) {
@@ -416,27 +437,27 @@ export default function DashboardPage() {
           <div className="flex gap-8 overflow-x-auto no-scrollbar">
             <TabButton
               active={activeTab === 'overview'}
-              onClick={() => setActiveTab('overview')}
+              onClick={() => navigateToTab('overview')}
               icon="dashboard"
               label="Overview"
             />
             <TabButton
               active={activeTab === 'branches'}
-              onClick={() => setActiveTab('branches')}
+              onClick={() => navigateToTab('branches')}
               icon="storefront"
               label="Branches"
               count={branches.length || undefined}
             />
             <TabButton
               active={activeTab === 'team'}
-              onClick={() => setActiveTab('team')}
+              onClick={() => navigateToTab('team')}
               icon="groups"
               label="Team"
               count={staff.length || undefined}
             />
             <TabButton
               active={activeTab === 'settings'}
-              onClick={() => setActiveTab('settings')}
+              onClick={() => navigateToTab('settings')}
               icon="settings"
               label="Settings"
             />
@@ -542,14 +563,14 @@ export default function DashboardPage() {
                 <QuickActionCard
                   title="Add Branch"
                   icon="add_business"
-                  onClick={() => setActiveTab('branches')}
+                  onClick={() => navigateToTab('branches')}
                   primary
                   disabled={!isOwnerOrAdmin}
                 />
                 <QuickActionCard
                   title="Add Staff"
                   icon="person_add"
-                  onClick={() => setActiveTab('team')}
+                  onClick={() => navigateToTab('team')}
                   disabled={!isOwnerOrAdmin}
                 />
                 <QuickActionCard
@@ -565,7 +586,7 @@ export default function DashboardPage() {
                 <QuickActionCard
                   title="Settings"
                   icon="settings_applications"
-                  onClick={() => setActiveTab('settings')}
+                  onClick={() => navigateToTab('settings')}
                 />
                 <QuickActionCard
                   title="Support"
@@ -585,7 +606,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => setActiveTab('team')}
+                    onClick={() => navigateToTab('team')}
                     className="rounded-2xl border border-outline-variant/20 px-5 py-3 text-xs font-black uppercase tracking-wider text-primary transition-colors hover:bg-primary/5"
                   >
                     Manage Team

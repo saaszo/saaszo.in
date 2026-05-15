@@ -381,7 +381,7 @@ export function OnboardingWorkspace() {
       });
       setPersonalization(result.data.personalization || null);
       if (profile.setup_completed) {
-        navigateTo("/dashboard/settings");
+        navigateTo("/dashboard?tab=settings");
         return;
       }
       setStarted(Boolean(profile.current_step || profile.setup_completed || profile.setup_skipped));
