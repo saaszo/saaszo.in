@@ -6,7 +6,7 @@ import { toAbsoluteApiUrl } from "@/lib/config";
 import { apiErrorMessage, authedRequest } from "@/lib/workspace-action-client";
 import { getDeviceId, readAccessToken, navigateTo } from "@/lib/auth-client";
 import { getVerificationAuth } from "@/lib/firebase";
-import { CheckCircle2, ChevronLeft, ChevronRight, UploadCloud, Hexagon, Loader2 } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, UploadCloud, Hexagon, Loader2, Mail, Smartphone, X } from "lucide-react";
 import { ConfirmationResult, RecaptchaVerifier, signInWithPhoneNumber, signOut } from "firebase/auth";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -278,12 +278,17 @@ export function OnboardingWorkspace() {
   const [phoneOtpVerified, setPhoneOtpVerified] = useState(false);
   const [verificationConfirmation, setVerificationConfirmation] = useState<ConfirmationResult | null>(null);
   const [phoneVerifier, setPhoneVerifier] = useState<RecaptchaVerifier | null>(null);
+  const [verificationModal, setVerificationModal] = useState<"email" | "phone" | null>(null);
   const { states, isLoading: locationsLoading } = useLocations();
   const { user, profile, auth } = useAuthSession();
 
   const stateOptions = useMemo(
     () => states.map((s) => ({ label: s.label, value: s.state_name })),
     [states],
+  );
+  const businessCategoryOptions = useMemo(
+    () => options.business_categories.map((category) => ({ label: category, value: category })),
+    [options.business_categories],
   );
 
   const gstNumberNormalized = (form.gst_number || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
@@ -424,6 +429,14 @@ export function OnboardingWorkspace() {
       }
     };
   }, [phoneVerifier]);
+
+  useEffect(() => {
+    if (currentStep !== 2 || phoneVerified) {
+      return;
+    }
+
+    void ensurePhoneVerifier().catch(() => null);
+  }, [currentStep, phoneVerified]);
 
   function setValue<K extends keyof OnboardingProfile>(key: K, value: OnboardingProfile[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -629,6 +642,7 @@ export function OnboardingWorkspace() {
     setEmailOtp("");
     setEmailOtpSent(false);
     setEmailOtpVerified(true);
+    setVerificationModal(null);
     setSuccess(result.data.message || "Email verified successfully.");
   }
 
@@ -643,7 +657,7 @@ export function OnboardingWorkspace() {
     }
 
     const verifier = new RecaptchaVerifier(verificationAuth, "onboarding-phone-recaptcha", {
-      size: "normal",
+      size: "invisible",
       callback: () => {
         setError("");
       },
@@ -734,6 +748,7 @@ export function OnboardingWorkspace() {
       setPhoneOtpSent(false);
       setVerificationConfirmation(null);
       setPhoneOtpVerified(true);
+      setVerificationModal(null);
       setSuccess(result.data.message || "Mobile verified successfully.");
       await signOut(verificationAuth);
       try {
@@ -745,6 +760,12 @@ export function OnboardingWorkspace() {
     } finally {
       setPhoneOtpVerifying(false);
     }
+  }
+
+  function openVerificationDialog(kind: "email" | "phone") {
+    setError("");
+    setSuccess("");
+    setVerificationModal(kind);
   }
 
   async function handleComplete() {
@@ -961,85 +982,78 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 2 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
-                  <div className="grid xl:grid-cols-2 gap-4">
-                    <Card className="p-5 border-slate-200 shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-sm font-semibold text-slate-900">Email verification</div>
-                          <div className={cn("mt-1 text-sm", emailVerified ? "text-emerald-600" : "text-amber-600")}>
-                            {emailVerificationLabel}
-                          </div>
-                          <p className="mt-2 text-xs text-slate-500">
-                            {emailVerified
-                              ? "This email came from a trusted sign-in source, so it does not need to be verified again."
-                              : "If this account was created with email, this address will be confirmed in the secure email verification flow."}
-                          </p>
-                        </div>
-                        <CheckCircle2 className={cn("w-5 h-5 shrink-0", emailVerified ? "text-emerald-500" : "text-amber-500")} />
-                      </div>
-                      {!emailVerified && (
-                        <div className="mt-4 flex flex-wrap items-center gap-2">
-                          <Button type="button" onClick={sendEmailVerificationOtp} disabled={emailOtpSending || emailOtpVerifying} className="h-10 px-4">
-                            {emailOtpSending ? "Sending..." : emailOtpSent ? "Resend OTP" : "Send OTP"}
-                          </Button>
-                          <Input
-                            className="h-10 w-32 bg-white"
-                            value={emailOtp}
-                            placeholder="4-digit OTP"
-                            maxLength={4}
-                            inputMode="numeric"
-                            onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                          />
-                          <Button type="button" variant="outline" onClick={verifyEmailVerificationOtp} disabled={emailOtpVerifying || emailOtp.length !== 4}>
-                            {emailOtpVerifying ? "Verifying..." : "Verify OTP"}
-                          </Button>
-                        </div>
-                      )}
-                    </Card>
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2 pb-4">
+                  <div id="onboarding-phone-recaptcha" className="pointer-events-none absolute -left-[9999px] top-0 h-0 w-0 overflow-hidden opacity-0" />
 
-                    <Card className="p-5 border-slate-200 shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-sm font-semibold text-slate-900">Mobile verification</div>
-                          <div className={cn("mt-1 text-sm", phoneVerified ? "text-emerald-600" : "text-amber-600")}>
-                            {phoneVerificationLabel}
-                          </div>
-                          <p className="mt-2 text-xs text-slate-500">
-                            {phoneVerified
-                              ? "This mobile number was verified through OTP sign-in."
-                              : "We are currently saving this number as your business contact. OTP-based mobile verification will be used in the next secure contact step."}
-                          </p>
-                        </div>
-                        <CheckCircle2 className={cn("w-5 h-5 shrink-0", phoneVerified ? "text-emerald-500" : "text-amber-500")} />
-                      </div>
-                      {!phoneVerified && (
-                        <div className="mt-4 space-y-3">
-                          <div id="onboarding-phone-recaptcha" className="min-h-[78px] w-full overflow-hidden" />
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Button type="button" onClick={sendPhoneVerificationOtp} disabled={phoneOtpSending || phoneOtpVerifying} className="h-10 px-4">
-                              {phoneOtpSending ? "Sending..." : phoneOtpSent ? "Resend OTP" : "Send OTP"}
-                            </Button>
-                            <Input
-                              className="h-10 w-32 bg-white"
-                              value={phoneOtp}
-                              placeholder="6-digit OTP"
-                              maxLength={6}
-                              inputMode="numeric"
-                              onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                            />
-                            <Button type="button" variant="outline" onClick={verifyPhoneVerificationOtp} disabled={phoneOtpVerifying || phoneOtp.length !== 6 || !phoneOtpSent}>
-                              {phoneOtpVerifying ? "Verifying..." : "Verify OTP"}
-                            </Button>
-                          </div>
-                        </div>
+                  <div className="grid xl:grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => !emailVerified && openVerificationDialog("email")}
+                      className={cn(
+                        "rounded-2xl border p-4 text-left transition-all shadow-sm",
+                        emailVerified
+                          ? "border-emerald-200 bg-emerald-50"
+                          : "border-red-200 bg-red-50 hover:border-red-300",
                       )}
-                    </Card>
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "flex h-11 w-11 items-center justify-center rounded-xl",
+                            emailVerified ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600",
+                          )}>
+                            <Mail className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-slate-900">Email</div>
+                            <div className={cn("text-xs font-medium", emailVerified ? "text-emerald-700" : "text-red-700")}>
+                              {emailVerified ? "Verified" : "Verify now"}
+                            </div>
+                          </div>
+                        </div>
+                        <CheckCircle2 className={cn("h-5 w-5", emailVerified ? "text-emerald-500" : "text-red-500")} />
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => !phoneVerified && openVerificationDialog("phone")}
+                      className={cn(
+                        "rounded-2xl border p-4 text-left transition-all shadow-sm",
+                        phoneVerified
+                          ? "border-emerald-200 bg-emerald-50"
+                          : "border-red-200 bg-red-50 hover:border-red-300",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "flex h-11 w-11 items-center justify-center rounded-xl",
+                            phoneVerified ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600",
+                          )}>
+                            <Smartphone className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-slate-900">Mobile</div>
+                            <div className={cn("text-xs font-medium", phoneVerified ? "text-emerald-700" : "text-red-700")}>
+                              {phoneVerified ? "Verified" : "Verify now"}
+                            </div>
+                          </div>
+                        </div>
+                        <CheckCircle2 className={cn("h-5 w-5", phoneVerified ? "text-emerald-500" : "text-red-500")} />
+                      </div>
+                    </button>
                   </div>
 
                   <div className="space-y-3">
                     <Label className="text-slate-700">What describes your business best? <span className="text-red-500">*</span></Label>
-                    {renderPills(options.business_categories, form.business_category, val => setValue("business_category", val))}
+                    <SearchableSelect
+                      placeholder="Select business category..."
+                      options={businessCategoryOptions}
+                      value={form.business_category || ""}
+                      onChange={(val) => setValue("business_category", val)}
+                      emptyMessage="No category found."
+                    />
                   </div>
                   {form.business_category === "Other" && (
                     <div className="space-y-2 animate-in fade-in zoom-in-95">
@@ -1460,6 +1474,82 @@ export function OnboardingWorkspace() {
           </div>
         </div>
       </div>
+
+      {verificationModal && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">
+                  {verificationModal === "email" ? "Verify email" : "Verify mobile"}
+                </h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  {verificationModal === "email"
+                    ? "Send an OTP to your email and confirm it here."
+                    : "Send an OTP to your mobile number and confirm it here."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setVerificationModal(null)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {verificationModal === "email" ? (
+              <div className="mt-6 space-y-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  {form.email || "No email added"}
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" onClick={sendEmailVerificationOtp} disabled={emailOtpSending || emailOtpVerifying} className="flex-1">
+                    {emailOtpSending ? "Sending..." : emailOtpSent ? "Resend OTP" : "Send OTP"}
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    className="h-11 bg-white"
+                    value={emailOtp}
+                    placeholder="Enter 4-digit OTP"
+                    maxLength={4}
+                    inputMode="numeric"
+                    onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  />
+                  <Button type="button" variant="outline" onClick={verifyEmailVerificationOtp} disabled={emailOtpVerifying || emailOtp.length !== 4}>
+                    {emailOtpVerifying ? "Verifying..." : "Verify"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 space-y-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  {form.phone || "No mobile number added"}
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" onClick={sendPhoneVerificationOtp} disabled={phoneOtpSending || phoneOtpVerifying} className="flex-1">
+                    {phoneOtpSending ? "Sending..." : phoneOtpSent ? "Resend OTP" : "Send OTP"}
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    className="h-11 bg-white"
+                    value={phoneOtp}
+                    placeholder="Enter 6-digit OTP"
+                    maxLength={6}
+                    inputMode="numeric"
+                    onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  />
+                  <Button type="button" variant="outline" onClick={verifyPhoneVerificationOtp} disabled={phoneOtpVerifying || phoneOtp.length !== 6 || !phoneOtpSent}>
+                    {phoneOtpVerifying ? "Verifying..." : "Verify"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
