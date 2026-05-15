@@ -13,6 +13,7 @@ import { Card } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { SearchableSelect } from "./ui/searchable-select";
 import { useLocations } from "@/lib/shared-masters";
+import { useAuthSession } from "./AuthProvider";
 
 type OnboardingProfile = {
   owner_name?: string; business_name?: string; email?: string; phone?: string;
@@ -112,12 +113,10 @@ function sanitizeEmail(value: string, maxLength = 255) {
   return value.replace(/\s/g, "").toLowerCase().slice(0, maxLength);
 }
 
-function sanitizePhone(value: string, maxLength = 15) {
-  const cleaned = value.replace(/[^\d+]/g, "");
-  if (cleaned.startsWith("+")) {
-    return `+${cleaned.slice(1).replace(/\+/g, "")}`.slice(0, maxLength);
-  }
-  return cleaned.replace(/\+/g, "").slice(0, maxLength);
+function sanitizeIndianPhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+  const local = digits.startsWith("91") ? digits.slice(2) : digits;
+  return `+91${local.slice(0, 10)}`;
 }
 
 function sanitizeAlphaNumeric(value: string, maxLength = 80) {
@@ -182,28 +181,14 @@ export function OnboardingWorkspace() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [started, setStarted] = useState(false);
-  const [useCustomCity, setUseCustomCity] = useState(false);
   const [useCustomBank, setUseCustomBank] = useState(false);
-  const { states, citiesByState, isLoading: locationsLoading } = useLocations();
+  const { states, isLoading: locationsLoading } = useLocations();
+  const { profile, auth } = useAuthSession();
 
   const stateOptions = useMemo(
     () => states.map((s) => ({ label: s.label, value: s.state_name })),
     [states],
   );
-
-  const selectedStateCities = useMemo(() => {
-    if (!form.state) return [];
-    return (citiesByState[form.state] || []).map((city) => ({ label: city, value: city }));
-  }, [citiesByState, form.state]);
-
-  const cityOptions = useMemo(() => {
-    const options = [...selectedStateCities];
-    if (form.city && !options.some((option) => option.value === form.city)) {
-      options.unshift({ label: `${form.city} (Current)`, value: form.city });
-    }
-    options.push({ label: "Other / Type manually", value: "__custom__" });
-    return options;
-  }, [form.city, selectedStateCities]);
 
   const gstNumberNormalized = (form.gst_number || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
   const gstFormatMessage = !gstNumberNormalized
@@ -250,20 +235,6 @@ export function OnboardingWorkspace() {
   }, []);
 
   useEffect(() => {
-    if (!form.state) {
-      setUseCustomCity(false);
-      return;
-    }
-    if (!form.city) {
-      setUseCustomCity(false);
-      return;
-    }
-
-    const hasPresetCity = selectedStateCities.some((city) => city.value === form.city);
-    setUseCustomCity(!hasPresetCity);
-  }, [form.city, form.state, selectedStateCities]);
-
-  useEffect(() => {
     if (!form.bank_name) {
       setUseCustomBank(false);
       return;
@@ -271,6 +242,14 @@ export function OnboardingWorkspace() {
     const hasPresetBank = BANK_OPTIONS.some((option) => option.value !== OTHER_BANK_VALUE && option.value === form.bank_name);
     setUseCustomBank(!hasPresetBank);
   }, [form.bank_name]);
+
+  useEffect(() => {
+    setForm((current) => ({
+      ...current,
+      email: current.email || auth?.email || profile?.email || "",
+      phone: current.phone || auth?.phone || profile?.phone || "",
+    }));
+  }, [auth?.email, auth?.phone, profile?.email, profile?.phone]);
 
   useEffect(() => {
     if (!started || form.setup_completed) return;
@@ -290,31 +269,6 @@ export function OnboardingWorkspace() {
 
   function setValue<K extends keyof OnboardingProfile>(key: K, value: OnboardingProfile[K]) {
     setForm((current) => ({ ...current, [key]: value }));
-  }
-
-  function handleStateChange(state: string) {
-    setValue("state", state);
-    const stateCities = citiesByState[state] || [];
-    if (!form.city) {
-      setUseCustomCity(false);
-      return;
-    }
-    if (stateCities.includes(form.city)) {
-      setUseCustomCity(false);
-      return;
-    }
-    setValue("city", "" as OnboardingProfile["city"]);
-    setUseCustomCity(stateCities.length === 0);
-  }
-
-  function handleCitySelect(city: string) {
-    if (city === "__custom__") {
-      setUseCustomCity(true);
-      setValue("city", "" as OnboardingProfile["city"]);
-      return;
-    }
-    setUseCustomCity(false);
-    setValue("city", city);
   }
 
   function handleGstinChange(value: string) {
@@ -345,6 +299,31 @@ export function OnboardingWorkspace() {
 
   function handleDigitsField<K extends keyof OnboardingProfile>(key: K, value: string, maxLength?: number) {
     setValue(key, sanitizeDigits(value, maxLength) as OnboardingProfile[K]);
+  }
+
+  function validateStepBeforeSave(step: number) {
+    if (step !== 1) return null;
+
+    const email = (form.email || "").trim();
+    const phone = (form.phone || "").trim();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return "Enter a valid email address with @ and domain.";
+    }
+
+    if (!phone || !/^\+91\d{10}$/.test(phone)) {
+      return "Enter mobile number in +91XXXXXXXXXX format.";
+    }
+
+    if (!(form.state || "").trim()) {
+      return "Select your state.";
+    }
+
+    if (!(form.city || "").trim()) {
+      return "Enter your city.";
+    }
+
+    return null;
   }
 
   function stepPayload(step: number): Record<string, unknown> {
@@ -396,6 +375,12 @@ export function OnboardingWorkspace() {
 
   async function saveStep(step: number, moveNext = false) {
     setSaving(true); setError(""); setSuccess("");
+    const stepError = validateStepBeforeSave(step);
+    if (stepError) {
+      setSaving(false);
+      setError(stepError);
+      return;
+    }
     const result = await authedRequest<OnboardingResponse>("/api/auth/onboarding/save", {
       method: "POST", body: JSON.stringify({ step, payload: stepPayload(step) }),
     });
@@ -600,47 +585,24 @@ export function OnboardingWorkspace() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">Email Address <span className="text-red-500">*</span></Label>
-                    <Input className="h-12 bg-white" type="email" inputMode="email" autoCapitalize="none" value={form.email || ""} placeholder="name@business.com" maxLength={255} onChange={e => setValue("email", sanitizeEmail(e.target.value) as OnboardingProfile["email"])} />
+                    <Input className="h-12 bg-white" type="email" inputMode="email" autoCapitalize="none" value={form.email || ""} placeholder="name@business.com" maxLength={255} readOnly={Boolean(auth?.email || profile?.email)} onChange={e => setValue("email", sanitizeEmail(e.target.value) as OnboardingProfile["email"])} />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700">Mobile Number</Label>
-                    <Input className="h-12 bg-white" type="tel" inputMode="tel" value={form.phone || ""} placeholder="+91 9876543210" maxLength={15} onChange={e => setValue("phone", sanitizePhone(e.target.value) as OnboardingProfile["phone"])} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-700">City <span className="text-red-500">*</span></Label>
-                    {useCustomCity ? (
-                      <div className="space-y-2">
-                        <Input className="h-12 bg-white" value={form.city || ""} placeholder="Type your city" maxLength={120} onChange={e => handleLetterField("city", e.target.value, 120)} />
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                          onClick={() => {
-                            setUseCustomCity(false);
-                            setValue("city", "" as OnboardingProfile["city"]);
-                          }}
-                        >
-                          Select city from dropdown
-                        </button>
-                      </div>
-                    ) : (
-                      <SearchableSelect
-                        placeholder={form.state ? "Select city..." : "Select state first"}
-                        options={cityOptions}
-                        value={form.city || ""}
-                        onChange={handleCitySelect}
-                        disabled={!form.state}
-                        emptyMessage={form.state ? "No cities found for this state." : "Select state first."}
-                      />
-                    )}
+                    <Label className="text-slate-700">Mobile Number <span className="text-red-500">*</span></Label>
+                    <Input className="h-12 bg-white" type="tel" inputMode="numeric" value={form.phone || ""} placeholder="+919876543210" maxLength={13} readOnly={Boolean(auth?.phone || profile?.phone)} onChange={e => setValue("phone", sanitizeIndianPhone(e.target.value) as OnboardingProfile["phone"])} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">State <span className="text-red-500">*</span></Label>
                     <SearchableSelect
                       options={stateOptions}
                       value={form.state || ""}
-                      onChange={handleStateChange}
+                      onChange={(val) => setValue("state", val)}
                       emptyMessage={locationsLoading ? "Loading states..." : "No states found."}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700">City <span className="text-red-500">*</span></Label>
+                    <Input className="h-12 bg-white" value={form.city || ""} placeholder="Enter city name" maxLength={120} onChange={e => handleLetterField("city", e.target.value, 120)} />
                   </div>
                   <div className="col-span-full space-y-3 mt-4">
                     <Label className="text-slate-700">Who are you? <span className="text-red-500">*</span></Label>
