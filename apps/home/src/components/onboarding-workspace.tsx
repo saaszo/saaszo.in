@@ -279,6 +279,8 @@ export function OnboardingWorkspace() {
   const [verificationConfirmation, setVerificationConfirmation] = useState<ConfirmationResult | null>(null);
   const [phoneVerifier, setPhoneVerifier] = useState<RecaptchaVerifier | null>(null);
   const [verificationModal, setVerificationModal] = useState<"email" | "phone" | null>(null);
+  const [registrationPickerOpen, setRegistrationPickerOpen] = useState(false);
+  const [gstSection, setGstSection] = useState<"overview" | "details">("overview");
   const [verificationNotice, setVerificationNotice] = useState("");
   const [verificationError, setVerificationError] = useState("");
   const [emailResendTimer, setEmailResendTimer] = useState(0);
@@ -293,6 +295,18 @@ export function OnboardingWorkspace() {
   const businessCategoryOptions = useMemo(
     () => options.business_categories.map((category) => ({ label: category, value: category })),
     [options.business_categories],
+  );
+  const gstRegistrationOptions = useMemo(
+    () => options.gst_registered_options.map((item) => ({ label: item, value: item })),
+    [options.gst_registered_options],
+  );
+  const legalEntityOptions = useMemo(
+    () => options.legal_entity_type_options.map((item) => ({ label: item, value: item })),
+    [options.legal_entity_type_options],
+  );
+  const gstTypeOptions = useMemo(
+    () => options.gst_type_options.map((item) => ({ label: item, value: item })),
+    [options.gst_type_options],
   );
 
   const gstNumberNormalized = (form.gst_number || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
@@ -407,6 +421,7 @@ export function OnboardingWorkspace() {
     : "Pending verification";
 
   const contactsFullyVerified = emailVerified && phoneVerified;
+  const selectedRegistrationTypes = form.registration_types || [];
 
   useEffect(() => {
     if (!started || form.setup_completed) return;
@@ -861,6 +876,88 @@ export function OnboardingWorkspace() {
     );
   }
 
+  function renderRegistrationDetailFields() {
+    return (
+      <Card className="p-5 bg-white border-slate-200 shadow-sm grid sm:grid-cols-2 gap-4">
+        {selectedRegistrationTypes.includes("PAN") && (
+          <div className="space-y-2">
+            <Label>PAN Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.pan_number || ""} placeholder="ABCDE1234F" maxLength={10} onChange={e => handleAlphaNumericField("pan_number", e.target.value, 10)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("CIN") && (
+          <div className="space-y-2">
+            <Label>CIN Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.cin_number || ""} placeholder="U12345DL2020PTC123456" maxLength={50} onChange={e => handleAlphaNumericField("cin_number", e.target.value, 50)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("LLPIN") && (
+          <div className="space-y-2">
+            <Label>LLPIN Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.llpin_number || ""} placeholder="ABC-1234" maxLength={50} onChange={e => handleAlphaNumericField("llpin_number", e.target.value, 50)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("TAN") && (
+          <div className="space-y-2">
+            <Label>TAN Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.tan_number || ""} placeholder="DELA12345B" maxLength={10} onChange={e => handleAlphaNumericField("tan_number", e.target.value, 10)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("MSME / Udyam Registration") && (
+          <div className="space-y-2">
+            <Label>Udyam Registration Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.udyam_registration_number || ""} placeholder="UDYAM-XX-00-0000000" maxLength={80} onChange={e => handleAlphaNumericField("udyam_registration_number", e.target.value, 80)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("Udyog Aadhaar (Legacy UAM)") && (
+          <div className="space-y-2">
+            <Label>Udyog Aadhaar / UAM Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.udyog_aadhaar_number || ""} placeholder="Legacy UAM number" maxLength={80} onChange={e => handleAlphaNumericField("udyog_aadhaar_number", e.target.value, 80)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("NGO Darpan") && (
+          <div className="space-y-2">
+            <Label>NGO Darpan ID</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.ngo_darpan_id || ""} placeholder="NITI Aayog Darpan ID" maxLength={80} onChange={e => handleAlphaNumericField("ngo_darpan_id", e.target.value, 80)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("Trust Registration") && (
+          <div className="space-y-2">
+            <Label>Trust Registration Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.trust_registration_number || ""} placeholder="Trust registration no." maxLength={120} onChange={e => handleAlphaNumericField("trust_registration_number", e.target.value, 120)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("Society Registration") && (
+          <div className="space-y-2">
+            <Label>Society Registration Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.society_registration_number || ""} placeholder="Society registration no." maxLength={120} onChange={e => handleAlphaNumericField("society_registration_number", e.target.value, 120)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("FSSAI") && (
+          <div className="space-y-2">
+            <Label>FSSAI Number</Label>
+            <Input className="h-11 bg-slate-50" inputMode="numeric" value={form.fssai_number || ""} placeholder="Food license no." maxLength={14} onChange={e => handleDigitsField("fssai_number", e.target.value, 14)} />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("Import Export Code (IEC)") && (
+          <div className="space-y-2">
+            <Label>IEC Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.iec_number || ""} placeholder="Import Export Code" maxLength={10} onChange={e => handleAlphaNumericField("iec_number", e.target.value, 10)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.includes("Professional Tax") && (
+          <div className="space-y-2">
+            <Label>Professional Tax Number</Label>
+            <Input className="h-11 bg-slate-50 uppercase" value={form.professional_tax_number || ""} placeholder="State professional tax no." maxLength={80} onChange={e => handleAlphaNumericField("professional_tax_number", e.target.value, 80)} autoCapitalize="characters" />
+          </div>
+        )}
+        {selectedRegistrationTypes.length === 0 && (
+          <p className="sm:col-span-2 text-sm text-slate-500">No extra registration details selected yet. You can keep this blank for now.</p>
+        )}
+      </Card>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -1108,144 +1205,141 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 4 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Are you GST Registered? <span className="text-red-500">*</span></Label>
-                    {renderPills(options.gst_registered_options, form.gst_registered, val => {
-                      setValue("gst_registered", val);
-                      setValue("registration_types", syncGstRegistrationType(form.registration_types, val));
-                    })}
+                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
+                  <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setGstSection("overview")}
+                      className={cn(
+                        "flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition-colors",
+                        gstSection === "overview" ? "bg-primary text-white" : "text-slate-600 hover:bg-slate-50",
+                      )}
+                    >
+                      GST Setup
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGstSection("details")}
+                      className={cn(
+                        "flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition-colors",
+                        gstSection === "details" ? "bg-primary text-white" : "text-slate-600 hover:bg-slate-50",
+                      )}
+                    >
+                      Registration Details
+                    </button>
                   </div>
 
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Business / Legal Entity Type</Label>
-                    {renderPills(options.legal_entity_type_options, form.legal_entity_type, val => setValue("legal_entity_type", val))}
-                    <p className="text-xs text-slate-500">Select NGO, Trust, Society, Section 8, LLP, company, proprietorship, ya jo bhi aapke business ka legal structure hai.</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Registrations You Have (Select multiple)</Label>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {options.registration_type_options.map(opt => (
-                        <label key={opt} className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
-                          (form.registration_types || []).includes(opt) ? "bg-primary/5 border-primary text-primary font-medium" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                        )}>
-                          <input type="checkbox" className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
-                            checked={(form.registration_types || []).includes(opt)}
-                            onChange={() => setValue("registration_types", toggleArrayValue(form.registration_types, opt))}
+                  {gstSection === "overview" ? (
+                    <div className="space-y-4">
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-slate-700">GST status <span className="text-red-500">*</span></Label>
+                          <SearchableSelect
+                            placeholder="Select GST status..."
+                            options={gstRegistrationOptions}
+                            value={form.gst_registered || ""}
+                            onChange={(val) => {
+                              setValue("gst_registered", val);
+                              setValue("registration_types", syncGstRegistrationType(form.registration_types, val));
+                            }}
                           />
-                          <span className="text-sm">{opt}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {form.gst_registered === "Yes" && (
-                    <Card className="p-6 bg-white border-slate-200 shadow-sm animate-in fade-in zoom-in-95 grid sm:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label>GST Number <span className="text-red-500">*</span></Label>
-                        <Input className="h-11 bg-slate-50 uppercase tracking-wide" value={form.gst_number || ""} placeholder="22AAAAA0000A1Z5" onChange={e => handleGstinChange(e.target.value)} maxLength={15} inputMode="text" autoCapitalize="characters" />
-                        <p className={cn("text-xs", gstNumberNormalized && !GSTIN_REGEX.test(gstNumberNormalized) ? "text-red-500" : "text-slate-500")}>
-                          {gstFormatMessage}
-                        </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-slate-700">Business / Legal Entity Type</Label>
+                          <SearchableSelect
+                            placeholder="Select entity type..."
+                            options={legalEntityOptions}
+                            value={form.legal_entity_type || ""}
+                            onChange={(val) => setValue("legal_entity_type", val)}
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Legal Business Name <span className="text-red-500">*</span></Label>
-                        <Input className="h-11 bg-slate-50" value={form.legal_business_name || ""} placeholder="Legal Entity Name" maxLength={255} onChange={e => handleTextField("legal_business_name", e.target.value, 255)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>GST State <span className="text-red-500">*</span></Label>
-                        <SearchableSelect
-                          options={states.map((s) => ({ label: s.label, value: s.state_name }))}
-                          value={form.gst_state || ""}
-                          onChange={(val) => setValue("gst_state", val)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>GST Type <span className="text-red-500">*</span></Label>
-                        {renderPills(options.gst_type_options, form.gst_type, val => setValue("gst_type", val))}
-                      </div>
-                    </Card>
-                  )}
 
-                  <Card className="p-6 bg-white border-slate-200 shadow-sm grid sm:grid-cols-2 gap-6">
-                    {(form.registration_types || []).includes("PAN") && (
                       <div className="space-y-2">
-                        <Label>PAN Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.pan_number || ""} placeholder="ABCDE1234F" maxLength={10} onChange={e => handleAlphaNumericField("pan_number", e.target.value, 10)} autoCapitalize="characters" />
+                        <Label className="text-slate-700">Registrations you have</Label>
+                        <button
+                          type="button"
+                          onClick={() => setRegistrationPickerOpen(true)}
+                          className="flex h-12 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                        >
+                          <span className={selectedRegistrationTypes.length ? "text-slate-900" : "text-muted"}>
+                            {selectedRegistrationTypes.length
+                              ? `${selectedRegistrationTypes.length} registration${selectedRegistrationTypes.length > 1 ? "s" : ""} selected`
+                              : "Select registrations..."}
+                          </span>
+                          <ChevronRight className="h-4 w-4 text-slate-400" />
+                        </button>
+                        {selectedRegistrationTypes.length > 0 && (
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {selectedRegistrationTypes.map((item) => (
+                              <span key={item} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {(form.registration_types || []).includes("CIN") && (
-                      <div className="space-y-2">
-                        <Label>CIN Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.cin_number || ""} placeholder="U12345DL2020PTC123456" maxLength={50} onChange={e => handleAlphaNumericField("cin_number", e.target.value, 50)} autoCapitalize="characters" />
+
+                      {form.gst_registered === "Yes" && (
+                        <Card className="p-5 bg-white border-slate-200 shadow-sm grid sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>GST Number <span className="text-red-500">*</span></Label>
+                            <Input className="h-11 bg-slate-50 uppercase tracking-wide" value={form.gst_number || ""} placeholder="22AAAAA0000A1Z5" onChange={e => handleGstinChange(e.target.value)} maxLength={15} inputMode="text" autoCapitalize="characters" />
+                            <p className={cn("text-xs", gstNumberNormalized && !GSTIN_REGEX.test(gstNumberNormalized) ? "text-red-500" : "text-slate-500")}>
+                              {gstFormatMessage}
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Legal Business Name <span className="text-red-500">*</span></Label>
+                            <Input className="h-11 bg-slate-50" value={form.legal_business_name || ""} placeholder="Legal entity name" maxLength={255} onChange={e => handleTextField("legal_business_name", e.target.value, 255)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>GST State <span className="text-red-500">*</span></Label>
+                            <SearchableSelect
+                              options={states.map((s) => ({ label: s.label, value: s.state_name }))}
+                              value={form.gst_state || ""}
+                              onChange={(val) => setValue("gst_state", val)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>GST Type <span className="text-red-500">*</span></Label>
+                            <SearchableSelect
+                              placeholder="Select GST type..."
+                              options={gstTypeOptions}
+                              value={form.gst_type || ""}
+                              onChange={(val) => setValue("gst_type", val)}
+                            />
+                          </div>
+                        </Card>
+                      )}
+
+                      <div className="flex justify-end">
+                        <Button type="button" variant="outline" onClick={() => setGstSection("details")}>
+                          Next section <ChevronRight className="ml-1 h-4 w-4" />
+                        </Button>
                       </div>
-                    )}
-                    {(form.registration_types || []).includes("LLPIN") && (
-                      <div className="space-y-2">
-                        <Label>LLPIN Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.llpin_number || ""} placeholder="ABC-1234" maxLength={50} onChange={e => handleAlphaNumericField("llpin_number", e.target.value, 50)} autoCapitalize="characters" />
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">Registration detail inputs</div>
+                          <p className="text-xs text-slate-500">Only the registrations you selected will appear here.</p>
+                        </div>
+                        <Button type="button" variant="outline" onClick={() => setRegistrationPickerOpen(true)}>
+                          Edit selections
+                        </Button>
                       </div>
-                    )}
-                    {(form.registration_types || []).includes("TAN") && (
-                      <div className="space-y-2">
-                        <Label>TAN Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.tan_number || ""} placeholder="DELA12345B" maxLength={10} onChange={e => handleAlphaNumericField("tan_number", e.target.value, 10)} autoCapitalize="characters" />
+
+                      {renderRegistrationDetailFields()}
+
+                      <div className="flex justify-between gap-3">
+                        <Button type="button" variant="ghost" onClick={() => setGstSection("overview")}>
+                          <ChevronLeft className="mr-1 h-4 w-4" /> Back to GST setup
+                        </Button>
                       </div>
-                    )}
-                    {(form.registration_types || []).includes("MSME / Udyam Registration") && (
-                      <div className="space-y-2">
-                        <Label>Udyam Registration Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.udyam_registration_number || ""} placeholder="UDYAM-XX-00-0000000" maxLength={80} onChange={e => handleAlphaNumericField("udyam_registration_number", e.target.value, 80)} autoCapitalize="characters" />
-                      </div>
-                    )}
-                    {(form.registration_types || []).includes("Udyog Aadhaar (Legacy UAM)") && (
-                      <div className="space-y-2">
-                        <Label>Udyog Aadhaar / UAM Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.udyog_aadhaar_number || ""} placeholder="Legacy UAM number" maxLength={80} onChange={e => handleAlphaNumericField("udyog_aadhaar_number", e.target.value, 80)} autoCapitalize="characters" />
-                      </div>
-                    )}
-                    {(form.registration_types || []).includes("NGO Darpan") && (
-                      <div className="space-y-2">
-                        <Label>NGO Darpan ID</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.ngo_darpan_id || ""} placeholder="NITI Aayog Darpan ID" maxLength={80} onChange={e => handleAlphaNumericField("ngo_darpan_id", e.target.value, 80)} autoCapitalize="characters" />
-                      </div>
-                    )}
-                    {(form.registration_types || []).includes("Trust Registration") && (
-                      <div className="space-y-2">
-                        <Label>Trust Registration Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.trust_registration_number || ""} placeholder="Trust deed / registration no." maxLength={120} onChange={e => handleAlphaNumericField("trust_registration_number", e.target.value, 120)} autoCapitalize="characters" />
-                      </div>
-                    )}
-                    {(form.registration_types || []).includes("Society Registration") && (
-                      <div className="space-y-2">
-                        <Label>Society Registration Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.society_registration_number || ""} placeholder="Society registration no." maxLength={120} onChange={e => handleAlphaNumericField("society_registration_number", e.target.value, 120)} autoCapitalize="characters" />
-                      </div>
-                    )}
-                    {(form.registration_types || []).includes("FSSAI") && (
-                      <div className="space-y-2">
-                        <Label>FSSAI Number</Label>
-                        <Input className="h-11 bg-slate-50" inputMode="numeric" value={form.fssai_number || ""} placeholder="Food license no." maxLength={14} onChange={e => handleDigitsField("fssai_number", e.target.value, 14)} />
-                      </div>
-                    )}
-                    {(form.registration_types || []).includes("Import Export Code (IEC)") && (
-                      <div className="space-y-2">
-                        <Label>IEC Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.iec_number || ""} placeholder="Import Export Code" maxLength={10} onChange={e => handleAlphaNumericField("iec_number", e.target.value, 10)} autoCapitalize="characters" />
-                      </div>
-                    )}
-                    {(form.registration_types || []).includes("Professional Tax") && (
-                      <div className="space-y-2">
-                        <Label>Professional Tax Number</Label>
-                        <Input className="h-11 bg-slate-50 uppercase" value={form.professional_tax_number || ""} placeholder="State professional tax no." maxLength={80} onChange={e => handleAlphaNumericField("professional_tax_number", e.target.value, 80)} autoCapitalize="characters" />
-                      </div>
-                    )}
-                    {(form.registration_types || []).length === 0 && (
-                      <p className="sm:col-span-2 text-sm text-slate-500">Agar abhi registration details nahi hain to blank chhod sakte hain. Baad mein settings se update ho jayega.</p>
-                    )}
-                  </Card>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1589,6 +1683,54 @@ export function OnboardingWorkspace() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {registrationPickerOpen && (
+        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Select registrations</h3>
+                <p className="mt-1 text-sm text-slate-500">Choose only the registrations that apply to this business.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRegistrationPickerOpen(false)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
+              {options.registration_type_options.map((opt) => (
+                <label
+                  key={opt}
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl border p-3 cursor-pointer transition-colors",
+                    selectedRegistrationTypes.includes(opt)
+                      ? "border-primary bg-primary/5 text-primary font-medium"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                    checked={selectedRegistrationTypes.includes(opt)}
+                    onChange={() => setValue("registration_types", toggleArrayValue(form.registration_types, opt))}
+                  />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button type="button" onClick={() => setRegistrationPickerOpen(false)}>
+                Done
+              </Button>
+            </div>
           </div>
         </div>
       )}
