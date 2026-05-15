@@ -280,7 +280,8 @@ export function OnboardingWorkspace() {
   const [phoneVerifier, setPhoneVerifier] = useState<RecaptchaVerifier | null>(null);
   const [verificationModal, setVerificationModal] = useState<"email" | "phone" | null>(null);
   const [registrationPickerOpen, setRegistrationPickerOpen] = useState(false);
-  const [gstSection, setGstSection] = useState<"overview" | "details">("overview");
+  const [registrationDetailsModalOpen, setRegistrationDetailsModalOpen] = useState(false);
+  const [gstDetailsModalOpen, setGstDetailsModalOpen] = useState(false);
   const [verificationNotice, setVerificationNotice] = useState("");
   const [verificationError, setVerificationError] = useState("");
   const [emailResendTimer, setEmailResendTimer] = useState(0);
@@ -1206,57 +1207,72 @@ export function OnboardingWorkspace() {
 
               {currentStep === 4 && (
                 <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
-                  <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
-                    <button
-                      type="button"
-                      onClick={() => setGstSection("overview")}
-                      className={cn(
-                        "flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition-colors",
-                        gstSection === "overview" ? "bg-primary text-white" : "text-slate-600 hover:bg-slate-50",
-                      )}
-                    >
-                      GST Setup
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setGstSection("details")}
-                      className={cn(
-                        "flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition-colors",
-                        gstSection === "details" ? "bg-primary text-white" : "text-slate-600 hover:bg-slate-50",
-                      )}
-                    >
-                      Registration Details
-                    </button>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label className="text-slate-700">GST status <span className="text-red-500">*</span></Label>
+                      <SearchableSelect
+                        placeholder="Select GST status..."
+                        options={gstRegistrationOptions}
+                        value={form.gst_registered || ""}
+                        onChange={(val) => {
+                          setValue("gst_registered", val);
+                          setValue("registration_types", syncGstRegistrationType(form.registration_types, val));
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-slate-700">Business / Legal Entity Type</Label>
+                      <SearchableSelect
+                        placeholder="Select entity type..."
+                        options={legalEntityOptions}
+                        value={form.legal_entity_type || ""}
+                        onChange={(val) => setValue("legal_entity_type", val)}
+                      />
+                    </div>
                   </div>
 
-                  {gstSection === "overview" ? (
-                    <div className="space-y-4">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label className="text-slate-700">GST status <span className="text-red-500">*</span></Label>
-                          <SearchableSelect
-                            placeholder="Select GST status..."
-                            options={gstRegistrationOptions}
-                            value={form.gst_registered || ""}
-                            onChange={(val) => {
-                              setValue("gst_registered", val);
-                              setValue("registration_types", syncGstRegistrationType(form.registration_types, val));
-                            }}
-                          />
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                      <div className="flex h-full flex-col gap-4">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">Step 1: GST details</div>
+                          <p className="mt-1 text-xs text-slate-500">
+                            Use this only when GST status is Yes. Open one popup and fill GST number, GST state, legal name and GST type there.
+                          </p>
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-slate-700">Business / Legal Entity Type</Label>
-                          <SearchableSelect
-                            placeholder="Select entity type..."
-                            options={legalEntityOptions}
-                            value={form.legal_entity_type || ""}
-                            onChange={(val) => setValue("legal_entity_type", val)}
-                          />
-                        </div>
+                        {form.gst_registered === "Yes" ? (
+                          <>
+                            {!!form.gst_number && (
+                              <div className="flex flex-wrap gap-2">
+                                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{form.gst_number}</span>
+                                {form.gst_state && (
+                                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{form.gst_state}</span>
+                                )}
+                                {form.gst_type && (
+                                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{form.gst_type}</span>
+                                )}
+                              </div>
+                            )}
+                            <Button type="button" onClick={() => setGstDetailsModalOpen(true)} className="mt-auto w-full sm:w-auto">
+                              {form.gst_number ? "Edit GST details" : "Add GST details"}
+                            </Button>
+                          </>
+                        ) : (
+                          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                            Select GST status as Yes to open GST details.
+                          </div>
+                        )}
                       </div>
+                    </Card>
 
-                      <div className="space-y-2">
-                        <Label className="text-slate-700">Registrations you have</Label>
+                    <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                      <div className="flex h-full flex-col gap-4">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">Step 2: Extra registrations</div>
+                          <p className="mt-1 text-xs text-slate-500">
+                            Add optional registrations like PAN, CIN, FSSAI, IEC or other business IDs only if you need them.
+                          </p>
+                        </div>
                         <button
                           type="button"
                           onClick={() => setRegistrationPickerOpen(true)}
@@ -1270,76 +1286,22 @@ export function OnboardingWorkspace() {
                           <ChevronRight className="h-4 w-4 text-slate-400" />
                         </button>
                         {selectedRegistrationTypes.length > 0 && (
-                          <div className="flex flex-wrap gap-2 pt-1">
-                            {selectedRegistrationTypes.map((item) => (
-                              <span key={item} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                                {item}
-                              </span>
-                            ))}
-                          </div>
+                          <>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedRegistrationTypes.map((item) => (
+                                <span key={item} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                                  {item}
+                                </span>
+                              ))}
+                            </div>
+                            <Button type="button" variant="outline" onClick={() => setRegistrationDetailsModalOpen(true)} className="mt-auto w-full sm:w-auto">
+                              Add registration details
+                            </Button>
+                          </>
                         )}
                       </div>
-
-                      {form.gst_registered === "Yes" && (
-                        <Card className="p-5 bg-white border-slate-200 shadow-sm grid sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>GST Number <span className="text-red-500">*</span></Label>
-                            <Input className="h-11 bg-slate-50 uppercase tracking-wide" value={form.gst_number || ""} placeholder="22AAAAA0000A1Z5" onChange={e => handleGstinChange(e.target.value)} maxLength={15} inputMode="text" autoCapitalize="characters" />
-                            <p className={cn("text-xs", gstNumberNormalized && !GSTIN_REGEX.test(gstNumberNormalized) ? "text-red-500" : "text-slate-500")}>
-                              {gstFormatMessage}
-                            </p>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Legal Business Name <span className="text-red-500">*</span></Label>
-                            <Input className="h-11 bg-slate-50" value={form.legal_business_name || ""} placeholder="Legal entity name" maxLength={255} onChange={e => handleTextField("legal_business_name", e.target.value, 255)} />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>GST State <span className="text-red-500">*</span></Label>
-                            <SearchableSelect
-                              options={states.map((s) => ({ label: s.label, value: s.state_name }))}
-                              value={form.gst_state || ""}
-                              onChange={(val) => setValue("gst_state", val)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>GST Type <span className="text-red-500">*</span></Label>
-                            <SearchableSelect
-                              placeholder="Select GST type..."
-                              options={gstTypeOptions}
-                              value={form.gst_type || ""}
-                              onChange={(val) => setValue("gst_type", val)}
-                            />
-                          </div>
-                        </Card>
-                      )}
-
-                      <div className="flex justify-end">
-                        <Button type="button" variant="outline" onClick={() => setGstSection("details")}>
-                          Next section <ChevronRight className="ml-1 h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                        <div>
-                          <div className="text-sm font-semibold text-slate-900">Registration detail inputs</div>
-                          <p className="text-xs text-slate-500">Only the registrations you selected will appear here.</p>
-                        </div>
-                        <Button type="button" variant="outline" onClick={() => setRegistrationPickerOpen(true)}>
-                          Edit selections
-                        </Button>
-                      </div>
-
-                      {renderRegistrationDetailFields()}
-
-                      <div className="flex justify-between gap-3">
-                        <Button type="button" variant="ghost" onClick={() => setGstSection("overview")}>
-                          <ChevronLeft className="mr-1 h-4 w-4" /> Back to GST setup
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                    </Card>
+                  </div>
                 </div>
               )}
 
@@ -1683,6 +1645,117 @@ export function OnboardingWorkspace() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {gstDetailsModalOpen && (
+        <div className="fixed inset-0 z-[78] flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">GST details</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Fill only the main GST information here. This section is required only when GST status is Yes.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGstDetailsModalOpen(false)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-slate-700">GST Number <span className="text-red-500">*</span></Label>
+                <Input
+                  className="h-12 bg-white uppercase"
+                  value={form.gst_number || ""}
+                  placeholder="22AAAAA0000A1Z5"
+                  maxLength={15}
+                  onChange={e => handleAlphaNumericField("gst_number", e.target.value, 15)}
+                  autoCapitalize="characters"
+                />
+                <p className="text-xs text-slate-500">{gstFormatMessage}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-slate-700">Legal Business Name <span className="text-red-500">*</span></Label>
+                <Input
+                  className="h-12 bg-white"
+                  value={form.legal_business_name || ""}
+                  placeholder="Legal entity name"
+                  maxLength={255}
+                  onChange={e => handleTextField("legal_business_name", e.target.value, 255)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-slate-700">GST State <span className="text-red-500">*</span></Label>
+                <SearchableSelect
+                  placeholder="Select GST state..."
+                  options={stateOptions}
+                  value={form.gst_state || ""}
+                  onChange={(val) => setValue("gst_state", val)}
+                  emptyMessage={locationsLoading ? "Loading states..." : "No state found."}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-slate-700">GST Type <span className="text-red-500">*</span></Label>
+                <SearchableSelect
+                  placeholder="Select GST type..."
+                  options={gstTypeOptions}
+                  value={form.gst_type || ""}
+                  onChange={(val) => setValue("gst_type", val)}
+                  emptyMessage="No GST type found."
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => setGstDetailsModalOpen(false)}>
+                Close
+              </Button>
+              <Button type="button" onClick={() => setGstDetailsModalOpen(false)}>
+                Save GST details
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {registrationDetailsModalOpen && (
+        <div className="fixed inset-0 z-[77] flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="w-full max-w-5xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Extra registration details</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Only the registration inputs for your selected business IDs are shown here.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRegistrationDetailsModalOpen(false)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 max-h-[60vh] overflow-y-auto pr-2">
+              {renderRegistrationDetailFields()}
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => setRegistrationDetailsModalOpen(false)}>
+                Close
+              </Button>
+              <Button type="button" onClick={() => setRegistrationDetailsModalOpen(false)}>
+                Save registration details
+              </Button>
+            </div>
           </div>
         </div>
       )}
