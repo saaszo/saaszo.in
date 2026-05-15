@@ -49,6 +49,18 @@ type SubscriptionInfo = {
   currentPeriodEnd: string | null;
 };
 
+export type SessionUserInfo = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  role: string | null;
+  is_active: boolean;
+  branch_id?: number | null;
+  branch_scope?: 'all' | 'single' | null;
+  tool_access?: string[];
+};
+
 type OnboardingInfo = {
   setup_completed?: boolean;
   setup_skipped?: boolean;
@@ -115,6 +127,7 @@ type AuthContextValue = {
   authenticated: boolean;
   error: string;
   loading: boolean;
+  workspaceUser: SessionUserInfo | null;
   profile: ProfilePayload | null;
   auth: AuthInfo | null;
   subscription: SubscriptionInfo | null;
@@ -153,12 +166,13 @@ type AuthContextValue = {
   saveStaff: (data: any) => Promise<{ success: boolean; message?: string; staff?: StaffMember }>;
   deleteStaff: (id: number) => Promise<{ success: boolean; message?: string }>;
   getStaffTemplates: () => Promise<{ roles: Record<string, RoleTemplate>; groups: Record<string, PermissionGroup> }>;
+  checkToolAccess: (tool: string) => Promise<{ allowed: boolean; status: string; message?: string; redirectUrl?: string }>;
 };
 
 
 type AuthSessionState = Pick<
   AuthContextValue,
-  'user' | 'authenticated' | 'error' | 'loading' | 'profile' | 'auth' | 'subscription' | 'onboarding'
+  'user' | 'authenticated' | 'error' | 'loading' | 'workspaceUser' | 'profile' | 'auth' | 'subscription' | 'onboarding'
 >;
 
 type BackendAuthResponse = {
@@ -176,8 +190,12 @@ type BackendAuthResponse = {
     name?: string | null;
     email?: string | null;
     phone?: string | null;
+    role?: string | null;
     firebase_uid?: string | null;
     is_active?: boolean;
+    branch_id?: number | null;
+    branch_scope?: 'all' | 'single' | null;
+    tool_access?: string[] | null;
   };
   company?: {
     name?: string | null;
@@ -196,6 +214,7 @@ const signedOutState = {
   authenticated: false,
   error: '',
   loading: false,
+  workspaceUser: null,
   profile: null,
   auth: null,
   subscription: null,
@@ -255,6 +274,17 @@ function getErrorMessage(payload: any, fallback: string) {
 function normalizeBackendSession(payload: BackendAuthResponse): Omit<AuthSessionState, 'user' | 'authenticated' | 'error' | 'loading'> {
   if (payload.profile && payload.auth && payload.subscription) {
     return {
+      workspaceUser: {
+        id: String(payload.user?.id ?? payload.profile.id ?? ''),
+        name: payload.user?.name ?? payload.profile.fullName ?? null,
+        email: payload.user?.email ?? payload.profile.email ?? null,
+        phone: payload.user?.phone ?? payload.profile.phone ?? null,
+        role: payload.user?.role ?? null,
+        is_active: payload.user?.is_active ?? true,
+        branch_id: payload.user?.branch_id ?? null,
+        branch_scope: payload.user?.branch_scope ?? null,
+        tool_access: payload.user?.tool_access ?? [],
+      },
       profile: payload.profile,
       auth: payload.auth,
       subscription: payload.subscription,
@@ -266,6 +296,17 @@ function normalizeBackendSession(payload: BackendAuthResponse): Omit<AuthSession
   const company = payload.company ?? {};
 
   return {
+    workspaceUser: {
+      id: String(user.id ?? ''),
+      name: user.name ?? null,
+      email: user.email ?? null,
+      phone: user.phone ?? null,
+      role: user.role ?? null,
+      is_active: user.is_active ?? true,
+      branch_id: user.branch_id ?? null,
+      branch_scope: user.branch_scope ?? null,
+      tool_access: user.tool_access ?? [],
+    },
     profile: {
       id: String(user.id ?? ''),
       email: user.email ?? null,
@@ -373,6 +414,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authenticated: true,
       error: '',
       loading: false,
+      workspaceUser: data.user
+        ? {
+            id: String(data.user.id ?? ''),
+            name: data.user.name ?? null,
+            email: data.user.email ?? null,
+            phone: data.user.phone ?? null,
+            role: data.user.role ?? null,
+            is_active: data.user.is_active ?? true,
+            branch_id: data.user.branch_id ?? null,
+            branch_scope: data.user.branch_scope ?? null,
+            tool_access: data.user.tool_access ?? [],
+          }
+        : null,
       profile: data.profile ?? null,
       auth: data.auth ?? null,
       subscription: data.subscription ?? null,
@@ -395,6 +449,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authenticated: true,
       error: '',
       loading: false,
+      workspaceUser: session.workspaceUser,
       profile: session.profile,
       auth: session.auth,
       subscription: session.subscription,
@@ -475,6 +530,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authenticated: true,
       error: '',
       loading: false,
+      workspaceUser: session.workspaceUser,
       profile: session.profile,
       auth: session.auth,
       subscription: session.subscription,
@@ -756,6 +812,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setState((current) => ({
         ...current,
+        workspaceUser: data.user
+          ? {
+              id: String(data.user.id ?? current.workspaceUser?.id ?? ''),
+              name: data.user.name ?? current.workspaceUser?.name ?? null,
+              email: data.user.email ?? current.workspaceUser?.email ?? null,
+              phone: data.user.phone ?? current.workspaceUser?.phone ?? null,
+              role: data.user.role ?? current.workspaceUser?.role ?? null,
+              is_active: data.user.is_active ?? current.workspaceUser?.is_active ?? true,
+              branch_id: data.user.branch_id ?? current.workspaceUser?.branch_id ?? null,
+              branch_scope: data.user.branch_scope ?? current.workspaceUser?.branch_scope ?? null,
+              tool_access: data.user.tool_access ?? current.workspaceUser?.tool_access ?? [],
+            }
+          : current.workspaceUser,
         profile: data.profile ?? current.profile,
         auth: data.auth ?? current.auth,
         subscription: data.subscription ?? current.subscription,
@@ -830,10 +899,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function getHandoffToken(tool: string): Promise<{ redirectUrl?: string; error?: string }> {
     try {
-      console.log('🔍 getHandoffToken called for tool:', tool);
-      console.log('🔍 backendToken state:', backendToken);
-      console.log('🔍 stored token:', getStoredBackendToken());
-
       // Primary: use Sanctum backend token (set after login or Firebase sync)
       let bearerToken = backendToken ?? getStoredBackendToken();
 
@@ -857,10 +922,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(payload?.message || 'Could not generate product access token.');
       }
 
-      console.log('🔍 handoff redirectUrl:', payload.redirect_url);
       return { redirectUrl: payload.redirect_url as string };
     } catch (err: any) {
-      console.error('🔴 getHandoffToken error:', err);
       return { error: err.message };
     }
   }
@@ -986,6 +1049,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function checkToolAccess(tool: string) {
+    try {
+      const payload = await fetchBackendJson('/tools/check-access', {
+        method: 'POST',
+        body: JSON.stringify({ tool }),
+      });
+
+      return {
+        allowed: Boolean((payload as any).allowed),
+        status: String((payload as any).status || 'unknown'),
+        message: payload.message,
+        redirectUrl: (payload as any).redirect_url,
+      };
+    } catch (err: any) {
+      return {
+        allowed: false,
+        status: 'error',
+        message: err.message || 'Could not verify tool access.',
+      };
+    }
+  }
+
   const contextValue: AuthContextValue = {
     ...state,
     postAuthRedirect,
@@ -1008,6 +1093,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveStaff,
     deleteStaff,
     getStaffTemplates,
+    checkToolAccess,
   };
 
   return (

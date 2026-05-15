@@ -1,12 +1,21 @@
 'use client';
 
-import { startTransition, useEffect, useState } from 'react';
+import { startTransition, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthSession, type BranchInfo, type StaffMember, type RoleTemplate, type PermissionGroup } from '@/components/AuthProvider';
 
 // ─── Product definitions ───────────────────────────────────────────────────
 type ProductStatus = 'active' | 'coming_soon';
+type ProductAccessState =
+  | 'open'
+  | 'coming_soon'
+  | 'locked_inactive'
+  | 'no_access'
+  | 'upgrade_plan'
+  | 'setup_required'
+  | 'login_required'
+  | 'restricted';
 
 type Product = {
   id: string;
@@ -71,7 +80,7 @@ const PRODUCTS: Product[] = [
     status: 'coming_soon',
     badge: 'Coming Soon',
     color: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-    ctaText: 'Coming Soon',
+    ctaText: 'Join Waitlist',
   },
   {
     id: 'hrms',
@@ -84,7 +93,7 @@ const PRODUCTS: Product[] = [
     status: 'coming_soon',
     badge: 'Coming Soon',
     color: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    ctaText: 'Coming Soon',
+    ctaText: 'Join Waitlist',
   },
 ];
 
@@ -100,6 +109,7 @@ export default function DashboardPage() {
     onboarding,
     postAuthRedirect,
     profile,
+    workspaceUser,
     signOut,
     subscription,
     updatePassword,
@@ -111,6 +121,7 @@ export default function DashboardPage() {
     getStaff,
     saveStaff,
     deleteStaff,
+    checkToolAccess,
   } = useAuthSession();
 
   const [formValues, setFormValues] = useState({
@@ -130,10 +141,36 @@ export default function DashboardPage() {
   const [launchingTool, setLaunchingTool] = useState<string | null>(null);
   const [launchError, setLaunchError] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'branches' | 'team' | 'settings'>('overview');
+  const [toolStates, setToolStates] = useState<Record<string, { state: ProductAccessState; message?: string; redirectUrl?: string; ctaText?: string }>>({});
 
   const [branches, setBranches] = useState<BranchInfo[]>([]);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(false);
+
+  const roleLabel = useMemo(() => {
+    const role = workspaceUser?.role ?? 'owner';
+    return role.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  }, [workspaceUser?.role]);
+
+  const isOwnerOrAdmin = useMemo(
+    () => ['owner', 'super_admin', 'branch_admin'].includes(workspaceUser?.role ?? ''),
+    [workspaceUser?.role],
+  );
+
+  const activeBranches = useMemo(
+    () => branches.filter((branch) => branch.is_active).length,
+    [branches],
+  );
+
+  const activeStaff = useMemo(
+    () => staff.filter((member) => member.is_active).length,
+    [staff],
+  );
+
+  const activeProductCount = useMemo(
+    () => Object.values(toolStates).filter((entry) => entry.state === 'open').length || 1,
+    [toolStates],
+  );
 
   useEffect(() => {
     if (!loading && !authenticated) {
@@ -163,12 +200,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (authenticated && (activeTab === 'branches' || activeTab === 'overview')) {
-      loadBranches();
+      void loadBranches();
     }
     if (authenticated && (activeTab === 'team' || activeTab === 'overview')) {
-      loadStaff();
+      void loadStaff();
     }
   }, [authenticated, activeTab]);
+
+  useEffect(() => {
+    if (!authenticated || activeTab !== 'overview') {
+      return;
+    }
+
+    void loadToolStates();
+  }, [authenticated, activeTab, workspaceUser?.role, subscription?.planName, onboarding?.setup_completed]);
 
   async function loadBranches() {
     setIsDataLoading(true);
@@ -182,6 +227,65 @@ export default function DashboardPage() {
     const data = await getStaff();
     setStaff(data);
     setIsDataLoading(false);
+  }
+
+  async function loadToolStates() {
+    const nextStates: Record<string, { state: ProductAccessState; message?: string; redirectUrl?: string; ctaText?: string }> = {};
+
+    await Promise.all(
+      PRODUCTS.map(async (product) => {
+        if (product.status !== 'active') {
+          nextStates[product.tool] = {
+            state: 'coming_soon',
+            ctaText: product.ctaText ?? 'Coming Soon',
+          };
+          return;
+        }
+
+        const access = await checkToolAccess(product.tool);
+
+        if (access.allowed) {
+          nextStates[product.tool] = {
+            state: 'open',
+            ctaText: product.ctaText ?? 'Open App',
+          };
+          return;
+        }
+
+        const mappedState: ProductAccessState =
+          access.status === 'inactive_user'
+            ? 'locked_inactive'
+            : access.status === 'plan_required'
+              ? 'upgrade_plan'
+              : access.status === 'setup_incomplete'
+                ? 'setup_required'
+                : access.status === 'unauthenticated'
+                  ? 'login_required'
+                  : access.status === 'tool_blocked'
+                    ? 'no_access'
+                    : 'restricted';
+
+        nextStates[product.tool] = {
+          state: mappedState,
+          message: access.message,
+          redirectUrl: access.redirectUrl,
+          ctaText:
+            mappedState === 'upgrade_plan'
+              ? 'Upgrade Plan'
+              : mappedState === 'setup_required'
+                ? 'Complete Setup'
+                : mappedState === 'login_required'
+                  ? 'Sign In'
+                  : mappedState === 'no_access'
+                    ? 'No Access'
+                    : mappedState === 'locked_inactive'
+                      ? 'Account Locked'
+                      : 'Restricted',
+        };
+      }),
+    );
+
+    setToolStates(nextStates);
   }
 
   if (loading) {
@@ -199,23 +303,37 @@ export default function DashboardPage() {
   }
 
   async function handleLaunchProduct(product: Product) {
-    if (product.status !== 'active') return;
+    const access = toolStates[product.tool];
+
+    if (product.status !== 'active' || !access || access.state !== 'open') {
+      if (access?.redirectUrl) {
+        window.location.assign(access.redirectUrl);
+      }
+      return;
+    }
+
     setLaunchingTool(product.tool);
     setLaunchError('');
+    const pendingWindow = window.open('', '_blank', 'noopener,noreferrer');
 
     const { redirectUrl, error: handoffError } = await getHandoffToken(product.tool);
 
     if (handoffError || !redirectUrl) {
+      pendingWindow?.close();
       setLaunchError(handoffError ?? 'Could not launch product. Please try again.');
       setLaunchingTool(null);
       return;
     }
 
-    const newWin = window.open(redirectUrl, '_blank', 'noopener,noreferrer');
-    if (!newWin) {
+    if (!pendingWindow) {
       setLaunchError('Popup blocked. Please allow popups for SaaSzo and try again.');
       setLaunchingTool(null);
+      window.location.assign(redirectUrl);
+      return;
     }
+
+    pendingWindow.location.href = redirectUrl;
+    setLaunchingTool(null);
   }
 
   async function handleProfileSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -263,6 +381,9 @@ export default function DashboardPage() {
               <p className="text-[10px] font-black tracking-[0.2em] uppercase text-primary">
                 SaaSzo Control Center
               </p>
+              <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
+                {roleLabel}
+              </span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-tight">
               Welcome back{profile.fullName ? `, ${profile.fullName.split(' ')[0]}` : ''}.
@@ -331,20 +452,20 @@ export default function DashboardPage() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                 <StatCard
                   label="Active Products"
-                  value="1"
-                  hint="Invoice & Billing"
+                  value={String(activeProductCount)}
+                  hint={activeProductCount > 1 ? 'Multiple tools available' : 'Invoice & Billing is ready'}
                   icon="apps"
                 />
                 <StatCard
                   label="Active Branches"
-                  value={branches.length.toString()}
+                  value={String(activeBranches)}
                   hint={branches.length > 0 ? branches[0].name : "No branches"}
                   icon="storefront"
                 />
                 <StatCard
                   label="Team Members"
-                  value={(staff.length || 1).toString()}
-                  hint={staff.length > 0 ? "Managed Team" : "Owner Account"}
+                  value={String(activeStaff || 1)}
+                  hint={activeStaff > 0 ? "Managed Team" : "Owner Account"}
                   icon="groups"
                 />
                 <StatCard
@@ -390,14 +511,25 @@ export default function DashboardPage() {
               )}
 
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {PRODUCTS.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    isLaunching={launchingTool === product.tool}
-                    onLaunch={handleLaunchProduct}
-                  />
-                ))}
+                {PRODUCTS.map((product) => {
+                  const fallbackState =
+                    product.status === 'active'
+                      ? { state: 'open' as ProductAccessState, ctaText: product.ctaText ?? 'Open App' }
+                      : { state: 'coming_soon' as ProductAccessState, ctaText: product.ctaText ?? 'Coming Soon' };
+                  const access = toolStates[product.tool] ?? fallbackState;
+
+                  return (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      isLaunching={launchingTool === product.tool}
+                      onLaunch={handleLaunchProduct}
+                      accessState={access.state}
+                      ctaText={access.ctaText}
+                      message={access.message}
+                    />
+                  );
+                })}
               </div>
             </section>
 
@@ -412,11 +544,13 @@ export default function DashboardPage() {
                   icon="add_business"
                   onClick={() => setActiveTab('branches')}
                   primary
+                  disabled={!isOwnerOrAdmin}
                 />
                 <QuickActionCard
                   title="Add Staff"
                   icon="person_add"
                   onClick={() => setActiveTab('team')}
+                  disabled={!isOwnerOrAdmin}
                 />
                 <QuickActionCard
                   title="New Invoice"
@@ -440,6 +574,82 @@ export default function DashboardPage() {
                 />
               </div>
             </section>
+
+            <section className="grid gap-8 xl:grid-cols-[1.2fr,0.8fr]">
+              <div className="rounded-[2.5rem] border border-outline-variant/20 bg-surface-container-lowest p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-black tracking-tight">Branch & Team Snapshot</h2>
+                    <p className="mt-2 text-sm font-medium text-on-surface-variant opacity-70">
+                      Review how your business is structured before assigning deeper permissions.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('team')}
+                    className="rounded-2xl border border-outline-variant/20 px-5 py-3 text-xs font-black uppercase tracking-wider text-primary transition-colors hover:bg-primary/5"
+                  >
+                    Manage Team
+                  </button>
+                </div>
+
+                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                  <ReadOnlyCard
+                    icon="storefront"
+                    label="Branch Model"
+                    value={activeBranches > 1 ? 'Multi-Branch' : 'Single Branch'}
+                    helper={activeBranches > 1 ? `${activeBranches} active branches in control.` : 'Main branch currently active.'}
+                  />
+                  <ReadOnlyCard
+                    icon="admin_panel_settings"
+                    label="Admin Controls"
+                    value={isOwnerOrAdmin ? 'Enabled' : 'Limited'}
+                    helper={isOwnerOrAdmin ? 'You can manage branches, staff, and access.' : 'Only admins can edit control settings.'}
+                  />
+                  <ReadOnlyCard
+                    icon="person_check"
+                    label="Active Staff"
+                    value={String(activeStaff || 1)}
+                    helper={activeStaff > 0 ? 'Employees with current access.' : 'Only owner account is active.'}
+                  />
+                  <ReadOnlyCard
+                    icon="shield_lock"
+                    label="Access Scope"
+                    value={workspaceUser?.branch_scope === 'all' ? 'All Branches' : 'Assigned Branch'}
+                    helper={workspaceUser?.branch_scope === 'all' ? 'This account can work across all branches.' : 'This account is branch-limited by default.'}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-[2.5rem] border border-outline-variant/20 bg-surface-container-lowest p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+                <h2 className="text-2xl font-black tracking-tight">Workspace Guardrails</h2>
+                <div className="mt-8 space-y-4">
+                  <GuardrailItem
+                    icon="workspace_premium"
+                    label="Subscription"
+                    value={subscription.status === 'active' ? 'Healthy' : 'Needs attention'}
+                    tone={subscription.status === 'active' ? 'good' : 'warn'}
+                  />
+                  <GuardrailItem
+                    icon="task_alt"
+                    label="Onboarding"
+                    value={onboarding?.setup_completed ? 'Completed' : 'Resume setup'}
+                    tone={onboarding?.setup_completed ? 'good' : 'warn'}
+                  />
+                  <GuardrailItem
+                    icon="badge"
+                    label="Role Control"
+                    value={roleLabel}
+                    tone="neutral"
+                  />
+                  <GuardrailItem
+                    icon="verified_user"
+                    label="Security"
+                    value={auth.primaryProvider === 'Password' ? 'Password account' : `${auth.primaryProvider} linked`}
+                    tone="neutral"
+                  />
+                </div>
+              </div>
+            </section>
           </div>
         )}
 
@@ -451,6 +661,7 @@ export default function DashboardPage() {
               onSave={saveBranch}
               onDelete={deleteBranch}
               isLoading={isDataLoading}
+              canManage={isOwnerOrAdmin}
             />
           </div>
         )}
@@ -464,6 +675,7 @@ export default function DashboardPage() {
               onSave={saveStaff}
               onDelete={deleteStaff}
               isLoading={isDataLoading}
+              canManage={isOwnerOrAdmin}
             />
           </div>
         )}
@@ -583,6 +795,52 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
+              
+              <div className="lg:col-span-3 grid md:grid-cols-2 gap-8 mt-4">
+                <div className="bg-surface-container-lowest rounded-[2.5rem] p-8 border border-outline-variant/20 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="h-12 w-12 rounded-xl bg-error/10 text-error flex items-center justify-center mb-6">
+                      <span className="material-symbols-outlined text-2xl">devices</span>
+                    </div>
+                    <h3 className="text-xl font-black">Active Sessions</h3>
+                    <p className="text-sm text-on-surface-variant font-medium mt-2 mb-6">
+                      Sign out of all other active sessions across your browsers and devices to secure your account.
+                    </p>
+                  </div>
+                  <button className="w-full py-4 rounded-xl font-bold text-error border border-error/20 hover:bg-error/10 transition-colors">
+                    Sign Out All Devices
+                  </button>
+                </div>
+                
+                <div className="bg-surface-container-lowest rounded-[2.5rem] p-8 border border-outline-variant/20 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-black">Security Audit</h3>
+                    <span className="text-xs font-bold text-primary uppercase tracking-wider border border-primary/20 px-2 py-1 rounded-md bg-primary/5">Log</span>
+                  </div>
+                  <div className="space-y-5">
+                    <div className="flex items-start gap-4">
+                      <div className="h-8 w-8 rounded-full bg-surface-container flex items-center justify-center shrink-0 mt-1">
+                        <span className="material-symbols-outlined text-[16px] text-on-surface-variant">login</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold">Successful Login</p>
+                        <p className="text-xs text-on-surface-variant mt-0.5">Mac OS • Chrome</p>
+                      </div>
+                      <span className="text-[10px] font-bold text-on-surface-variant/70">Just now</span>
+                    </div>
+                    <div className="flex items-start gap-4 opacity-70">
+                      <div className="h-8 w-8 rounded-full bg-surface-container flex items-center justify-center shrink-0 mt-1">
+                        <span className="material-symbols-outlined text-[16px] text-on-surface-variant">shield_person</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold">Tool Access Granted</p>
+                        <p className="text-xs text-on-surface-variant mt-0.5">Admin updated permissions</p>
+                      </div>
+                      <span className="text-[10px] font-bold text-on-surface-variant/70">Yesterday</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </section>
           </div>
         )}
@@ -598,13 +856,15 @@ function BranchesView({
   onRefresh, 
   onSave, 
   onDelete,
-  isLoading 
+  isLoading,
+  canManage,
 }: { 
   branches: BranchInfo[]; 
   onRefresh: () => void;
   onSave: (data: any) => Promise<any>;
   onDelete: (id: number) => Promise<any>;
   isLoading: boolean;
+  canManage: boolean;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<BranchInfo | null>(null);
@@ -618,17 +878,23 @@ function BranchesView({
             Manage your physical locations, stores, and warehouses.
           </p>
         </div>
-        <button
-          onClick={() => {
-            setEditingBranch(null);
-            setIsModalOpen(true);
-          }}
-          className="flex items-center gap-2 px-6 py-4 rounded-2xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-          style={{ background: 'linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)' }}
-        >
-          <span className="material-symbols-outlined">add_business</span>
-          Add New Branch
-        </button>
+        {canManage ? (
+          <button
+            onClick={() => {
+              setEditingBranch(null);
+              setIsModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-6 py-4 rounded-2xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            style={{ background: 'linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)' }}
+          >
+            <span className="material-symbols-outlined">add_business</span>
+            Add New Branch
+          </button>
+        ) : (
+          <div className="rounded-2xl border border-outline-variant/20 bg-surface-container px-5 py-4 text-sm font-semibold text-on-surface-variant">
+            View-only branch access
+          </div>
+        )}
       </div>
 
       {isLoading && branches.length === 0 ? (
@@ -660,26 +926,30 @@ function BranchesView({
                   {branch.branch_type}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => {
-                      setEditingBranch(branch);
-                      setIsModalOpen(true);
-                    }}
-                    className="h-8 w-8 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-sm">edit</span>
-                  </button>
-                  <button 
-                    onClick={async () => {
-                      if (confirm('Are you sure you want to delete this branch?')) {
-                        await onDelete(branch.id);
-                        onRefresh();
-                      }
-                    }}
-                    className="h-8 w-8 rounded-full hover:bg-error/10 hover:text-error flex items-center justify-center text-on-surface-variant transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-sm">delete</span>
-                  </button>
+                  {canManage && (
+                    <>
+                      <button 
+                        onClick={() => {
+                          setEditingBranch(branch);
+                          setIsModalOpen(true);
+                        }}
+                        className="h-8 w-8 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                      </button>
+                      <button 
+                        onClick={async () => {
+                          if (confirm('Are you sure you want to delete this branch?')) {
+                            await onDelete(branch.id);
+                            onRefresh();
+                          }
+                        }}
+                        className="h-8 w-8 rounded-full hover:bg-error/10 hover:text-error flex items-center justify-center text-on-surface-variant transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -697,21 +967,27 @@ function BranchesView({
                 </div>
               </div>
 
-              <button 
-                onClick={() => {
-                  setEditingBranch(branch);
-                  setIsModalOpen(true);
-                }}
-                className="mt-8 w-full py-4 rounded-2xl bg-surface-container font-bold text-sm hover:bg-surface-container-high transition-colors"
-              >
-                Manage Branch
-              </button>
+              {canManage ? (
+                <button 
+                  onClick={() => {
+                    setEditingBranch(branch);
+                    setIsModalOpen(true);
+                  }}
+                  className="mt-8 w-full py-4 rounded-2xl bg-surface-container font-bold text-sm hover:bg-surface-container-high transition-colors"
+                >
+                  Manage Branch
+                </button>
+              ) : (
+                <div className="mt-8 w-full rounded-2xl border border-outline-variant/20 bg-surface px-4 py-4 text-center text-sm font-semibold text-on-surface-variant">
+                  Branch details locked for your role
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {isModalOpen && (
+      {canManage && isModalOpen && (
         <BranchModal 
           branch={editingBranch} 
           onClose={() => setIsModalOpen(false)} 
@@ -736,7 +1012,8 @@ function TeamView({
   onRefresh, 
   onSave, 
   onDelete,
-  isLoading 
+  isLoading,
+  canManage,
 }: { 
   staff: StaffMember[]; 
   branches: BranchInfo[];
@@ -744,6 +1021,7 @@ function TeamView({
   onSave: (data: any) => Promise<any>;
   onDelete: (id: number) => Promise<any>;
   isLoading: boolean;
+  canManage: boolean;
 }) {
   const { getStaffTemplates } = useAuthSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -780,17 +1058,23 @@ function TeamView({
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
           </select>
-          <button
-            onClick={() => {
-              setEditingStaff(null);
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-6 py-4 rounded-2xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-            style={{ background: 'linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)' }}
-          >
-            <span className="material-symbols-outlined">person_add</span>
-            Add Employee
-          </button>
+          {canManage ? (
+            <button
+              onClick={() => {
+                setEditingStaff(null);
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-6 py-4 rounded-2xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              style={{ background: 'linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)' }}
+            >
+              <span className="material-symbols-outlined">person_add</span>
+              Add Employee
+            </button>
+          ) : (
+            <div className="rounded-2xl border border-outline-variant/20 bg-surface-container px-5 py-4 text-sm font-semibold text-on-surface-variant">
+              View-only team access
+            </div>
+          )}
         </div>
       </div>
 
@@ -861,36 +1145,42 @@ function TeamView({
                     </td>
                     <td className="px-8 py-6 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => {
-                            setEditingStaff(member);
-                            setIsPermissionModalOpen(true);
-                          }}
-                          className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
-                          title="Manage Permissions"
-                        >
-                          <span className="material-symbols-outlined text-lg">shield_person</span>
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setEditingStaff(member);
-                            setIsModalOpen(true);
-                          }}
-                          className="h-10 w-10 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-lg">edit</span>
-                        </button>
-                        <button 
-                          onClick={async () => {
-                            if (confirm('Are you sure you want to remove this employee?')) {
-                              await onDelete(member.id);
-                              onRefresh();
-                            }
-                          }}
-                          className="h-10 w-10 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-lg">delete</span>
-                        </button>
+                        {canManage ? (
+                          <>
+                            <button 
+                              onClick={() => {
+                                setEditingStaff(member);
+                                setIsPermissionModalOpen(true);
+                              }}
+                              className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                              title="Manage Permissions"
+                            >
+                              <span className="material-symbols-outlined text-lg">shield_person</span>
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setEditingStaff(member);
+                                setIsModalOpen(true);
+                              }}
+                              className="h-10 w-10 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-lg">edit</span>
+                            </button>
+                            <button 
+                              onClick={async () => {
+                                if (confirm('Are you sure you want to remove this employee?')) {
+                                  await onDelete(member.id);
+                                  onRefresh();
+                                }
+                              }}
+                              className="h-10 w-10 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-lg">delete</span>
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-xs font-semibold text-on-surface-variant">Limited</span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -901,7 +1191,7 @@ function TeamView({
         </div>
       )}
 
-      {isModalOpen && (
+      {canManage && isModalOpen && (
         <StaffModal 
           staff={editingStaff} 
           branches={branches}
@@ -918,7 +1208,7 @@ function TeamView({
         />
       )}
 
-      {isPermissionModalOpen && editingStaff && templates && (
+      {canManage && isPermissionModalOpen && editingStaff && templates && (
         <PermissionModal
           staff={editingStaff}
           roles={templates.roles}
@@ -1372,31 +1662,45 @@ function ProductCard({
   product,
   isLaunching,
   onLaunch,
+  accessState = 'open',
+  ctaText,
+  message,
 }: {
   product: Product;
   isLaunching: boolean;
   onLaunch: (p: Product) => void;
+  accessState?: string;
+  ctaText?: string;
+  message?: string;
 }) {
-  const isActive = product.status === 'active';
+  const isActive = accessState === 'open';
+  const isActionable = accessState === 'open' || accessState === 'upgrade_plan' || accessState === 'setup_required' || accessState === 'login_required';
 
   return (
     <div
       className={`relative flex flex-col rounded-[2.5rem] border bg-surface-container-lowest p-8 shadow-[0_12px_32px_rgba(25,28,30,0.07)] transition-all duration-300 ${
         isActive
           ? 'border-outline-variant/20 hover:border-primary/30 hover:-translate-y-2 hover:shadow-[0_40px_100px_rgba(25,28,30,0.15)]'
-          : 'border-outline-variant/10 opacity-70'
+          : 'border-outline-variant/10 bg-surface-container-low opacity-90'
       }`}
     >
       {/* Badge */}
-      {product.badge && (
-        <span className="absolute top-6 right-6 rounded-full bg-surface-container px-3 py-1 text-[10px] font-black uppercase tracking-wider text-on-surface-variant border border-outline-variant/30">
-          {product.badge}
-        </span>
+      {accessState === 'locked_inactive' && (
+         <span className="absolute top-6 right-6 rounded-full bg-error/10 text-error px-3 py-1 text-[10px] font-black uppercase tracking-wider border border-error/20">Locked</span>
+      )}
+      {accessState === 'no_access' && (
+         <span className="absolute top-6 right-6 rounded-full bg-outline-variant/20 text-on-surface-variant px-3 py-1 text-[10px] font-black uppercase tracking-wider border border-outline-variant/30">No Access</span>
+      )}
+      {accessState === 'upgrade_plan' && (
+         <span className="absolute top-6 right-6 rounded-full bg-tertiary/10 text-tertiary px-3 py-1 text-[10px] font-black uppercase tracking-wider border border-tertiary/20">Premium</span>
+      )}
+      {accessState === 'coming_soon' && product.badge && (
+         <span className="absolute top-6 right-6 rounded-full bg-surface-container px-3 py-1 text-[10px] font-black uppercase tracking-wider text-on-surface-variant border border-outline-variant/30">{product.badge}</span>
       )}
 
       {/* Icon */}
       <div
-        className="mb-8 flex h-16 w-16 items-center justify-center rounded-[1.5rem] text-white shadow-xl shadow-current/10"
+        className={`mb-8 flex h-16 w-16 items-center justify-center rounded-[1.5rem] shadow-xl shadow-current/10 ${!isActive && accessState !== 'coming_soon' ? 'grayscale opacity-70 text-white' : 'text-white'}`}
         style={{ background: product.color }}
       >
         <span className="material-symbols-rounded text-4xl">{product.icon}</span>
@@ -1409,33 +1713,117 @@ function ProductCard({
         {product.description}
       </p>
 
+      {/* Message if any */}
+      {message && (
+        <p className={`mt-3 text-xs font-bold ${accessState === 'locked_inactive' ? 'text-error' : accessState === 'upgrade_plan' ? 'text-tertiary' : 'text-on-surface-variant'}`}>
+          {message}
+        </p>
+      )}
+
       {/* Action */}
-      <div className="mt-8">
-        {isActive ? (
-          <button
-            onClick={() => onLaunch(product)}
-            disabled={isLaunching}
-            className="w-full py-4 rounded-2xl text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
-            style={{ background: product.color }}
-          >
-            {isLaunching ? (
-              <>
-                <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                Launching...
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-rounded text-lg">rocket_launch</span>
-                {product.ctaText || 'Open App'}
-              </>
-            )}
-          </button>
-        ) : (
-          <div className="w-full py-4 rounded-2xl text-center text-sm font-bold text-on-surface-variant bg-surface-container border border-outline-variant/20">
-            {product.ctaText || 'Coming Soon'}
-          </div>
-        )}
+      <div className="mt-6">
+        <button
+          onClick={() => {
+            if (isActionable) onLaunch(product);
+          }}
+          disabled={isLaunching || (!isActionable && accessState !== 'coming_soon')}
+          className={`w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+            isActive 
+              ? 'text-white shadow-md hover:scale-[1.02] active:scale-[0.98]' 
+              : accessState === 'upgrade_plan' || accessState === 'setup_required' || accessState === 'login_required'
+                ? 'bg-tertiary/10 text-tertiary opacity-100 hover:scale-[1.02] active:scale-[0.98]'
+                : 'bg-surface-container text-on-surface-variant opacity-70 cursor-not-allowed'
+          }`}
+          style={isActive ? { background: product.color } : {}}
+        >
+          {isLaunching ? (
+            <>
+              <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              Launching...
+            </>
+          ) : accessState === 'open' ? (
+            <>
+              <span className="material-symbols-rounded text-lg">rocket_launch</span>
+              {ctaText || 'Open App'}
+            </>
+          ) : accessState === 'upgrade_plan' ? (
+            <>
+              <span className="material-symbols-rounded text-lg">rocket_launch</span>
+              {ctaText}
+            </>
+          ) : accessState === 'setup_required' ? (
+            <>
+              <span className="material-symbols-rounded text-lg">task_alt</span>
+              {ctaText}
+            </>
+          ) : accessState === 'login_required' ? (
+            <>
+              <span className="material-symbols-rounded text-lg">login</span>
+              {ctaText}
+            </>
+          ) : accessState === 'no_access' ? (
+            <>
+              <span className="material-symbols-rounded text-lg">lock</span>
+              {ctaText}
+            </>
+          ) : (
+            ctaText || 'Coming Soon'
+          )}
+        </button>
       </div>
+    </div>
+  );
+}
+
+function ReadOnlyCard({ icon, label, value, helper }: { icon: string; label: string; value: string; helper: string }) {
+  return (
+    <div className="rounded-[2rem] border border-outline-variant/20 bg-surface-container p-5 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <span className="material-symbols-rounded text-2xl">{icon}</span>
+        </div>
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">{label}</p>
+          <p className="truncate text-base font-black tracking-tight text-on-surface">{value}</p>
+        </div>
+      </div>
+      <p className="mt-4 text-xs font-medium leading-relaxed text-on-surface-variant opacity-80">{helper}</p>
+    </div>
+  );
+}
+
+function GuardrailItem({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  tone: 'good' | 'warn' | 'neutral';
+}) {
+  const toneClasses =
+    tone === 'good'
+      ? 'bg-emerald-500/10 text-emerald-600'
+      : tone === 'warn'
+        ? 'bg-amber-500/10 text-amber-600'
+        : 'bg-primary/10 text-primary';
+
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-[1.75rem] border border-outline-variant/20 bg-surface-container p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${toneClasses}`}>
+          <span className="material-symbols-rounded text-xl">{icon}</span>
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-on-surface-variant">{label}</p>
+          <p className="text-sm font-bold text-on-surface">{value}</p>
+        </div>
+      </div>
+      <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${toneClasses}`}>
+        {tone === 'good' ? 'Healthy' : tone === 'warn' ? 'Review' : 'Info'}
+      </span>
     </div>
   );
 }
@@ -1484,9 +1872,25 @@ function Field({
   );
 }
 
-function QuickActionCard({ title, icon, href, onClick, primary }: { title: string; icon: string; href?: string; onClick?: () => void; primary?: boolean }) {
+function QuickActionCard({
+  title,
+  icon,
+  href,
+  onClick,
+  primary,
+  disabled,
+}: {
+  title: string;
+  icon: string;
+  href?: string;
+  onClick?: () => void;
+  primary?: boolean;
+  disabled?: boolean;
+}) {
   const content = (
-    <div className={`flex flex-col items-center justify-center p-6 rounded-[2rem] border transition-all hover:scale-[1.02] active:scale-[0.98] ${
+    <div className={`flex flex-col items-center justify-center p-6 rounded-[2rem] border transition-all ${
+      disabled ? 'cursor-not-allowed opacity-50 grayscale' : 'hover:scale-[1.02] active:scale-[0.98]'
+    } ${
       primary 
         ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
         : 'bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30 shadow-sm'
@@ -1496,7 +1900,7 @@ function QuickActionCard({ title, icon, href, onClick, primary }: { title: strin
     </div>
   );
 
-  if (href) {
+  if (href && !disabled) {
     return (
       <Link href={href} className="block">
         {content}
@@ -1505,7 +1909,7 @@ function QuickActionCard({ title, icon, href, onClick, primary }: { title: strin
   }
 
   return (
-    <button onClick={onClick} className="w-full">
+    <button onClick={disabled ? undefined : onClick} className="w-full" disabled={disabled}>
       {content}
     </button>
   );
