@@ -10,6 +10,8 @@ type SearchableSelectProps = {
   options: Option[];
   value: string;
   onChange: (val: string) => void;
+  emptyMessage?: string;
+  disabled?: boolean;
 };
 
 export function SearchableSelect({
@@ -18,6 +20,8 @@ export function SearchableSelect({
   options,
   value,
   onChange,
+  emptyMessage = "No results found.",
+  disabled = false,
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -47,7 +51,7 @@ export function SearchableSelect({
       {label && <Label className="mb-2 block">{label}</Label>}
       <div
         className="flex min-h-10 w-full items-center justify-between rounded-xl border border-border bg-white px-3 py-2 text-sm ring-offset-background cursor-pointer"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <span className={selectedOption ? "text-ink" : "text-muted"}>
           {selectedOption ? selectedOption.label : placeholder}
@@ -79,7 +83,7 @@ export function SearchableSelect({
                 </div>
               ))
             ) : (
-              <div className="py-2 text-center text-sm text-muted">No results found.</div>
+              <div className="py-2 text-center text-sm text-muted">{emptyMessage}</div>
             )}
           </div>
         </div>

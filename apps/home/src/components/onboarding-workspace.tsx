@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { toAbsoluteApiUrl } from "@/lib/config";
 import { apiErrorMessage, authedRequest } from "@/lib/workspace-action-client";
 import { getDeviceId, readAccessToken, navigateTo } from "@/lib/auth-client";
@@ -105,7 +105,27 @@ export function OnboardingWorkspace() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [started, setStarted] = useState(false);
-  const { states } = useLocations();
+  const [useCustomCity, setUseCustomCity] = useState(false);
+  const { states, citiesByState, isLoading: locationsLoading } = useLocations();
+
+  const stateOptions = useMemo(
+    () => states.map((s) => ({ label: s.label, value: s.state_name })),
+    [states],
+  );
+
+  const selectedStateCities = useMemo(() => {
+    if (!form.state) return [];
+    return (citiesByState[form.state] || []).map((city) => ({ label: city, value: city }));
+  }, [citiesByState, form.state]);
+
+  const cityOptions = useMemo(() => {
+    const options = [...selectedStateCities];
+    if (form.city && !options.some((option) => option.value === form.city)) {
+      options.unshift({ label: `${form.city} (Current)`, value: form.city });
+    }
+    options.push({ label: "Other / Type manually", value: "__custom__" });
+    return options;
+  }, [form.city, selectedStateCities]);
 
   useEffect(() => {
     let active = true;
@@ -145,6 +165,20 @@ export function OnboardingWorkspace() {
   }, []);
 
   useEffect(() => {
+    if (!form.state) {
+      setUseCustomCity(false);
+      return;
+    }
+    if (!form.city) {
+      setUseCustomCity(false);
+      return;
+    }
+
+    const hasPresetCity = selectedStateCities.some((city) => city.value === form.city);
+    setUseCustomCity(!hasPresetCity);
+  }, [form.city, form.state, selectedStateCities]);
+
+  useEffect(() => {
     if (!started || form.setup_completed) return;
     const handleUnload = () => {
       const token = readAccessToken();
@@ -162,6 +196,31 @@ export function OnboardingWorkspace() {
 
   function setValue<K extends keyof OnboardingProfile>(key: K, value: OnboardingProfile[K]) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function handleStateChange(state: string) {
+    setValue("state", state);
+    const stateCities = citiesByState[state] || [];
+    if (!form.city) {
+      setUseCustomCity(false);
+      return;
+    }
+    if (stateCities.includes(form.city)) {
+      setUseCustomCity(false);
+      return;
+    }
+    setValue("city", "" as OnboardingProfile["city"]);
+    setUseCustomCity(stateCities.length === 0);
+  }
+
+  function handleCitySelect(city: string) {
+    if (city === "__custom__") {
+      setUseCustomCity(true);
+      setValue("city", "" as OnboardingProfile["city"]);
+      return;
+    }
+    setUseCustomCity(false);
+    setValue("city", city);
   }
 
   function stepPayload(step: number): Record<string, unknown> {
@@ -424,15 +483,39 @@ export function OnboardingWorkspace() {
                     <Input className="h-12 bg-white" value={form.phone || ""} placeholder="+91 98765 43210" onChange={e => setValue("phone", e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700">City</Label>
-                    <Input className="h-12 bg-white" value={form.city || ""} placeholder="Jaipur" onChange={e => setValue("city", e.target.value)} />
+                    <Label className="text-slate-700">City <span className="text-red-500">*</span></Label>
+                    {useCustomCity ? (
+                      <div className="space-y-2">
+                        <Input className="h-12 bg-white" value={form.city || ""} placeholder="Type your city" onChange={e => setValue("city", e.target.value)} />
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                          onClick={() => {
+                            setUseCustomCity(false);
+                            setValue("city", "" as OnboardingProfile["city"]);
+                          }}
+                        >
+                          Select city from dropdown
+                        </button>
+                      </div>
+                    ) : (
+                      <SearchableSelect
+                        placeholder={form.state ? "Select city..." : "Select state first"}
+                        options={cityOptions}
+                        value={form.city || ""}
+                        onChange={handleCitySelect}
+                        disabled={!form.state}
+                        emptyMessage={form.state ? "No cities found for this state." : "Select state first."}
+                      />
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700">State</Label>
+                    <Label className="text-slate-700">State <span className="text-red-500">*</span></Label>
                     <SearchableSelect
-                      options={states.map((s) => ({ label: s.label, value: s.state_name }))}
+                      options={stateOptions}
                       value={form.state || ""}
-                      onChange={(val) => setValue("state", val)}
+                      onChange={handleStateChange}
+                      emptyMessage={locationsLoading ? "Loading states..." : "No states found."}
                     />
                   </div>
                   <div className="col-span-full space-y-3 mt-4">
