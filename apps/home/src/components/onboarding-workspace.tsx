@@ -54,7 +54,7 @@ type OnboardingResponse = {
   options?: OnboardingOptions; personalization?: Personalization;
 };
 
-const stepLabels = ["Basics", "Category", "Size", "GST", "Needs", "Payments", "Branding", "Done"];
+const stepLabels = ["Basics", "Verify & Category", "Size", "GST", "Needs", "Payments", "Branding", "Done"];
 const stepHelp = [
   {
     title: "Set your business foundation",
@@ -65,11 +65,11 @@ const stepHelp = [
     ],
   },
   {
-    title: "Tell us what you do",
-    description: "Business category se product defaults aur reports better personalize hote hain.",
+    title: "Confirm your contacts and business type",
+    description: "Yahan hum dekhte hain kaunsi contact detail already verified hai aur aapka business kis category me aata hai.",
     highlights: [
-      "Industry-specific suggestions isi selection par depend karte hain.",
-      "Aap later bhi category update kar sakte ho agar business change ho.",
+      "Google signup me email ko trusted maana jata hai aur phone OTP signup me mobile ko.",
+      "Business category se product defaults aur reports better personalize hote hain.",
     ],
   },
   {
@@ -185,6 +185,22 @@ function sanitizeIndianPhone(value: string) {
   return `+91${local.slice(0, 10)}`;
 }
 
+function normalizeIndianPhone(value: string | null | undefined) {
+  const raw = (value || "").trim();
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return `+91${digits}`;
+  }
+
+  if (digits.length >= 12 && digits.startsWith("91")) {
+    return `+91${digits.slice(2, 12)}`;
+  }
+
+  return sanitizeIndianPhone(raw);
+}
+
 function sanitizeAlphaNumeric(value: string, maxLength = 80) {
   return value.toUpperCase().replace(/[^A-Z0-9/-]/g, "").slice(0, maxLength);
 }
@@ -249,7 +265,7 @@ export function OnboardingWorkspace() {
   const [started, setStarted] = useState(false);
   const [useCustomBank, setUseCustomBank] = useState(false);
   const { states, isLoading: locationsLoading } = useLocations();
-  const { profile, auth } = useAuthSession();
+  const { user, profile, auth } = useAuthSession();
 
   const stateOptions = useMemo(
     () => states.map((s) => ({ label: s.label, value: s.state_name })),
@@ -283,6 +299,8 @@ export function OnboardingWorkspace() {
       setForm({
         ...defaultForm,
         ...safeProfile,
+        email: sanitizeEmail(String(profile.email || defaultForm.email || "")),
+        phone: normalizeIndianPhone(profile.phone || defaultForm.phone || ""),
         required_reports: profile.required_reports || [],
         payment_methods: profile.payment_methods || [],
         show_on_invoice: profile.show_on_invoice || [],
@@ -312,10 +330,59 @@ export function OnboardingWorkspace() {
   useEffect(() => {
     setForm((current) => ({
       ...current,
-      email: current.email || auth?.email || profile?.email || "",
-      phone: current.phone || auth?.phone || profile?.phone || "",
+      email: sanitizeEmail(current.email || auth?.email || profile?.email || ""),
+      phone: normalizeIndianPhone(current.phone || auth?.phone || profile?.phone || ""),
     }));
   }, [auth?.email, auth?.phone, profile?.email, profile?.phone]);
+
+  const firebaseProviderIds = useMemo(
+    () => (user?.providerData || []).map((provider) => provider.providerId).filter(Boolean),
+    [user],
+  );
+
+  const signedInWithGoogle = firebaseProviderIds.includes("google.com");
+  const signedInWithPhoneOtp = firebaseProviderIds.includes("phone");
+  const signedInWithPassword = firebaseProviderIds.includes("password");
+
+  const emailVerified = useMemo(() => {
+    if (signedInWithGoogle && (auth?.email || profile?.email || user?.email)) {
+      return true;
+    }
+
+    if (user?.emailVerified && (auth?.email || profile?.email || user?.email)) {
+      return true;
+    }
+
+    if (!user && signedInWithPassword && (auth?.email || profile?.email)) {
+      return true;
+    }
+
+    if (!user && auth?.primaryProvider === "Password" && (auth?.email || profile?.email)) {
+      return true;
+    }
+
+    return false;
+  }, [auth?.email, auth?.primaryProvider, profile?.email, signedInWithGoogle, signedInWithPassword, user]);
+
+  const phoneVerified = useMemo(() => {
+    if (signedInWithPhoneOtp && normalizeIndianPhone(auth?.phone || profile?.phone || user?.phoneNumber || "")) {
+      return true;
+    }
+
+    return false;
+  }, [auth?.phone, profile?.phone, signedInWithPhoneOtp, user?.phoneNumber]);
+
+  const emailVerificationLabel = emailVerified
+    ? signedInWithGoogle
+      ? "Verified by Google sign-in"
+      : signedInWithPassword || auth?.primaryProvider === "Password"
+        ? "Verified by your signed-in email account"
+        : "Verified"
+    : "Pending verification";
+
+  const phoneVerificationLabel = phoneVerified
+    ? "Verified by mobile OTP sign-in"
+    : "Pending verification";
 
   useEffect(() => {
     if (!started || form.setup_completed) return;
@@ -652,11 +719,13 @@ export function OnboardingWorkspace() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">Email Address <span className="text-red-500">*</span></Label>
-                    <Input className="h-12 bg-white" type="email" inputMode="email" autoCapitalize="none" value={form.email || ""} placeholder="name@business.com" maxLength={255} readOnly={Boolean(auth?.email || profile?.email)} onChange={e => setValue("email", sanitizeEmail(e.target.value) as OnboardingProfile["email"])} />
+                    <Input className="h-12 bg-white" type="email" inputMode="email" autoCapitalize="none" value={form.email || ""} placeholder="name@business.com" maxLength={255} readOnly={emailVerified} onChange={e => setValue("email", sanitizeEmail(e.target.value) as OnboardingProfile["email"])} />
+                    <p className={cn("text-xs", emailVerified ? "text-emerald-600" : "text-amber-600")}>{emailVerificationLabel}</p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">Mobile Number <span className="text-red-500">*</span></Label>
-                    <Input className="h-12 bg-white" type="tel" inputMode="numeric" value={form.phone || ""} placeholder="+919876543210" maxLength={13} readOnly={Boolean(auth?.phone || profile?.phone)} onChange={e => setValue("phone", sanitizeIndianPhone(e.target.value) as OnboardingProfile["phone"])} />
+                    <Input className="h-12 bg-white" type="tel" inputMode="numeric" value={form.phone || ""} placeholder="+919876543210" maxLength={13} readOnly={phoneVerified} onChange={e => setValue("phone", sanitizeIndianPhone(e.target.value) as OnboardingProfile["phone"])} />
+                    <p className={cn("text-xs", phoneVerified ? "text-emerald-600" : "text-amber-600")}>{phoneVerificationLabel}</p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">State <span className="text-red-500">*</span></Label>
@@ -680,6 +749,42 @@ export function OnboardingWorkspace() {
 
               {currentStep === 2 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <Card className="p-5 border-slate-200 shadow-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">Email verification</div>
+                          <div className={cn("mt-1 text-sm", emailVerified ? "text-emerald-600" : "text-amber-600")}>
+                            {emailVerificationLabel}
+                          </div>
+                          <p className="mt-2 text-xs text-slate-500">
+                            {emailVerified
+                              ? "Ye email trusted login source se aayi hai, isliye isse dobara verify karne ki zaroorat nahi hai."
+                              : "Agar account email se bana hai to next secure email verification flow me isi address ko confirm kiya jayega."}
+                          </p>
+                        </div>
+                        <CheckCircle2 className={cn("w-5 h-5 shrink-0", emailVerified ? "text-emerald-500" : "text-amber-500")} />
+                      </div>
+                    </Card>
+
+                    <Card className="p-5 border-slate-200 shadow-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">Mobile verification</div>
+                          <div className={cn("mt-1 text-sm", phoneVerified ? "text-emerald-600" : "text-amber-600")}>
+                            {phoneVerificationLabel}
+                          </div>
+                          <p className="mt-2 text-xs text-slate-500">
+                            {phoneVerified
+                              ? "Ye mobile number OTP sign-in source se trusted hai."
+                              : "Abhi hum is number ko business contact ke roop me save kar rahe hain. OTP-based mobile verification ko next secure contact flow me use kiya jayega."}
+                          </p>
+                        </div>
+                        <CheckCircle2 className={cn("w-5 h-5 shrink-0", phoneVerified ? "text-emerald-500" : "text-amber-500")} />
+                      </div>
+                    </Card>
+                  </div>
+
                   <div className="space-y-3">
                     <Label className="text-slate-700">What describes your business best? <span className="text-red-500">*</span></Label>
                     {renderPills(options.business_categories, form.business_category, val => setValue("business_category", val))}
