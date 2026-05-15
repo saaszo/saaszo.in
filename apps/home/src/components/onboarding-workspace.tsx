@@ -55,6 +55,72 @@ type OnboardingResponse = {
 };
 
 const stepLabels = ["Basics", "Category", "Size", "GST", "Needs", "Payments", "Branding", "Done"];
+const stepHelp = [
+  {
+    title: "Set your business foundation",
+    description: "Ye details aapke account, invoices aur branch identity ka base banengi.",
+    highlights: [
+      "Correct contact details future login recovery aur notifications ke liye zaroori hain.",
+      "State aur city billing, GST aur branch setup me mismatch kam karte hain.",
+    ],
+  },
+  {
+    title: "Tell us what you do",
+    description: "Business category se product defaults aur reports better personalize hote hain.",
+    highlights: [
+      "Industry-specific suggestions isi selection par depend karte hain.",
+      "Aap later bhi category update kar sakte ho agar business change ho.",
+    ],
+  },
+  {
+    title: "Match the product to your size",
+    description: "Scale samajhne se dashboard aur workflows ko better tune kiya ja sakta hai.",
+    highlights: [
+      "Right defaults se onboarding fast hota hai.",
+      "Volume aur team size reports aur automations ko influence karte hain.",
+    ],
+  },
+  {
+    title: "Keep GST data clean",
+    description: "GST details invoice accuracy aur compliance ke liye important hain.",
+    highlights: [
+      "Galat GST state ya GSTIN future filing issues create kar sakta hai.",
+      "Valid format checks abhi se errors ko reduce karte hain.",
+    ],
+  },
+  {
+    title: "Choose only what you need",
+    description: "Is step se dashboard aur feature visibility aapke use case ke hisab se set hoti hai.",
+    highlights: [
+      "Branch model baad ki branch creation ko simple banata hai.",
+      "Relevant reports aur modules hi zyada visible rahenge.",
+    ],
+  },
+  {
+    title: "Set payment basics",
+    description: "Payment details aapke invoices aur collection flow ko trust-ready banate hain.",
+    highlights: [
+      "Correct bank info customer trust improve karti hai.",
+      "Bank dropdown aur IFSC format checks manual errors kam karte hain.",
+    ],
+  },
+  {
+    title: "Finish branding",
+    description: "Template aur logo se aapka invoice professional aur recognizable hota hai.",
+    highlights: [
+      "Customer-facing documents me consistent brand important hota hai.",
+      "Logo aur template baad me settings se update ho sakte hain.",
+    ],
+  },
+  {
+    title: "You're ready to go",
+    description: "Setup complete hone ke baad dashboard aur modules use ke liye ready ho jayenge.",
+    highlights: [
+      "Ab aap product, customer aur invoice workflows start kar sakte ho.",
+      "Skipped info later settings se fill ho sakti hai.",
+    ],
+  },
+] as const;
 const GSTIN_REGEX = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const OTHER_BANK_VALUE = "__other_bank__";
 const BANK_OPTIONS = [
@@ -425,6 +491,13 @@ export function OnboardingWorkspace() {
     navigateTo("/dashboard");
   }
 
+  function skipCurrentStep() {
+    if (currentStep <= 1 || currentStep >= 8) return;
+    setError("");
+    setSuccess("Current step skipped. You can complete it later.");
+    setCurrentStep((step) => Math.min(step + 1, 8));
+  }
+
   async function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -468,11 +541,13 @@ export function OnboardingWorkspace() {
     );
   }
 
+  const currentStepHelp = stepHelp[currentStep - 1] || stepHelp[0];
+
   return (
-    <div className="flex min-h-screen w-full bg-slate-50 overflow-hidden">
+    <div className="flex h-[100dvh] w-full bg-slate-50 overflow-hidden">
       
       {/* LEFT PANE - Hero & Context */}
-      <div className="hidden lg:flex flex-col w-[400px] xl:w-[500px] bg-gradient-to-br from-indigo-600 to-violet-700 p-10 text-white flex-shrink-0 relative overflow-hidden">
+      <div className="hidden lg:flex flex-col w-[360px] xl:w-[420px] bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white flex-shrink-0 relative overflow-hidden">
         {/* Abstract graphics */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-[20%] right-[-10%] w-64 h-64 bg-white rounded-full blur-3xl mix-blend-overlay"></div>
@@ -480,7 +555,7 @@ export function OnboardingWorkspace() {
         </div>
 
         <div className="relative z-10 flex flex-col h-full">
-          <div className="flex items-center gap-3 mb-16">
+          <div className="flex items-center gap-3 mb-10">
             <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/30">
               <Hexagon className="w-6 h-6 fill-white" />
             </div>
@@ -491,39 +566,35 @@ export function OnboardingWorkspace() {
             <h1 className="text-4xl font-extrabold mb-6 leading-tight">
               {currentStep === 8 ? "You're all set!" : "Let's set up your business."}
             </h1>
-            <p className="text-white/80 text-lg leading-relaxed mb-8">
-              {personalization?.headline || "We'll configure your dashboard, invoices, and reports exactly how your business needs them."}
+            <p className="text-white/80 text-lg leading-relaxed mb-3">
+              {currentStepHelp.title}
+            </p>
+            <p className="text-white/70 text-sm leading-relaxed mb-6">
+              {currentStepHelp.description}
             </p>
 
             <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+              {currentStepHelp.highlights.map((item) => (
+              <div key={item} className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-5 h-5 text-green-300" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold">Personalized Dashboard</div>
-                  <div className="text-xs text-white/70">Custom widgets based on your choices</div>
+                  <div className="text-sm font-bold">Why this matters</div>
+                  <div className="text-xs text-white/70">{item}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-5 h-5 text-green-300" />
-                </div>
-                <div>
-                  <div className="text-sm font-bold">Smart Templates</div>
-                  <div className="text-xs text-white/70">GST ready, professional formats</div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
       {/* RIGHT PANE - Form & Wizard */}
-      <div className="flex-1 flex flex-col min-w-0 bg-slate-50">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden">
         
         {/* Top Header */}
-        <div className="flex items-center justify-between p-6 md:px-12 border-b border-slate-200 bg-white sticky top-0 z-10">
+        <div className="flex items-center justify-between p-4 md:px-8 border-b border-slate-200 bg-white shrink-0">
           <div className="flex items-center gap-2 lg:hidden">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Hexagon className="w-5 h-5 text-white fill-white/20" />
@@ -548,16 +619,12 @@ export function OnboardingWorkspace() {
             ))}
           </div>
 
-          {currentStep < 8 && (
-            <Button variant="ghost" className="text-slate-500 hover:text-slate-900" onClick={handleSkip} disabled={saving}>
-              Skip Setup
-            </Button>
-          )}
+          <div className="w-24" />
         </div>
 
         {/* Form Content */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-12">
-          <div className="max-w-2xl mx-auto w-full h-full flex flex-col">
+        <div className="flex-1 overflow-hidden p-4 md:px-8 md:py-5">
+          <div className="max-w-3xl mx-auto w-full h-full flex flex-col">
             
             {/* Error/Success Messages */}
             {(error || success) && (
@@ -569,12 +636,12 @@ export function OnboardingWorkspace() {
               </div>
             )}
 
-            <div className="flex-1">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-2">{stepLabels[currentStep - 1]}</h2>
-              <p className="text-slate-500 mb-8 font-medium text-lg">Please provide the necessary details below.</p>
+            <div className="flex-1 min-h-0">
+              <h2 className="text-2xl font-extrabold text-slate-900 mb-1">{stepLabels[currentStep - 1]}</h2>
+              <p className="text-slate-500 mb-5 font-medium text-base">Please provide the necessary details below.</p>
 
               {currentStep === 1 && (
-                <div className="grid sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="space-y-2">
                     <Label className="text-slate-700">Owner Name <span className="text-red-500">*</span></Label>
                     <Input className="h-12 bg-white" value={form.owner_name || ""} placeholder="Pankaj Kumar" maxLength={255} onChange={e => handleLetterField("owner_name", e.target.value, 255)} />
@@ -612,7 +679,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 2 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
                   <div className="space-y-3">
                     <Label className="text-slate-700">What describes your business best? <span className="text-red-500">*</span></Label>
                     {renderPills(options.business_categories, form.business_category, val => setValue("business_category", val))}
@@ -627,7 +694,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 3 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
                   <div className="space-y-3">
                     <Label className="text-slate-700">Team Size <span className="text-red-500">*</span></Label>
                     {renderPills(options.team_sizes, form.team_size, val => setValue("team_size", val))}
@@ -640,7 +707,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 4 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
                   <div className="space-y-3">
                     <Label className="text-slate-700">Are you GST Registered? <span className="text-red-500">*</span></Label>
                     {renderPills(options.gst_registered_options, form.gst_registered, val => {
@@ -782,7 +849,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 5 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
                   <div className="space-y-3">
                     <Label className="text-slate-700">Invoice Item Type <span className="text-red-500">*</span></Label>
                     {renderPills(options.invoice_item_types, form.invoice_item_type, val => setValue("invoice_item_type", val))}
@@ -825,7 +892,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 6 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
                   <div className="space-y-3">
                     <Label className="text-slate-700">Payment Methods Accepted <span className="text-red-500">*</span></Label>
                     <div className="grid sm:grid-cols-3 gap-3">
@@ -927,7 +994,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 7 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
                   
                   <div className="space-y-4">
                     <Label className="text-slate-700">Brand Logo</Label>
@@ -1000,7 +1067,7 @@ export function OnboardingWorkspace() {
 
             {/* Bottom Actions */}
             {currentStep < 8 && (
-              <div className="flex items-center justify-between pt-8 mt-8 border-t border-slate-200">
+              <div className="flex items-center justify-between pt-5 mt-5 border-t border-slate-200 shrink-0">
                 <Button 
                   variant="ghost" 
                   className="text-slate-600 font-semibold"
@@ -1011,6 +1078,11 @@ export function OnboardingWorkspace() {
                 </Button>
                 
                 <div className="flex gap-3">
+                  {currentStep > 1 && currentStep < 8 && (
+                    <Button variant="outline" onClick={skipCurrentStep} disabled={saving}>
+                      Skip this step
+                    </Button>
+                  )}
                   <Button variant="secondary" onClick={() => saveStep(currentStep, false)} disabled={saving}>
                     {saving ? "Saving..." : "Save Progress"}
                   </Button>
