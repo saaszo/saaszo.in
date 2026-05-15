@@ -924,7 +924,7 @@ export function OnboardingWorkspace() {
         </div>
 
         {/* Form Content */}
-        <div className="flex-1 overflow-hidden p-4 md:px-8 md:py-5">
+        <div className="flex-1 overflow-y-auto overflow-x-visible p-4 md:px-8 md:py-5">
           <div className="max-w-3xl mx-auto w-full h-full flex flex-col">
             
             {/* Error/Success Messages */}
@@ -937,7 +937,7 @@ export function OnboardingWorkspace() {
               </div>
             )}
 
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-visible">
               <h2 className="text-2xl font-extrabold text-slate-900 mb-1">{stepLabels[currentStep - 1]}</h2>
               <p className="text-slate-500 mb-5 font-medium text-base">Please provide the necessary details below.</p>
 
@@ -982,7 +982,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 2 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2 pb-4">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
                   <div id="onboarding-phone-recaptcha" className="pointer-events-none absolute -left-[9999px] top-0 h-0 w-0 overflow-hidden opacity-0" />
 
                   <div className="grid xl:grid-cols-2 gap-4">
