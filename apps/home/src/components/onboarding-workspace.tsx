@@ -283,6 +283,8 @@ export function OnboardingWorkspace() {
   const [registrationDetailsModalOpen, setRegistrationDetailsModalOpen] = useState(false);
   const [gstDetailsModalOpen, setGstDetailsModalOpen] = useState(false);
   const [reportsModalOpen, setReportsModalOpen] = useState(false);
+  const [paymentMethodsModalOpen, setPaymentMethodsModalOpen] = useState(false);
+  const [bankDetailsModalOpen, setBankDetailsModalOpen] = useState(false);
   const [verificationNotice, setVerificationNotice] = useState("");
   const [verificationError, setVerificationError] = useState("");
   const [emailResendTimer, setEmailResendTimer] = useState(0);
@@ -325,6 +327,14 @@ export function OnboardingWorkspace() {
   const branchModelSelectOptions = useMemo(
     () => options.branch_model_options.map((item) => ({ label: item, value: item })),
     [options.branch_model_options],
+  );
+  const paymentMethodSelectOptions = useMemo(
+    () => options.payment_method_options.map((item) => ({ label: item, value: item })),
+    [options.payment_method_options],
+  );
+  const upiPreferenceOptions = useMemo(
+    () => options.yes_no_later_options.map((item) => ({ label: item, value: item })),
+    [options.yes_no_later_options],
   );
 
   const gstNumberNormalized = (form.gst_number || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
@@ -1403,102 +1413,84 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 6 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Payment Methods Accepted <span className="text-red-500">*</span></Label>
-                    <div className="grid sm:grid-cols-3 gap-3">
-                      {options.payment_method_options.map(opt => (
-                        <label key={opt} className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
-                          (form.payment_methods || []).includes(opt) ? "bg-primary/5 border-primary text-primary font-medium" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                        )}>
-                          <input type="checkbox" className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
-                            checked={(form.payment_methods || []).includes(opt)}
-                            onChange={() => setValue("payment_methods", toggleArrayValue(form.payment_methods, opt))}
-                          />
-                          <span className="text-sm">{opt}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Accept UPI Payments?</Label>
-                    {renderPills(options.yes_no_later_options, form.wants_upi_qr, val => setValue("wants_upi_qr", val))}
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-slate-700">UPI ID</Label>
-                      <Input className="h-12 bg-white" inputMode="email" autoCapitalize="none" value={form.upi_id || ""} placeholder="business@okbank" maxLength={255} onChange={e => setValue("upi_id", sanitizeUpiId(e.target.value) as OnboardingProfile["upi_id"])} />
-                    </div>
-                  </div>
-
-                  <Card className="p-6 bg-white border-slate-200 shadow-sm">
-                    <div className="mb-5">
-                      <h3 className="text-lg font-bold text-slate-900">Bank Details</h3>
-                      <p className="text-sm text-slate-500 mt-1">Invoice payment ke liye proper bank fields add karein. Jo fields optional hain unhe blank chhod sakte hain.</p>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-slate-700">Account Holder Name</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_account_holder_name || ""} placeholder="Business / account holder name" maxLength={255} onChange={e => handleTextField("bank_account_holder_name", e.target.value, 255)} />
+                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                      <div className="flex h-full flex-col gap-4">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">Payment methods</div>
+                          <p className="mt-1 text-xs text-slate-500">
+                            Select how customers can pay you. Keep only the methods you actually accept.
+                          </p>
+                          {!!(form.payment_methods || []).length && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {(form.payment_methods || []).map((item) => (
+                                <span key={item} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                                  {item}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <Button type="button" onClick={() => setPaymentMethodsModalOpen(true)} className="mt-auto w-full sm:w-auto">
+                          {(form.payment_methods || []).length ? "Edit payment methods" : "Select payment methods"}
+                        </Button>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-slate-700">Bank Name</Label>
-                        {useCustomBank ? (
-                          <div className="space-y-2">
-                            <Input className="h-12 bg-slate-50" value={form.bank_name || ""} placeholder="Type bank name" maxLength={255} onChange={e => handleTextField("bank_name", e.target.value, 255)} />
-                            <button
-                              type="button"
-                              className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                              onClick={() => {
-                                setUseCustomBank(false);
-                                setValue("bank_name", "" as OnboardingProfile["bank_name"]);
-                              }}
-                            >
-                              Select bank from dropdown
-                            </button>
+                    </Card>
+
+                    <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                      <div className="space-y-3">
+                        <div className="text-sm font-semibold text-slate-900">UPI payments</div>
+                        <p className="text-xs text-slate-500">Decide whether you want UPI collection right now, later, or not at all.</p>
+                        <SearchableSelect
+                          placeholder="Select UPI preference..."
+                          options={upiPreferenceOptions}
+                          value={form.wants_upi_qr || ""}
+                          onChange={(val) => setValue("wants_upi_qr", val)}
+                          emptyMessage="No option found."
+                        />
+                        {(form.wants_upi_qr === "Yes" || form.upi_id) && (
+                          <div className="space-y-2 pt-1">
+                            <Label className="text-slate-700">UPI ID</Label>
+                            <Input
+                              className="h-12 bg-white"
+                              inputMode="email"
+                              autoCapitalize="none"
+                              value={form.upi_id || ""}
+                              placeholder="business@okbank"
+                              maxLength={255}
+                              onChange={e => setValue("upi_id", sanitizeUpiId(e.target.value) as OnboardingProfile["upi_id"])}
+                            />
                           </div>
-                        ) : (
-                          <SearchableSelect
-                            placeholder="Select bank..."
-                            options={BANK_OPTIONS}
-                            value={form.bank_name || ""}
-                            onChange={handleBankSelect}
-                            emptyMessage="No bank found. Choose Other bank."
-                          />
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-slate-700">Account Number</Label>
-                        <Input className="h-12 bg-slate-50" inputMode="numeric" value={form.bank_account_number || ""} placeholder="123456789012" maxLength={20} onChange={e => handleDigitsField("bank_account_number", e.target.value, 20)} />
+                    </Card>
+                  </div>
+
+                  <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">Bank details</div>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Add bank name, IFSC, account details and notes in one clean popup instead of a long page form.
+                        </p>
+                        {(form.bank_name || form.bank_account_number || form.bank_ifsc) && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {form.bank_name && (
+                              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{form.bank_name}</span>
+                            )}
+                            {form.bank_ifsc && (
+                              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{form.bank_ifsc}</span>
+                            )}
+                            {form.bank_branch_name && (
+                              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{form.bank_branch_name}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-slate-700">IFSC Code</Label>
-                        <Input className="h-12 bg-slate-50 uppercase" value={form.bank_ifsc || ""} placeholder="HDFC0001234" maxLength={11} onChange={e => handleAlphaNumericField("bank_ifsc", e.target.value, 11)} autoCapitalize="characters" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-slate-700">SWIFT Code</Label>
-                        <Input className="h-12 bg-slate-50 uppercase" value={form.bank_swift_code || ""} placeholder="HDFCINBBXXX" maxLength={11} onChange={e => handleAlphaNumericField("bank_swift_code", e.target.value, 11)} autoCapitalize="characters" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-slate-700">MICR Code</Label>
-                        <Input className="h-12 bg-slate-50" inputMode="numeric" value={form.bank_micr_code || ""} placeholder="302240001" maxLength={9} onChange={e => handleDigitsField("bank_micr_code", e.target.value, 9)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-slate-700">Bank Branch</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_branch_name || ""} placeholder="Jaipur Main Branch" maxLength={255} onChange={e => handleTextField("bank_branch_name", e.target.value, 255)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-slate-700">Account Type</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_account_type || ""} placeholder="Current / Savings / OD" maxLength={50} onChange={e => handleTextField("bank_account_type", e.target.value, 50)} />
-                      </div>
-                      <div className="sm:col-span-2 space-y-2">
-                        <Label className="text-slate-700">Other Bank Notes</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_notes || form.bank_details || ""} placeholder="Any extra payment instruction or old bank detail text" maxLength={500} onChange={e => { const value = sanitizeText(e.target.value, 500); setValue("bank_notes", value); setValue("bank_details", value); }} />
-                      </div>
+                      <Button type="button" onClick={() => setBankDetailsModalOpen(true)} className="w-full sm:w-auto">
+                        {form.bank_name || form.bank_account_number || form.bank_ifsc ? "Edit bank details" : "Add bank details"}
+                      </Button>
                     </div>
                   </Card>
                 </div>
@@ -1862,8 +1854,148 @@ export function OnboardingWorkspace() {
         </div>
       )}
 
-      {registrationPickerOpen && (
+      {paymentMethodsModalOpen && (
         <div className="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Select payment methods</h3>
+                <p className="mt-1 text-sm text-slate-500">Choose the payment modes your business will accept.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPaymentMethodsModalOpen(false)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
+              {paymentMethodSelectOptions.map((opt) => (
+                <label
+                  key={opt.value}
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl border p-3 cursor-pointer transition-colors",
+                    (form.payment_methods || []).includes(opt.value)
+                      ? "border-primary bg-primary/5 text-primary font-medium"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                    checked={(form.payment_methods || []).includes(opt.value)}
+                    onChange={() => setValue("payment_methods", toggleArrayValue(form.payment_methods, opt.value))}
+                  />
+                  <span className="text-sm">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button type="button" onClick={() => setPaymentMethodsModalOpen(false)}>
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bankDetailsModalOpen && (
+        <div className="fixed inset-0 z-[74] flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="w-full max-w-5xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Bank details</h3>
+                <p className="mt-1 text-sm text-slate-500">Add only the bank information you want to show or use for payment collection.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBankDetailsModalOpen(false)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 max-h-[60vh] overflow-y-auto pr-2">
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-slate-700">Account Holder Name</Label>
+                  <Input className="h-12 bg-slate-50" value={form.bank_account_holder_name || ""} placeholder="Business / account holder name" maxLength={255} onChange={e => handleTextField("bank_account_holder_name", e.target.value, 255)} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">Bank Name</Label>
+                  {useCustomBank ? (
+                    <div className="space-y-2">
+                      <Input className="h-12 bg-slate-50" value={form.bank_name || ""} placeholder="Type bank name" maxLength={255} onChange={e => handleTextField("bank_name", e.target.value, 255)} />
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                        onClick={() => {
+                          setUseCustomBank(false);
+                          setValue("bank_name", "" as OnboardingProfile["bank_name"]);
+                        }}
+                      >
+                        Select bank from dropdown
+                      </button>
+                    </div>
+                  ) : (
+                    <SearchableSelect
+                      placeholder="Select bank..."
+                      options={BANK_OPTIONS}
+                      value={form.bank_name || ""}
+                      onChange={handleBankSelect}
+                      emptyMessage="No bank found. Choose Other bank."
+                    />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">Account Number</Label>
+                  <Input className="h-12 bg-slate-50" inputMode="numeric" value={form.bank_account_number || ""} placeholder="123456789012" maxLength={20} onChange={e => handleDigitsField("bank_account_number", e.target.value, 20)} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">IFSC Code</Label>
+                  <Input className="h-12 bg-slate-50 uppercase" value={form.bank_ifsc || ""} placeholder="HDFC0001234" maxLength={11} onChange={e => handleAlphaNumericField("bank_ifsc", e.target.value, 11)} autoCapitalize="characters" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">SWIFT Code</Label>
+                  <Input className="h-12 bg-slate-50 uppercase" value={form.bank_swift_code || ""} placeholder="HDFCINBBXXX" maxLength={11} onChange={e => handleAlphaNumericField("bank_swift_code", e.target.value, 11)} autoCapitalize="characters" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">MICR Code</Label>
+                  <Input className="h-12 bg-slate-50" inputMode="numeric" value={form.bank_micr_code || ""} placeholder="302240001" maxLength={9} onChange={e => handleDigitsField("bank_micr_code", e.target.value, 9)} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">Bank Branch</Label>
+                  <Input className="h-12 bg-slate-50" value={form.bank_branch_name || ""} placeholder="Jaipur Main Branch" maxLength={255} onChange={e => handleTextField("bank_branch_name", e.target.value, 255)} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">Account Type</Label>
+                  <Input className="h-12 bg-slate-50" value={form.bank_account_type || ""} placeholder="Current / Savings / OD" maxLength={50} onChange={e => handleTextField("bank_account_type", e.target.value, 50)} />
+                </div>
+                <div className="sm:col-span-2 space-y-2">
+                  <Label className="text-slate-700">Other Bank Notes</Label>
+                  <Input className="h-12 bg-slate-50" value={form.bank_notes || form.bank_details || ""} placeholder="Any extra payment instruction or old bank detail text" maxLength={500} onChange={e => { const value = sanitizeText(e.target.value, 500); setValue("bank_notes", value); setValue("bank_details", value); }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => setBankDetailsModalOpen(false)}>
+                Close
+              </Button>
+              <Button type="button" onClick={() => setBankDetailsModalOpen(false)}>
+                Save bank details
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {registrationPickerOpen && (
+        <div className="fixed inset-0 z-[73] flex items-center justify-center bg-slate-950/45 p-4">
           <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
             <div className="flex items-start justify-between gap-4">
               <div>
