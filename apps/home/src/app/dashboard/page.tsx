@@ -24,13 +24,25 @@ const PRODUCTS: Product[] = [
   {
     id: 'invoice',
     name: 'Invoice & Billing',
-    tagline: 'GST Invoices · POS · Collections',
+    tagline: 'GST Invoices · Billing · Collections',
     description:
-      'Create GST invoices, manage your POS, track receivables, run reports, and manage your full inventory from one place.',
+      'Create GST invoices, track receivables, manage billing workflows, share invoices, and run professional business reports.',
     icon: 'receipt_long',
     tool: 'invoice',
     status: 'active',
     color: 'linear-gradient(135deg, #4648d4 0%, #7c3aed 100%)',
+  },
+  {
+    id: 'pos',
+    name: 'POS for Restaurants',
+    tagline: 'Restaurant Billing · KOT · Tables',
+    description:
+      'A restaurant-special POS with fast billing, table management, kitchen order tickets, and service-ready checkout flows.',
+    icon: 'restaurant',
+    tool: 'pos',
+    status: 'coming_soon',
+    badge: 'Coming Soon',
+    color: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
   },
   {
     id: 'accounting',

@@ -292,6 +292,9 @@ export function OnboardingWorkspace() {
   const [phoneResendTimer, setPhoneResendTimer] = useState(0);
   const { states, isLoading: locationsLoading } = useLocations();
   const { user, profile, auth } = useAuthSession();
+  const primaryButtonClass = "cursor-pointer bg-primary text-white shadow-md hover:bg-primary/90";
+  const softButtonClass = "cursor-pointer border-primary/20 bg-primary/10 text-primary hover:bg-primary/15";
+  const ghostButtonClass = "cursor-pointer text-primary hover:bg-primary/10 hover:text-primary";
 
   const stateOptions = useMemo(
     () => states.map((s) => ({ label: s.label, value: s.state_name })),
@@ -1593,7 +1596,7 @@ export function OnboardingWorkspace() {
               <div className="flex items-center justify-between pt-5 mt-5 border-t border-slate-200 shrink-0">
                 <Button 
                   variant="ghost" 
-                  className="text-slate-600 font-semibold"
+                  className={cn("font-semibold", ghostButtonClass)}
                   onClick={() => setCurrentStep(s => Math.max(1, s - 1))} 
                   disabled={currentStep === 1 || saving}
                 >
@@ -1602,20 +1605,20 @@ export function OnboardingWorkspace() {
                 
                 <div className="flex gap-3">
                   {currentStep > 1 && currentStep < 8 && currentStep !== 2 && (
-                    <Button variant="outline" onClick={skipCurrentStep} disabled={saving}>
+                    <Button variant="outline" className={softButtonClass} onClick={skipCurrentStep} disabled={saving}>
                       Skip this step
                     </Button>
                   )}
-                  <Button variant="secondary" onClick={() => saveStep(currentStep, false)} disabled={saving}>
+                  <Button variant="secondary" className={softButtonClass} onClick={() => saveStep(currentStep, false)} disabled={saving}>
                     {saving ? "Saving..." : "Save Progress"}
                   </Button>
                   
                   {currentStep < 7 ? (
-                    <Button onClick={() => saveStep(currentStep, true)} disabled={saving} className="px-8 shadow-md">
+                    <Button onClick={() => saveStep(currentStep, true)} disabled={saving} className={cn("px-8", primaryButtonClass)}>
                       {saving ? "Saving..." : "Continue"} <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   ) : (
-                    <Button onClick={handleComplete} disabled={saving} className="px-8 shadow-md bg-green-600 hover:bg-green-700">
+                    <Button onClick={handleComplete} disabled={saving} className={cn("px-8", primaryButtonClass)}>
                       {saving ? "Completing..." : "Complete Setup"} <CheckCircle2 className="w-4 h-4 ml-1" />
                     </Button>
                   )}
@@ -1668,7 +1671,7 @@ export function OnboardingWorkspace() {
                   {form.email || "No email added"}
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={sendEmailVerificationOtp} disabled={emailOtpSending || emailOtpVerifying || emailResendTimer > 0} className="flex-1">
+                  <Button type="button" onClick={sendEmailVerificationOtp} disabled={emailOtpSending || emailOtpVerifying || emailResendTimer > 0} className={cn("flex-1", primaryButtonClass)}>
                     {emailOtpSending ? "Sending..." : emailResendTimer > 0 ? `Resend in ${emailResendTimer}s` : emailOtpSent ? "Resend OTP" : "Send OTP"}
                   </Button>
                 </div>
@@ -1681,7 +1684,7 @@ export function OnboardingWorkspace() {
                     inputMode="numeric"
                     onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
                   />
-                  <Button type="button" variant="outline" onClick={verifyEmailVerificationOtp} disabled={emailOtpVerifying || emailOtp.length !== 4}>
+                  <Button type="button" variant="outline" className={softButtonClass} onClick={verifyEmailVerificationOtp} disabled={emailOtpVerifying || emailOtp.length !== 4}>
                     {emailOtpVerifying ? "Verifying..." : "Verify"}
                   </Button>
                 </div>
@@ -1692,7 +1695,7 @@ export function OnboardingWorkspace() {
                   {form.phone || "No mobile number added"}
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={sendPhoneVerificationOtp} disabled={phoneOtpSending || phoneOtpVerifying || phoneResendTimer > 0} className="flex-1">
+                  <Button type="button" onClick={sendPhoneVerificationOtp} disabled={phoneOtpSending || phoneOtpVerifying || phoneResendTimer > 0} className={cn("flex-1", primaryButtonClass)}>
                     {phoneOtpSending ? "Sending..." : phoneResendTimer > 0 ? `Resend in ${phoneResendTimer}s` : phoneOtpSent ? "Resend OTP" : "Send OTP"}
                   </Button>
                 </div>
@@ -1705,7 +1708,7 @@ export function OnboardingWorkspace() {
                     inputMode="numeric"
                     onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   />
-                  <Button type="button" variant="outline" onClick={verifyPhoneVerificationOtp} disabled={phoneOtpVerifying || phoneOtp.length !== 6 || !phoneOtpSent}>
+                  <Button type="button" variant="outline" className={softButtonClass} onClick={verifyPhoneVerificationOtp} disabled={phoneOtpVerifying || phoneOtp.length !== 6 || !phoneOtpSent}>
                     {phoneOtpVerifying ? "Verifying..." : "Verify"}
                   </Button>
                 </div>
@@ -1780,10 +1783,10 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setGstDetailsModalOpen(false)}>
+              <Button type="button" variant="outline" className={softButtonClass} onClick={() => setGstDetailsModalOpen(false)}>
                 Close
               </Button>
-              <Button type="button" onClick={() => setGstDetailsModalOpen(false)}>
+              <Button type="button" className={primaryButtonClass} onClick={() => setGstDetailsModalOpen(false)}>
                 Save GST details
               </Button>
             </div>
@@ -1815,10 +1818,10 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setRegistrationDetailsModalOpen(false)}>
+              <Button type="button" variant="outline" className={softButtonClass} onClick={() => setRegistrationDetailsModalOpen(false)}>
                 Close
               </Button>
-              <Button type="button" onClick={() => setRegistrationDetailsModalOpen(false)}>
+              <Button type="button" className={primaryButtonClass} onClick={() => setRegistrationDetailsModalOpen(false)}>
                 Save registration details
               </Button>
             </div>
@@ -1866,7 +1869,7 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 flex justify-end">
-              <Button type="button" onClick={() => setReportsModalOpen(false)}>
+              <Button type="button" className={primaryButtonClass} onClick={() => setReportsModalOpen(false)}>
                 Done
               </Button>
             </div>
@@ -1914,7 +1917,7 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 flex justify-end">
-              <Button type="button" onClick={() => setPaymentMethodsModalOpen(false)}>
+              <Button type="button" className={primaryButtonClass} onClick={() => setPaymentMethodsModalOpen(false)}>
                 Done
               </Button>
             </div>
@@ -2003,10 +2006,10 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setBankDetailsModalOpen(false)}>
+              <Button type="button" variant="outline" className={softButtonClass} onClick={() => setBankDetailsModalOpen(false)}>
                 Close
               </Button>
-              <Button type="button" onClick={() => setBankDetailsModalOpen(false)}>
+              <Button type="button" className={primaryButtonClass} onClick={() => setBankDetailsModalOpen(false)}>
                 Save bank details
               </Button>
             </div>
@@ -2054,7 +2057,7 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 flex justify-end">
-              <Button type="button" onClick={() => setShowOnInvoiceModalOpen(false)}>
+              <Button type="button" className={primaryButtonClass} onClick={() => setShowOnInvoiceModalOpen(false)}>
                 Done
               </Button>
             </div>
@@ -2102,7 +2105,7 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 flex justify-end">
-              <Button type="button" onClick={() => setRegistrationPickerOpen(false)}>
+              <Button type="button" className={primaryButtonClass} onClick={() => setRegistrationPickerOpen(false)}>
                 Done
               </Button>
             </div>
