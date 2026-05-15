@@ -54,6 +54,83 @@ type OnboardingResponse = {
 };
 
 const stepLabels = ["Basics", "Category", "Size", "GST", "Needs", "Payments", "Branding", "Done"];
+const GSTIN_REGEX = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+const OTHER_BANK_VALUE = "__other_bank__";
+const BANK_OPTIONS = [
+  "State Bank of India",
+  "HDFC Bank",
+  "ICICI Bank",
+  "Axis Bank",
+  "Punjab National Bank",
+  "Bank of Baroda",
+  "Canara Bank",
+  "Union Bank of India",
+  "Bank of India",
+  "Indian Bank",
+  "Central Bank of India",
+  "UCO Bank",
+  "Bank of Maharashtra",
+  "Punjab & Sind Bank",
+  "Indian Overseas Bank",
+  "IDBI Bank",
+  "IDFC FIRST Bank",
+  "Kotak Mahindra Bank",
+  "IndusInd Bank",
+  "Yes Bank",
+  "Federal Bank",
+  "South Indian Bank",
+  "RBL Bank",
+  "AU Small Finance Bank",
+  "Ujjivan Small Finance Bank",
+  "Equitas Small Finance Bank",
+  "Bandhan Bank",
+  "Karnataka Bank",
+  "Karur Vysya Bank",
+  "City Union Bank",
+  "DCB Bank",
+  "Tamilnad Mercantile Bank",
+  "CSB Bank",
+  "DBS Bank India",
+  "Standard Chartered Bank",
+  "HSBC",
+  "Citi Bank",
+  "Other bank",
+].map((bank) => ({
+  label: bank,
+  value: bank === "Other bank" ? OTHER_BANK_VALUE : bank,
+}));
+
+function sanitizeText(value: string, maxLength = 255) {
+  return value.replace(/[^a-zA-Z0-9&(),./' -]/g, "").slice(0, maxLength);
+}
+
+function sanitizeLetters(value: string, maxLength = 120) {
+  return value.replace(/[^a-zA-Z .'-]/g, "").replace(/\s{2,}/g, " ").slice(0, maxLength);
+}
+
+function sanitizeEmail(value: string, maxLength = 255) {
+  return value.replace(/\s/g, "").toLowerCase().slice(0, maxLength);
+}
+
+function sanitizePhone(value: string, maxLength = 15) {
+  const cleaned = value.replace(/[^\d+]/g, "");
+  if (cleaned.startsWith("+")) {
+    return `+${cleaned.slice(1).replace(/\+/g, "")}`.slice(0, maxLength);
+  }
+  return cleaned.replace(/\+/g, "").slice(0, maxLength);
+}
+
+function sanitizeAlphaNumeric(value: string, maxLength = 80) {
+  return value.toUpperCase().replace(/[^A-Z0-9/-]/g, "").slice(0, maxLength);
+}
+
+function sanitizeDigits(value: string, maxLength = 20) {
+  return value.replace(/\D/g, "").slice(0, maxLength);
+}
+
+function sanitizeUpiId(value: string, maxLength = 255) {
+  return value.replace(/[^a-zA-Z0-9._@-]/g, "").toLowerCase().slice(0, maxLength);
+}
 
 const defaultOptions: OnboardingOptions = {
   user_types: ["Individual", "Business Owner", "Company", "Freelancer"],
@@ -106,6 +183,7 @@ export function OnboardingWorkspace() {
   const [success, setSuccess] = useState("");
   const [started, setStarted] = useState(false);
   const [useCustomCity, setUseCustomCity] = useState(false);
+  const [useCustomBank, setUseCustomBank] = useState(false);
   const { states, citiesByState, isLoading: locationsLoading } = useLocations();
 
   const stateOptions = useMemo(
@@ -126,6 +204,13 @@ export function OnboardingWorkspace() {
     options.push({ label: "Other / Type manually", value: "__custom__" });
     return options;
   }, [form.city, selectedStateCities]);
+
+  const gstNumberNormalized = (form.gst_number || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
+  const gstFormatMessage = !gstNumberNormalized
+    ? "GSTIN format: 2 digits + PAN + entity code + Z + checksum. Example: 22AAAAA0000A1Z5"
+    : GSTIN_REGEX.test(gstNumberNormalized)
+      ? "GSTIN format looks valid."
+      : "Enter a valid 15-character GSTIN like 22AAAAA0000A1Z5.";
 
   useEffect(() => {
     let active = true;
@@ -179,6 +264,15 @@ export function OnboardingWorkspace() {
   }, [form.city, form.state, selectedStateCities]);
 
   useEffect(() => {
+    if (!form.bank_name) {
+      setUseCustomBank(false);
+      return;
+    }
+    const hasPresetBank = BANK_OPTIONS.some((option) => option.value !== OTHER_BANK_VALUE && option.value === form.bank_name);
+    setUseCustomBank(!hasPresetBank);
+  }, [form.bank_name]);
+
+  useEffect(() => {
     if (!started || form.setup_completed) return;
     const handleUnload = () => {
       const token = readAccessToken();
@@ -221,6 +315,36 @@ export function OnboardingWorkspace() {
     }
     setUseCustomCity(false);
     setValue("city", city);
+  }
+
+  function handleGstinChange(value: string) {
+    setValue("gst_number", value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15));
+  }
+
+  function handleBankSelect(value: string) {
+    if (value === OTHER_BANK_VALUE) {
+      setUseCustomBank(true);
+      setValue("bank_name", "" as OnboardingProfile["bank_name"]);
+      return;
+    }
+    setUseCustomBank(false);
+    setValue("bank_name", value);
+  }
+
+  function handleTextField<K extends keyof OnboardingProfile>(key: K, value: string, maxLength?: number) {
+    setValue(key, sanitizeText(value, maxLength) as OnboardingProfile[K]);
+  }
+
+  function handleLetterField<K extends keyof OnboardingProfile>(key: K, value: string, maxLength?: number) {
+    setValue(key, sanitizeLetters(value, maxLength) as OnboardingProfile[K]);
+  }
+
+  function handleAlphaNumericField<K extends keyof OnboardingProfile>(key: K, value: string, maxLength?: number) {
+    setValue(key, sanitizeAlphaNumeric(value, maxLength) as OnboardingProfile[K]);
+  }
+
+  function handleDigitsField<K extends keyof OnboardingProfile>(key: K, value: string, maxLength?: number) {
+    setValue(key, sanitizeDigits(value, maxLength) as OnboardingProfile[K]);
   }
 
   function stepPayload(step: number): Record<string, unknown> {
@@ -468,25 +592,25 @@ export function OnboardingWorkspace() {
                 <div className="grid sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="space-y-2">
                     <Label className="text-slate-700">Owner Name <span className="text-red-500">*</span></Label>
-                    <Input className="h-12 bg-white" value={form.owner_name || ""} placeholder="Pankaj Kumar" onChange={e => setValue("owner_name", e.target.value)} />
+                    <Input className="h-12 bg-white" value={form.owner_name || ""} placeholder="Pankaj Kumar" maxLength={255} onChange={e => handleLetterField("owner_name", e.target.value, 255)} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">Business Name <span className="text-red-500">*</span></Label>
-                    <Input className="h-12 bg-white" value={form.business_name || ""} placeholder="SaaSzo Digital" onChange={e => setValue("business_name", e.target.value)} />
+                    <Input className="h-12 bg-white" value={form.business_name || ""} placeholder="SaaSzo Digital" maxLength={255} onChange={e => handleTextField("business_name", e.target.value, 255)} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">Email Address <span className="text-red-500">*</span></Label>
-                    <Input className="h-12 bg-white" value={form.email || ""} placeholder="name@business.com" onChange={e => setValue("email", e.target.value)} />
+                    <Input className="h-12 bg-white" type="email" inputMode="email" autoCapitalize="none" value={form.email || ""} placeholder="name@business.com" maxLength={255} onChange={e => setValue("email", sanitizeEmail(e.target.value) as OnboardingProfile["email"])} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">Mobile Number</Label>
-                    <Input className="h-12 bg-white" value={form.phone || ""} placeholder="+91 98765 43210" onChange={e => setValue("phone", e.target.value)} />
+                    <Input className="h-12 bg-white" type="tel" inputMode="tel" value={form.phone || ""} placeholder="+91 9876543210" maxLength={15} onChange={e => setValue("phone", sanitizePhone(e.target.value) as OnboardingProfile["phone"])} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">City <span className="text-red-500">*</span></Label>
                     {useCustomCity ? (
                       <div className="space-y-2">
-                        <Input className="h-12 bg-white" value={form.city || ""} placeholder="Type your city" onChange={e => setValue("city", e.target.value)} />
+                        <Input className="h-12 bg-white" value={form.city || ""} placeholder="Type your city" maxLength={120} onChange={e => handleLetterField("city", e.target.value, 120)} />
                         <button
                           type="button"
                           className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
@@ -534,7 +658,7 @@ export function OnboardingWorkspace() {
                   {form.business_category === "Other" && (
                     <div className="space-y-2 animate-in fade-in zoom-in-95">
                       <Label className="text-slate-700">Specify Category</Label>
-                      <Input className="h-12 bg-white" value={form.other_business_category || ""} placeholder="E.g. Event Management" onChange={e => setValue("other_business_category", e.target.value)} />
+                      <Input className="h-12 bg-white" value={form.other_business_category || ""} placeholder="E.g. Event Management" maxLength={255} onChange={e => handleTextField("other_business_category", e.target.value, 255)} />
                     </div>
                   )}
                 </div>
@@ -591,11 +715,14 @@ export function OnboardingWorkspace() {
                     <Card className="p-6 bg-white border-slate-200 shadow-sm animate-in fade-in zoom-in-95 grid sm:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label>GST Number <span className="text-red-500">*</span></Label>
-                        <Input className="h-11 bg-slate-50" value={form.gst_number || ""} placeholder="22AAAAA0000A1Z5" onChange={e => setValue("gst_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase tracking-wide" value={form.gst_number || ""} placeholder="22AAAAA0000A1Z5" onChange={e => handleGstinChange(e.target.value)} maxLength={15} inputMode="text" autoCapitalize="characters" />
+                        <p className={cn("text-xs", gstNumberNormalized && !GSTIN_REGEX.test(gstNumberNormalized) ? "text-red-500" : "text-slate-500")}>
+                          {gstFormatMessage}
+                        </p>
                       </div>
                       <div className="space-y-2">
                         <Label>Legal Business Name <span className="text-red-500">*</span></Label>
-                        <Input className="h-11 bg-slate-50" value={form.legal_business_name || ""} placeholder="Legal Entity Name" onChange={e => setValue("legal_business_name", e.target.value)} />
+                        <Input className="h-11 bg-slate-50" value={form.legal_business_name || ""} placeholder="Legal Entity Name" maxLength={255} onChange={e => handleTextField("legal_business_name", e.target.value, 255)} />
                       </div>
                       <div className="space-y-2">
                         <Label>GST State <span className="text-red-500">*</span></Label>
@@ -616,73 +743,73 @@ export function OnboardingWorkspace() {
                     {(form.registration_types || []).includes("PAN") && (
                       <div className="space-y-2">
                         <Label>PAN Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.pan_number || ""} placeholder="ABCDE1234F" onChange={e => setValue("pan_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.pan_number || ""} placeholder="ABCDE1234F" maxLength={10} onChange={e => handleAlphaNumericField("pan_number", e.target.value, 10)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("CIN") && (
                       <div className="space-y-2">
                         <Label>CIN Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.cin_number || ""} placeholder="U12345DL2020PTC123456" onChange={e => setValue("cin_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.cin_number || ""} placeholder="U12345DL2020PTC123456" maxLength={50} onChange={e => handleAlphaNumericField("cin_number", e.target.value, 50)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("LLPIN") && (
                       <div className="space-y-2">
                         <Label>LLPIN Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.llpin_number || ""} placeholder="ABC-1234" onChange={e => setValue("llpin_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.llpin_number || ""} placeholder="ABC-1234" maxLength={50} onChange={e => handleAlphaNumericField("llpin_number", e.target.value, 50)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("TAN") && (
                       <div className="space-y-2">
                         <Label>TAN Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.tan_number || ""} placeholder="DELA12345B" onChange={e => setValue("tan_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.tan_number || ""} placeholder="DELA12345B" maxLength={10} onChange={e => handleAlphaNumericField("tan_number", e.target.value, 10)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("MSME / Udyam Registration") && (
                       <div className="space-y-2">
                         <Label>Udyam Registration Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.udyam_registration_number || ""} placeholder="UDYAM-XX-00-0000000" onChange={e => setValue("udyam_registration_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.udyam_registration_number || ""} placeholder="UDYAM-XX-00-0000000" maxLength={80} onChange={e => handleAlphaNumericField("udyam_registration_number", e.target.value, 80)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("Udyog Aadhaar (Legacy UAM)") && (
                       <div className="space-y-2">
                         <Label>Udyog Aadhaar / UAM Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.udyog_aadhaar_number || ""} placeholder="Legacy UAM number" onChange={e => setValue("udyog_aadhaar_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.udyog_aadhaar_number || ""} placeholder="Legacy UAM number" maxLength={80} onChange={e => handleAlphaNumericField("udyog_aadhaar_number", e.target.value, 80)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("NGO Darpan") && (
                       <div className="space-y-2">
                         <Label>NGO Darpan ID</Label>
-                        <Input className="h-11 bg-slate-50" value={form.ngo_darpan_id || ""} placeholder="NITI Aayog Darpan ID" onChange={e => setValue("ngo_darpan_id", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.ngo_darpan_id || ""} placeholder="NITI Aayog Darpan ID" maxLength={80} onChange={e => handleAlphaNumericField("ngo_darpan_id", e.target.value, 80)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("Trust Registration") && (
                       <div className="space-y-2">
                         <Label>Trust Registration Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.trust_registration_number || ""} placeholder="Trust deed / registration no." onChange={e => setValue("trust_registration_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.trust_registration_number || ""} placeholder="Trust deed / registration no." maxLength={120} onChange={e => handleAlphaNumericField("trust_registration_number", e.target.value, 120)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("Society Registration") && (
                       <div className="space-y-2">
                         <Label>Society Registration Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.society_registration_number || ""} placeholder="Society registration no." onChange={e => setValue("society_registration_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.society_registration_number || ""} placeholder="Society registration no." maxLength={120} onChange={e => handleAlphaNumericField("society_registration_number", e.target.value, 120)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("FSSAI") && (
                       <div className="space-y-2">
                         <Label>FSSAI Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.fssai_number || ""} placeholder="Food license no." onChange={e => setValue("fssai_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50" inputMode="numeric" value={form.fssai_number || ""} placeholder="Food license no." maxLength={14} onChange={e => handleDigitsField("fssai_number", e.target.value, 14)} />
                       </div>
                     )}
                     {(form.registration_types || []).includes("Import Export Code (IEC)") && (
                       <div className="space-y-2">
                         <Label>IEC Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.iec_number || ""} placeholder="Import Export Code" onChange={e => setValue("iec_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.iec_number || ""} placeholder="Import Export Code" maxLength={10} onChange={e => handleAlphaNumericField("iec_number", e.target.value, 10)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).includes("Professional Tax") && (
                       <div className="space-y-2">
                         <Label>Professional Tax Number</Label>
-                        <Input className="h-11 bg-slate-50" value={form.professional_tax_number || ""} placeholder="State professional tax no." onChange={e => setValue("professional_tax_number", e.target.value)} />
+                        <Input className="h-11 bg-slate-50 uppercase" value={form.professional_tax_number || ""} placeholder="State professional tax no." maxLength={80} onChange={e => handleAlphaNumericField("professional_tax_number", e.target.value, 80)} autoCapitalize="characters" />
                       </div>
                     )}
                     {(form.registration_types || []).length === 0 && (
@@ -763,7 +890,7 @@ export function OnboardingWorkspace() {
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label className="text-slate-700">UPI ID</Label>
-                      <Input className="h-12 bg-white" value={form.upi_id || ""} placeholder="business@okbank" onChange={e => setValue("upi_id", e.target.value)} />
+                      <Input className="h-12 bg-white" inputMode="email" autoCapitalize="none" value={form.upi_id || ""} placeholder="business@okbank" maxLength={255} onChange={e => setValue("upi_id", sanitizeUpiId(e.target.value) as OnboardingProfile["upi_id"])} />
                     </div>
                   </div>
 
@@ -776,39 +903,61 @@ export function OnboardingWorkspace() {
                     <div className="grid sm:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label className="text-slate-700">Account Holder Name</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_account_holder_name || ""} placeholder="Business / account holder name" onChange={e => setValue("bank_account_holder_name", e.target.value)} />
+                        <Input className="h-12 bg-slate-50" value={form.bank_account_holder_name || ""} placeholder="Business / account holder name" maxLength={255} onChange={e => handleTextField("bank_account_holder_name", e.target.value, 255)} />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700">Bank Name</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_name || ""} placeholder="HDFC Bank" onChange={e => setValue("bank_name", e.target.value)} />
+                        {useCustomBank ? (
+                          <div className="space-y-2">
+                            <Input className="h-12 bg-slate-50" value={form.bank_name || ""} placeholder="Type bank name" maxLength={255} onChange={e => handleTextField("bank_name", e.target.value, 255)} />
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                              onClick={() => {
+                                setUseCustomBank(false);
+                                setValue("bank_name", "" as OnboardingProfile["bank_name"]);
+                              }}
+                            >
+                              Select bank from dropdown
+                            </button>
+                          </div>
+                        ) : (
+                          <SearchableSelect
+                            placeholder="Select bank..."
+                            options={BANK_OPTIONS}
+                            value={form.bank_name || ""}
+                            onChange={handleBankSelect}
+                            emptyMessage="No bank found. Choose Other bank."
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700">Account Number</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_account_number || ""} placeholder="123456789012" onChange={e => setValue("bank_account_number", e.target.value)} />
+                        <Input className="h-12 bg-slate-50" inputMode="numeric" value={form.bank_account_number || ""} placeholder="123456789012" maxLength={20} onChange={e => handleDigitsField("bank_account_number", e.target.value, 20)} />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700">IFSC Code</Label>
-                        <Input className="h-12 bg-slate-50 uppercase" value={form.bank_ifsc || ""} placeholder="HDFC0001234" onChange={e => setValue("bank_ifsc", e.target.value.toUpperCase())} />
+                        <Input className="h-12 bg-slate-50 uppercase" value={form.bank_ifsc || ""} placeholder="HDFC0001234" maxLength={11} onChange={e => handleAlphaNumericField("bank_ifsc", e.target.value, 11)} autoCapitalize="characters" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700">SWIFT Code</Label>
-                        <Input className="h-12 bg-slate-50 uppercase" value={form.bank_swift_code || ""} placeholder="HDFCINBBXXX" onChange={e => setValue("bank_swift_code", e.target.value.toUpperCase())} />
+                        <Input className="h-12 bg-slate-50 uppercase" value={form.bank_swift_code || ""} placeholder="HDFCINBBXXX" maxLength={11} onChange={e => handleAlphaNumericField("bank_swift_code", e.target.value, 11)} autoCapitalize="characters" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700">MICR Code</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_micr_code || ""} placeholder="302240001" onChange={e => setValue("bank_micr_code", e.target.value)} />
+                        <Input className="h-12 bg-slate-50" inputMode="numeric" value={form.bank_micr_code || ""} placeholder="302240001" maxLength={9} onChange={e => handleDigitsField("bank_micr_code", e.target.value, 9)} />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700">Bank Branch</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_branch_name || ""} placeholder="Jaipur Main Branch" onChange={e => setValue("bank_branch_name", e.target.value)} />
+                        <Input className="h-12 bg-slate-50" value={form.bank_branch_name || ""} placeholder="Jaipur Main Branch" maxLength={255} onChange={e => handleTextField("bank_branch_name", e.target.value, 255)} />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700">Account Type</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_account_type || ""} placeholder="Current / Savings / OD" onChange={e => setValue("bank_account_type", e.target.value)} />
+                        <Input className="h-12 bg-slate-50" value={form.bank_account_type || ""} placeholder="Current / Savings / OD" maxLength={50} onChange={e => handleTextField("bank_account_type", e.target.value, 50)} />
                       </div>
                       <div className="sm:col-span-2 space-y-2">
                         <Label className="text-slate-700">Other Bank Notes</Label>
-                        <Input className="h-12 bg-slate-50" value={form.bank_notes || form.bank_details || ""} placeholder="Any extra payment instruction or old bank detail text" onChange={e => { setValue("bank_notes", e.target.value); setValue("bank_details", e.target.value); }} />
+                        <Input className="h-12 bg-slate-50" value={form.bank_notes || form.bank_details || ""} placeholder="Any extra payment instruction or old bank detail text" maxLength={500} onChange={e => { const value = sanitizeText(e.target.value, 500); setValue("bank_notes", value); setValue("bank_details", value); }} />
                       </div>
                     </div>
                   </Card>
