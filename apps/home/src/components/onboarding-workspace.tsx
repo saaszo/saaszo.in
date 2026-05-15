@@ -510,9 +510,9 @@ export function OnboardingWorkspace() {
     setSuccess("Logo uploaded successfully.");
   }
 
-  function renderPills(items: string[], activeValue: string | undefined, onPick: (value: string) => void) {
+  function renderPills(items: string[], activeValue: string | undefined, onPick: (value: string) => void, gridClassName?: string) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className={cn("grid grid-cols-2 sm:grid-cols-3 gap-3", gridClassName)}>
         {items.map((item) => (
           <button
             key={item} type="button" onClick={() => onPick(item)}
@@ -673,7 +673,7 @@ export function OnboardingWorkspace() {
                   </div>
                   <div className="col-span-full space-y-3 mt-4">
                     <Label className="text-slate-700">Who are you? <span className="text-red-500">*</span></Label>
-                    {renderPills(options.user_types, form.user_type, val => setValue("user_type", val))}
+                    {renderPills(options.user_types, form.user_type, val => setValue("user_type", val), "lg:grid-cols-4")}
                   </div>
                 </div>
               )}

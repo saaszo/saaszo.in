@@ -50,7 +50,7 @@ export function SearchableSelect({
     <div className="relative" ref={containerRef}>
       {label && <Label className="mb-2 block">{label}</Label>}
       <div
-        className="flex min-h-10 w-full items-center justify-between rounded-xl border border-border bg-white px-3 py-2 text-sm ring-offset-background cursor-pointer"
+        className="flex h-12 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background shadow-sm cursor-pointer focus-visible:outline-none"
         onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <span className={selectedOption ? "text-ink" : "text-muted"}>
@@ -60,7 +60,7 @@ export function SearchableSelect({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-white p-1 shadow-md">
+        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-input bg-white p-1 shadow-md">
           <div className="p-1">
             <Input
               value={search}
