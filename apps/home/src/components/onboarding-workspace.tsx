@@ -285,6 +285,7 @@ export function OnboardingWorkspace() {
   const [reportsModalOpen, setReportsModalOpen] = useState(false);
   const [paymentMethodsModalOpen, setPaymentMethodsModalOpen] = useState(false);
   const [bankDetailsModalOpen, setBankDetailsModalOpen] = useState(false);
+  const [showOnInvoiceModalOpen, setShowOnInvoiceModalOpen] = useState(false);
   const [verificationNotice, setVerificationNotice] = useState("");
   const [verificationError, setVerificationError] = useState("");
   const [emailResendTimer, setEmailResendTimer] = useState(0);
@@ -335,6 +336,10 @@ export function OnboardingWorkspace() {
   const upiPreferenceOptions = useMemo(
     () => options.yes_no_later_options.map((item) => ({ label: item, value: item })),
     [options.yes_no_later_options],
+  );
+  const templateSelectOptions = useMemo(
+    () => options.template_options.map((item) => ({ label: item, value: item })),
+    [options.template_options],
   );
 
   const gstNumberNormalized = (form.gst_number || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
@@ -1497,50 +1502,65 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 7 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
-                  
-                  <div className="space-y-4">
-                    <Label className="text-slate-700">Brand Logo</Label>
-                    <div className="flex items-center gap-6 p-6 border-2 border-dashed border-slate-300 rounded-2xl bg-white hover:border-primary/50 transition-colors">
-                      <div className="w-20 h-20 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
-                        {form.logo_url ? (
-                          <img src={form.logo_url} alt="Logo" className="w-full h-full object-cover" />
-                        ) : (
-                          <UploadCloud className="w-8 h-8 text-slate-400" />
+                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                      <div className="flex h-full flex-col gap-4 sm:flex-row sm:items-center">
+                        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                          {form.logo_url ? (
+                            <img src={form.logo_url} alt="Logo" className="h-full w-full object-cover" />
+                          ) : (
+                            <UploadCloud className="h-8 w-8 text-slate-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="text-sm font-semibold text-slate-900">Brand logo</div>
+                          <p className="text-xs text-slate-500">Upload a square PNG or JPG so invoices look more branded and trustworthy.</p>
+                          <Label htmlFor="logo-upload" className="inline-flex cursor-pointer rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">
+                            {uploading ? "Uploading..." : form.logo_url ? "Change logo" : "Upload logo"}
+                          </Label>
+                          <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploading} />
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                      <div className="space-y-2">
+                        <div className="text-sm font-semibold text-slate-900">Invoice template <span className="text-red-500">*</span></div>
+                        <p className="text-xs text-slate-500">Choose the default template style that best matches your business documents.</p>
+                        <SearchableSelect
+                          placeholder="Select invoice template..."
+                          options={templateSelectOptions}
+                          value={form.invoice_template_preference || ""}
+                          onChange={(val) => setValue("invoice_template_preference", val)}
+                          emptyMessage="No template found."
+                        />
+                      </div>
+                    </Card>
+                  </div>
+
+                  <Card className="p-5 bg-white border-slate-200 shadow-sm">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">Show on invoice</div>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Decide which details like logo, GST, bank info, notes or signature should appear on printed invoices.
+                        </p>
+                        {!!(form.show_on_invoice || []).length && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {(form.show_on_invoice || []).map((item) => (
+                              <span key={item} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                                {item}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor="logo-upload" className="bg-primary text-white px-4 py-2 rounded-lg cursor-pointer inline-block text-sm font-semibold hover:bg-primary/90">
-                          {uploading ? "Uploading..." : "Choose File"}
-                        </Label>
-                        <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploading} />
-                        <p className="text-xs text-slate-500">Square PNG or JPG recommended. Max 2MB.</p>
-                      </div>
+                      <Button type="button" onClick={() => setShowOnInvoiceModalOpen(true)} className="w-full sm:w-auto">
+                        {(form.show_on_invoice || []).length ? "Edit invoice fields" : "Select invoice fields"}
+                      </Button>
                     </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Invoice Template <span className="text-red-500">*</span></Label>
-                    {renderPills(options.template_options, form.invoice_template_preference, val => setValue("invoice_template_preference", val))}
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">Show on Invoice</Label>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {options.show_on_invoice_options.map(opt => (
-                        <label key={opt} className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
-                          (form.show_on_invoice || []).includes(opt) ? "bg-primary/5 border-primary text-primary font-medium" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                        )}>
-                          <input type="checkbox" className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
-                            checked={(form.show_on_invoice || []).includes(opt)}
-                            onChange={() => setValue("show_on_invoice", toggleArrayValue(form.show_on_invoice, opt))}
-                          />
-                          <span className="text-sm">{opt}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                  </Card>
                 </div>
               )}
 
@@ -1994,8 +2014,56 @@ export function OnboardingWorkspace() {
         </div>
       )}
 
-      {registrationPickerOpen && (
+      {showOnInvoiceModalOpen && (
         <div className="fixed inset-0 z-[73] flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Select what to show on invoice</h3>
+                <p className="mt-1 text-sm text-slate-500">Pick the business details and branding elements you want printed on invoices.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowOnInvoiceModalOpen(false)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
+              {options.show_on_invoice_options.map((opt) => (
+                <label
+                  key={opt}
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl border p-3 cursor-pointer transition-colors",
+                    (form.show_on_invoice || []).includes(opt)
+                      ? "border-primary bg-primary/5 text-primary font-medium"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                    checked={(form.show_on_invoice || []).includes(opt)}
+                    onChange={() => setValue("show_on_invoice", toggleArrayValue(form.show_on_invoice, opt))}
+                  />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button type="button" onClick={() => setShowOnInvoiceModalOpen(false)}>
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {registrationPickerOpen && (
+        <div className="fixed inset-0 z-[72] flex items-center justify-center bg-slate-950/45 p-4">
           <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
             <div className="flex items-start justify-between gap-4">
               <div>
