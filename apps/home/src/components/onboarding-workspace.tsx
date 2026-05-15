@@ -279,6 +279,10 @@ export function OnboardingWorkspace() {
   const [verificationConfirmation, setVerificationConfirmation] = useState<ConfirmationResult | null>(null);
   const [phoneVerifier, setPhoneVerifier] = useState<RecaptchaVerifier | null>(null);
   const [verificationModal, setVerificationModal] = useState<"email" | "phone" | null>(null);
+  const [verificationNotice, setVerificationNotice] = useState("");
+  const [verificationError, setVerificationError] = useState("");
+  const [emailResendTimer, setEmailResendTimer] = useState(0);
+  const [phoneResendTimer, setPhoneResendTimer] = useState(0);
   const { states, isLoading: locationsLoading } = useLocations();
   const { user, profile, auth } = useAuthSession();
 
@@ -429,6 +433,26 @@ export function OnboardingWorkspace() {
       }
     };
   }, [phoneVerifier]);
+
+  useEffect(() => {
+    if (emailResendTimer <= 0) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setEmailResendTimer((current) => Math.max(current - 1, 0));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [emailResendTimer]);
+
+  useEffect(() => {
+    if (phoneResendTimer <= 0) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setPhoneResendTimer((current) => Math.max(current - 1, 0));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [phoneResendTimer]);
 
   useEffect(() => {
     if (currentStep !== 2 || phoneVerified) {
@@ -586,12 +610,12 @@ export function OnboardingWorkspace() {
 
   async function sendEmailVerificationOtp() {
     if (!form.email) {
-      setError("Enter your email address first.");
+      setVerificationError("Enter your email address first.");
       return;
     }
 
-    setError("");
-    setSuccess("");
+    setVerificationError("");
+    setVerificationNotice("");
     setEmailOtpSending(true);
 
     const result = await authedRequest<{ success?: boolean; message?: string }>("/api/auth/account/send-email-otp", {
@@ -605,22 +629,23 @@ export function OnboardingWorkspace() {
     setEmailOtpSending(false);
 
     if (!result.ok || !result.data.success) {
-      setError(apiErrorMessage("Could not send email OTP.", result.data));
+      setVerificationError(apiErrorMessage("Could not send email OTP.", result.data));
       return;
     }
 
     setEmailOtpSent(true);
-    setSuccess(result.data.message || "Email OTP sent successfully.");
+    setEmailResendTimer(60);
+    setVerificationNotice(result.data.message || "Email OTP sent successfully.");
   }
 
   async function verifyEmailVerificationOtp() {
     if (emailOtp.length !== 4) {
-      setError("Enter the 4-digit email OTP.");
+      setVerificationError("Enter the 4-digit email OTP.");
       return;
     }
 
-    setError("");
-    setSuccess("");
+    setVerificationError("");
+    setVerificationNotice("");
     setEmailOtpVerifying(true);
 
     const result = await authedRequest<{ success?: boolean; message?: string }>("/api/auth/account/verify-email-otp", {
@@ -635,12 +660,13 @@ export function OnboardingWorkspace() {
     setEmailOtpVerifying(false);
 
     if (!result.ok || !result.data.success) {
-      setError(apiErrorMessage("Could not verify email OTP.", result.data));
+      setVerificationError(apiErrorMessage("Could not verify email OTP.", result.data));
       return;
     }
 
     setEmailOtp("");
     setEmailOtpSent(false);
+    setEmailResendTimer(0);
     setEmailOtpVerified(true);
     setVerificationModal(null);
     setSuccess(result.data.message || "Email verified successfully.");
@@ -673,12 +699,12 @@ export function OnboardingWorkspace() {
 
   async function sendPhoneVerificationOtp() {
     if (!/^\+91\d{10}$/.test(form.phone || "")) {
-      setError("Enter a valid mobile number in +91XXXXXXXXXX format first.");
+      setVerificationError("Enter a valid mobile number in +91XXXXXXXXXX format first.");
       return;
     }
 
-    setError("");
-    setSuccess("");
+    setVerificationError("");
+    setVerificationNotice("");
     setPhoneOtpSending(true);
 
     try {
@@ -695,9 +721,10 @@ export function OnboardingWorkspace() {
       const confirmation = await signInWithPhoneNumber(verificationAuth, form.phone || "", verifier);
       setVerificationConfirmation(confirmation);
       setPhoneOtpSent(true);
-      setSuccess("Mobile OTP sent successfully.");
+      setPhoneResendTimer(60);
+      setVerificationNotice("Mobile OTP sent successfully.");
     } catch (verificationError: any) {
-      setError(verificationError?.message || "Could not send mobile OTP.");
+      setVerificationError(verificationError?.message || "Could not send mobile OTP.");
       try {
         phoneVerifier?.clear();
       } catch {}
@@ -709,17 +736,17 @@ export function OnboardingWorkspace() {
 
   async function verifyPhoneVerificationOtp() {
     if (!verificationConfirmation) {
-      setError("Please send the mobile OTP first.");
+      setVerificationError("Please send the mobile OTP first.");
       return;
     }
 
     if (phoneOtp.length !== 6) {
-      setError("Enter the 6-digit mobile OTP.");
+      setVerificationError("Enter the 6-digit mobile OTP.");
       return;
     }
 
-    setError("");
-    setSuccess("");
+    setVerificationError("");
+    setVerificationNotice("");
     setPhoneOtpVerifying(true);
 
     try {
@@ -746,6 +773,7 @@ export function OnboardingWorkspace() {
 
       setPhoneOtp("");
       setPhoneOtpSent(false);
+      setPhoneResendTimer(0);
       setVerificationConfirmation(null);
       setPhoneOtpVerified(true);
       setVerificationModal(null);
@@ -756,7 +784,7 @@ export function OnboardingWorkspace() {
       } catch {}
       setPhoneVerifier(null);
     } catch (verificationError: any) {
-      setError(verificationError?.message || "Could not verify mobile OTP.");
+      setVerificationError(verificationError?.message || "Could not verify mobile OTP.");
     } finally {
       setPhoneOtpVerifying(false);
     }
@@ -765,6 +793,8 @@ export function OnboardingWorkspace() {
   function openVerificationDialog(kind: "email" | "phone") {
     setError("");
     setSuccess("");
+    setVerificationError("");
+    setVerificationNotice("");
     setVerificationModal(kind);
   }
 
@@ -1498,14 +1528,26 @@ export function OnboardingWorkspace() {
               </button>
             </div>
 
+            {verificationError && (
+              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                {verificationError}
+              </div>
+            )}
+
+            {verificationNotice && (
+              <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                {verificationNotice}
+              </div>
+            )}
+
             {verificationModal === "email" ? (
               <div className="mt-6 space-y-4">
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                   {form.email || "No email added"}
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={sendEmailVerificationOtp} disabled={emailOtpSending || emailOtpVerifying} className="flex-1">
-                    {emailOtpSending ? "Sending..." : emailOtpSent ? "Resend OTP" : "Send OTP"}
+                  <Button type="button" onClick={sendEmailVerificationOtp} disabled={emailOtpSending || emailOtpVerifying || emailResendTimer > 0} className="flex-1">
+                    {emailOtpSending ? "Sending..." : emailResendTimer > 0 ? `Resend in ${emailResendTimer}s` : emailOtpSent ? "Resend OTP" : "Send OTP"}
                   </Button>
                 </div>
                 <div className="flex gap-2">
@@ -1528,8 +1570,8 @@ export function OnboardingWorkspace() {
                   {form.phone || "No mobile number added"}
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={sendPhoneVerificationOtp} disabled={phoneOtpSending || phoneOtpVerifying} className="flex-1">
-                    {phoneOtpSending ? "Sending..." : phoneOtpSent ? "Resend OTP" : "Send OTP"}
+                  <Button type="button" onClick={sendPhoneVerificationOtp} disabled={phoneOtpSending || phoneOtpVerifying || phoneResendTimer > 0} className="flex-1">
+                    {phoneOtpSending ? "Sending..." : phoneResendTimer > 0 ? `Resend in ${phoneResendTimer}s` : phoneOtpSent ? "Resend OTP" : "Send OTP"}
                   </Button>
                 </div>
                 <div className="flex gap-2">

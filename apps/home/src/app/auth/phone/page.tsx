@@ -37,6 +37,7 @@ export default function PhoneOtpAuth() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
@@ -79,6 +80,18 @@ export default function PhoneOtpAuth() {
   }, [step, recaptchaVerifier, setupRecaptcha]);
 
   useEffect(() => {
+    if (resendTimer <= 0) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setResendTimer((current) => Math.max(current - 1, 0));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [resendTimer]);
+
+  useEffect(() => {
     return () => {
       if (recaptchaVerifier) {
         try { recaptchaVerifier.clear(); } catch { /* already destroyed */ }
@@ -110,7 +123,7 @@ export default function PhoneOtpAuth() {
     }
 
     const verifier = setupRecaptcha('phone-otp-recaptcha-container', {
-      size: 'normal',
+      size: 'invisible',
       onSolved: () => {
         setRecaptchaSolved(true);
         setError('');
@@ -128,6 +141,7 @@ export default function PhoneOtpAuth() {
 
   const requestPhoneOtp = async () => {
     setError('');
+    setNotice('');
     if (phone.trim().length < 6) {
       setError('Please enter a valid phone number.');
       return false;
@@ -162,6 +176,7 @@ export default function PhoneOtpAuth() {
       setStep('otp');
       setOtp(['', '', '', '', '', '']);
       setResendTimer(60);
+      setNotice(`OTP sent successfully to ${fullPhone}.`);
       return true;
     } catch (err: any) {
       setError(mapFirebasePhoneError(err));
@@ -185,6 +200,7 @@ export default function PhoneOtpAuth() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setNotice('');
     const code = otp.join('');
     if (code.length !== 6) {
       setError('Please enter all 6 digits.');
@@ -244,11 +260,11 @@ export default function PhoneOtpAuth() {
     if (resendTimer > 0) return;
     setOtp(['', '', '', '', '', '']);
     setError('');
+    setNotice('');
     setRecaptchaSolved(false);
     try { recaptchaVerifier?.clear(); } catch { /* already destroyed */ }
     setRecaptchaVerifier(null);
-    await ensureRecaptcha();
-    setError('Please complete the refreshed reCAPTCHA, then resend OTP.');
+    await requestPhoneOtp();
   };
 
   const isRecoverIntent = intent === 'recover';
@@ -377,6 +393,13 @@ export default function PhoneOtpAuth() {
                 </div>
               )}
 
+              {notice && (
+                <div className="mb-6 p-4 rounded-xl bg-primary-container/40 text-on-primary-container border border-primary/15 flex gap-3 items-center animate-fade-up">
+                  <span className="material-symbols-outlined text-primary">info</span>
+                  <p className="text-sm font-medium">{notice}</p>
+                </div>
+              )}
+
               <form className="flex flex-col gap-5" onSubmit={handleSendOtp}>
                 {/* Country + phone row */}
                 <div className="flex gap-2">
@@ -418,13 +441,13 @@ export default function PhoneOtpAuth() {
 
                 <div
                   id="phone-otp-recaptcha-container"
-                  className="min-h-[96px] rounded-xl bg-surface-container-low border border-outline-variant/40 p-3 flex items-center justify-center"
+                  className="pointer-events-none absolute -left-[9999px] top-0 h-0 w-0 overflow-hidden opacity-0"
                 />
 
                 <button
                   id="send-phone-otp-button"
                   type="submit"
-                  disabled={isLoading || !recaptchaSolved}
+                  disabled={isLoading}
                   className={`mt-2 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
                     isLoading || !recaptchaSolved
                       ? 'opacity-80 cursor-not-allowed'
@@ -448,10 +471,6 @@ export default function PhoneOtpAuth() {
                     )}
                   </span>
                 </button>
-
-                <p className="text-sm text-on-surface-variant">
-                  First tick the "I'm not a robot" reCAPTCHA above, then send your OTP.
-                </p>
               </form>
 
               <div className="mt-8 flex items-center justify-center gap-4">
@@ -494,6 +513,13 @@ export default function PhoneOtpAuth() {
                 <div className="mb-6 p-4 rounded-xl bg-error-container text-on-error-container border border-error/20 flex gap-3 items-center animate-fade-up">
                   <span className="material-symbols-outlined text-error">error</span>
                   <p className="text-sm font-medium">{error}</p>
+                </div>
+              )}
+
+              {notice && (
+                <div className="mb-6 p-4 rounded-xl bg-primary-container/40 text-on-primary-container border border-primary/15 flex gap-3 items-center animate-fade-up">
+                  <span className="material-symbols-outlined text-primary">info</span>
+                  <p className="text-sm font-medium">{notice}</p>
                 </div>
               )}
 
