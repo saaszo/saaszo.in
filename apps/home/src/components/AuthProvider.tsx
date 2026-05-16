@@ -487,10 +487,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     path: string,
     init: RequestInit = {},
   ): Promise<BackendAuthResponse> {
+    let authorizationHeader =
+      (init.headers as Record<string, string> | undefined)?.Authorization ??
+      (init.headers as Record<string, string> | undefined)?.authorization;
+
+    if (!authorizationHeader) {
+      const sanctumToken = backendToken ?? getStoredBackendToken();
+      if (sanctumToken) {
+        authorizationHeader = `Bearer ${sanctumToken}`;
+      } else if (auth?.currentUser) {
+        try {
+          const firebaseToken = await auth.currentUser.getIdToken();
+          if (firebaseToken) {
+            authorizationHeader = `Bearer ${firebaseToken}`;
+          }
+        } catch {
+          authorizationHeader = undefined;
+        }
+      }
+    }
+
     const headers: Record<string, string> = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       ...(init.headers as Record<string, string> ?? {}),
+      ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
     };
 
     const response = await fetchWithCsrf(`${API_BASE_URL}${path}`, {
