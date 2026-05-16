@@ -324,7 +324,15 @@ export default function DashboardPage() {
 
     setLaunchingTool(product.tool);
     setLaunchError('');
-    const pendingWindow = window.open('', '_blank', 'noopener,noreferrer');
+    const pendingWindow = window.open('about:blank', '_blank');
+    if (pendingWindow) {
+      try {
+        pendingWindow.opener = null;
+      } catch {
+        // Ignore browser-specific readonly opener behavior.
+      }
+      pendingWindow.document.title = `${product.name} - SaaSzo`;
+    }
 
     const { redirectUrl, error: handoffError } = await getHandoffToken(product.tool);
     const fallbackRedirectUrl = product.tool === 'invoice' ? INVOICE_BRIDGE_FALLBACK_URL : undefined;
@@ -334,7 +342,7 @@ export default function DashboardPage() {
         if (pendingWindow) {
           pendingWindow.location.href = fallbackRedirectUrl;
         } else {
-          window.location.assign(fallbackRedirectUrl);
+          setLaunchError('Popup blocked. Please allow popups for SaaSzo and try again.');
         }
         setLaunchingTool(null);
         return;
@@ -349,7 +357,6 @@ export default function DashboardPage() {
     if (!pendingWindow) {
       setLaunchError('Popup blocked. Please allow popups for SaaSzo and try again.');
       setLaunchingTool(null);
-      window.location.assign(redirectUrl);
       return;
     }
 
