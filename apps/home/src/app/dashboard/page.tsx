@@ -57,19 +57,6 @@ const PRODUCTS: Product[] = [
     ctaText: 'Notify Me',
   },
   {
-    id: 'accounting',
-    name: 'Accounting',
-    tagline: 'Ledgers · P&L · Balance Sheet',
-    description:
-      'Double-entry accounting with GST reports, bank reconciliation, opening balances, and full audit trail.',
-    icon: 'account_balance',
-    tool: 'accounting',
-    status: 'coming_soon',
-    badge: 'Coming Soon',
-    color: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-    ctaText: 'Join Waitlist',
-  },
-  {
     id: 'crm',
     name: 'CRM',
     tagline: 'Leads · Pipeline · Follow-ups',
