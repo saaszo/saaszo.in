@@ -84,6 +84,8 @@ const PRODUCTS: Product[] = [
   },
 ];
 
+const INVOICE_BRIDGE_FALLBACK_URL = 'https://invoice.saaszo.in/auth-bridge?redirect=%2Fdashboard';
+
 // ──────────────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -325,8 +327,19 @@ export default function DashboardPage() {
     const pendingWindow = window.open('', '_blank', 'noopener,noreferrer');
 
     const { redirectUrl, error: handoffError } = await getHandoffToken(product.tool);
+    const fallbackRedirectUrl = product.tool === 'invoice' ? INVOICE_BRIDGE_FALLBACK_URL : undefined;
 
     if (handoffError || !redirectUrl) {
+      if (fallbackRedirectUrl) {
+        if (pendingWindow) {
+          pendingWindow.location.href = fallbackRedirectUrl;
+        } else {
+          window.location.assign(fallbackRedirectUrl);
+        }
+        setLaunchingTool(null);
+        return;
+      }
+
       pendingWindow?.close();
       setLaunchError(handoffError ?? 'Could not launch product. Please try again.');
       setLaunchingTool(null);
