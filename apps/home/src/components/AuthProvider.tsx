@@ -956,7 +956,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function getBranches(): Promise<BranchInfo[]> {
     try {
-      const payload = await fetchBackendJson('/workspace/branches');
+      const payload = await fetchBackendJson('/auth/workspace/branches');
       return ((payload as any).data || []) as BranchInfo[];
     } catch (err) {
       console.error('getBranches error:', err);
@@ -967,7 +967,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function saveBranch(data: any): Promise<{ success: boolean; message?: string; branch?: BranchInfo }> {
     try {
       const isUpdate = !!data.id;
-      const path = isUpdate ? `/workspace/branches/${data.id}` : '/workspace/branches';
+      const path = isUpdate ? `/auth/workspace/branches/${data.id}` : '/auth/workspace/branches';
       const method = isUpdate ? 'PUT' : 'POST';
 
       const payload = await fetchBackendJson(path, {
@@ -987,7 +987,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function deleteBranch(id: number): Promise<{ success: boolean; message?: string }> {
     try {
-      const payload = await fetchBackendJson(`/workspace/branches/${id}`, {
+      const payload = await fetchBackendJson(`/auth/workspace/branches/${id}`, {
         method: 'DELETE',
       });
       return { success: !!payload.success, message: payload.message };
@@ -999,7 +999,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function getStaff(filters?: any): Promise<StaffMember[]> {
     try {
       const query = new URLSearchParams(filters).toString();
-      const payload = await fetchBackendJson(`/workspace/staff?${query}`);
+      const payload = await fetchBackendJson(`/auth/workspace/staff?${query}`);
       return ((payload as any).data || []) as StaffMember[];
     } catch (err) {
       console.error('getStaff error:', err);
@@ -1010,7 +1010,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function saveStaff(data: any): Promise<{ success: boolean; message?: string; staff?: StaffMember }> {
     try {
       const isUpdate = !!data.id;
-      const path = isUpdate ? `/workspace/staff/${data.id}` : '/workspace/staff';
+      const path = isUpdate ? `/auth/workspace/staff/${data.id}` : '/auth/workspace/staff';
       const method = isUpdate ? 'PUT' : 'POST';
 
       const payload = await fetchBackendJson(path, {
@@ -1030,7 +1030,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function deleteStaff(id: number): Promise<{ success: boolean; message?: string }> {
     try {
-      const payload = await fetchBackendJson(`/workspace/staff/${id}`, {
+      const payload = await fetchBackendJson(`/auth/workspace/staff/${id}`, {
         method: 'DELETE',
       });
       return { success: !!payload.success, message: payload.message };
@@ -1041,7 +1041,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function getStaffTemplates() {
     try {
-      const res = await fetchBackendJson('/workspace/staff/templates');
+      const res = await fetchBackendJson('/auth/workspace/staff/templates');
       return (res as any).data || { roles: {}, groups: {} };
     } catch (err) {
       console.error('getStaffTemplates error:', err);
