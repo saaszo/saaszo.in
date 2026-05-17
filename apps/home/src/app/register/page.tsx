@@ -1,26 +1,212 @@
 'use client';
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuthSession } from '@/components/AuthProvider';
+import { API_BASE_URL } from '@/lib/app-config';
+
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  if (match) return decodeURIComponent(match[2]);
+  return null;
+}
+
+function normalizeEmail(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function passwordMeetsRequirements(password: string) {
+  return (
+    password.length >= 8 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+}
+
+function isTooManyAttemptsMessage(message: string) {
+  return /too many|wait \d+ seconds|attempts/i.test(message);
+}
+
+async function fetchWithCsrf(path: string, init: RequestInit = {}) {
+  const method = init.method?.toUpperCase() || 'GET';
+  const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(method);
+
+  if (isMutation && !getCookie('XSRF-TOKEN')) {
+    await fetch(`${API_BASE_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
+      method: 'GET',
+      credentials: 'include',
+    }).catch(() => null);
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    ...(init.headers as Record<string, string> ?? {}),
+  };
+
+  const xsrfToken = getCookie('XSRF-TOKEN');
+  if (xsrfToken && isMutation) {
+    headers['X-XSRF-TOKEN'] = xsrfToken;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers,
+    credentials: 'include',
+  });
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok && payload?.message) {
+    throw Object.assign(new Error(payload.message), {
+      status: response.status,
+      payload,
+    });
+  }
+
+  return payload;
+}
 
 function RegisterForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { signInWithGoogle, signUpWithEmail } = useAuthSession();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  
+  const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [isHovered, setIsHovered] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpNotice, setOtpNotice] = useState('');
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otpLockSeconds, setOtpLockSeconds] = useState(0);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  const normalizedEmail = useMemo(() => normalizeEmail(email), [email]);
+
   useEffect(() => {
     const emailParam = searchParams.get('email');
     if (emailParam) setEmail(emailParam);
   }, [searchParams]);
 
-  const [password, setPassword] = useState('');
-  const [isHovered, setIsHovered] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [acceptedLegal, setAcceptedLegal] = useState(false);
+  useEffect(() => {
+    if (otpLockSeconds <= 0 && resendTimer <= 0) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setOtpLockSeconds((current) => Math.max(current - 1, 0));
+      setResendTimer((current) => Math.max(current - 1, 0));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [otpLockSeconds, resendTimer]);
+
+  useEffect(() => {
+    if (otpLockSeconds === 0 && isTooManyAttemptsMessage(otpError)) {
+      setOtpError('');
+    }
+  }, [otpError, otpLockSeconds]);
+
+  useEffect(() => {
+    setOtp('');
+    setOtpSent(false);
+    setEmailVerified(false);
+    setOtpError('');
+    setOtpNotice('');
+    setOtpLockSeconds(0);
+    setResendTimer(0);
+  }, [normalizedEmail]);
+
+  const handleSendOtp = async () => {
+    if (otpLoading || verifyLoading) return;
+    setOtpLoading(true);
+    setOtpError('');
+    setOtpNotice('');
+
+    try {
+      if (!normalizedEmail) {
+        throw new Error('Enter your email address first.');
+      }
+
+      const result = await fetchWithCsrf('/auth/signup/send-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+
+      if (!result?.success) {
+        throw new Error(result?.message || 'We could not send the verification code.');
+      }
+
+      setOtpSent(true);
+      setEmailVerified(false);
+      setOtp('');
+      setOtpLockSeconds(0);
+      setResendTimer(60);
+      setOtpNotice(result.message || `A verification code has been sent to ${normalizedEmail}.`);
+    } catch (err: any) {
+      const payload = err?.payload;
+      const seconds = Number(payload?.seconds_remaining ?? 0);
+      if (err?.status === 423 && seconds > 0) {
+        setOtpLockSeconds(seconds);
+        setResendTimer(seconds);
+      }
+      setOtpError(err?.message || 'We could not send the verification code.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (verifyLoading || otpLockSeconds > 0) return;
+    setVerifyLoading(true);
+    setOtpError('');
+    setOtpNotice('');
+
+    try {
+      if (!otpSent) {
+        throw new Error('Send the verification code first.');
+      }
+
+      if (otp.trim().length !== 4) {
+        throw new Error('Enter the 4-digit email verification code.');
+      }
+
+      const result = await fetchWithCsrf('/auth/signup/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email: normalizedEmail, otp: otp.trim() }),
+      });
+
+      if (!result?.success) {
+        throw new Error(result?.message || 'Verification failed.');
+      }
+
+      setEmailVerified(true);
+      setOtpError('');
+      setOtpNotice('Email verified. You can now create your account.');
+      setOtpLockSeconds(0);
+      setResendTimer(0);
+    } catch (err: any) {
+      const payload = err?.payload;
+      const seconds = Number(payload?.seconds_remaining ?? 0);
+      if (err?.status === 423 && seconds > 0) {
+        setOtpLockSeconds(seconds);
+        setResendTimer(seconds);
+      }
+      setOtpError(err?.message || 'Verification failed.');
+      setEmailVerified(false);
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +219,16 @@ function RegisterForm() {
       if (!acceptedLegal) {
         throw new Error('Please accept the Terms of Service and Privacy Policy to create your account.');
       }
-      await signUpWithEmail(email, password, name);
-      // router.push('/dashboard') is handled in AuthProvider
+
+      if (!emailVerified) {
+        throw new Error('Verify your email address before creating your account.');
+      }
+
+      if (!passwordMeetsRequirements(password)) {
+        throw new Error('Password must be at least 8 characters and include uppercase, lowercase, number, and special character.');
+      }
+
+      await signUpWithEmail(normalizedEmail, password, name);
     } catch (err: any) {
       setError(err?.message || 'The registration server is currently unreachable.');
     } finally {
@@ -59,14 +253,11 @@ function RegisterForm() {
 
   return (
     <div className="min-h-screen w-full flex bg-background text-on-background overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
-      {/* Left Panel - Brand & Vision (Ethereal Workspace design) */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden bg-surface-container-lowest">
-        {/* Dynamic Abstract Background (Glassmorphism & Orbs) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-pulse" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-tertiary rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-pulse" style={{ animationDelay: '2s' }} />
           <div className="absolute top-[40%] left-[30%] w-[40%] h-[40%] bg-secondary rounded-full mix-blend-overlay filter blur-[100px] opacity-40 animate-float" />
-          
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_10%,transparent_100%)] dark:bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)]" />
         </div>
 
@@ -89,7 +280,6 @@ function RegisterForm() {
         </div>
 
         <div className="relative z-10 flex flex-col gap-8 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          
           <div className="flex gap-4 items-start group">
             <div className="p-3 rounded-2xl bg-primary-container text-on-primary-container shrink-0 mt-1 transition-transform duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_var(--color-primary-container)]">
               <span className="material-symbols-outlined text-2xl">rocket_launch</span>
@@ -102,23 +292,20 @@ function RegisterForm() {
 
           <div className="flex gap-4 items-start group">
             <div className="p-3 rounded-2xl bg-tertiary-container text-on-tertiary-container shrink-0 mt-1 transition-transform duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_var(--color-tertiary-container)]">
-              <span className="material-symbols-outlined text-2xl">sync</span>
+              <span className="material-symbols-outlined text-2xl">verified_user</span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-1">Real-time Synchronization</h3>
-              <p className="text-on-surface-variant leading-relaxed">Keep your teams aligned with lightning-fast data propagation globally.</p>
+              <h3 className="text-lg font-semibold mb-1">Verification-first Signup</h3>
+              <p className="text-on-surface-variant leading-relaxed">Your account is created only after at least one verified identity method is confirmed.</p>
             </div>
           </div>
-
         </div>
       </div>
 
-      {/* Right Panel - Register Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative">
         <div className="absolute inset-0 bg-surface pointer-events-none" />
-        
+
         <div className="w-full max-w-md relative z-10 animate-fade-up pt-8 lg:pt-0" style={{ animationDelay: '0.3s' }}>
-          
           <div className="flex lg:hidden items-center gap-2 mb-12 justify-center">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary font-bold text-xl shadow-[0_0_20px_var(--color-primary)]">
               S
@@ -128,7 +315,7 @@ function RegisterForm() {
 
           <div className="mb-10 text-center lg:text-left">
             <h2 className="text-3xl font-bold mb-3 tracking-tight">Create an account</h2>
-            <p className="text-on-surface-variant">Get started with your free 14-day trial.</p>
+            <p className="text-on-surface-variant">Verify your email, then create your workspace securely.</p>
           </div>
 
           {error && (
@@ -139,7 +326,6 @@ function RegisterForm() {
           )}
 
           <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            
             <div className="space-y-4">
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
@@ -155,32 +341,91 @@ function RegisterForm() {
                 />
               </div>
 
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-xl">mail</span>
+              <div className="space-y-3 rounded-2xl border border-outline-variant/70 bg-surface-container-lowest p-4">
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
+                    <span className="material-symbols-outlined text-xl">mail</span>
+                  </div>
+                  <input
+                    type="email"
+                    placeholder="name@company.com"
+                    className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
-                <input
-                  type="email"
-                  placeholder="name@company.com"
-                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => void handleSendOtp()}
+                    disabled={otpLoading || !normalizedEmail || resendTimer > 0}
+                    className={`flex-1 rounded-xl px-4 py-3 font-semibold transition-all ${otpLoading || !normalizedEmail || resendTimer > 0 ? 'cursor-not-allowed bg-primary/50 text-on-primary' : 'bg-primary text-on-primary hover:opacity-90 shadow-lg shadow-primary/20'}`}
+                  >
+                    {otpLoading ? 'Sending...' : resendTimer > 0 ? `Resend in ${resendTimer}s` : otpSent ? 'Resend OTP' : 'Send OTP'}
+                  </button>
+
+                  <div className={`flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold ${emailVerified ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-surface-container text-on-surface-variant border border-outline-variant/60'}`}>
+                    {emailVerified ? 'Email Verified' : 'Verification Required'}
+                  </div>
+                </div>
+
+                {otpSent && (
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={4}
+                      placeholder="4-digit OTP"
+                      className="flex-1 rounded-xl border border-outline-variant/70 bg-surface px-4 py-3 outline-none transition-all focus:border-primary focus:shadow-[0_0_0_4px_var(--color-primary-container)]"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          void handleVerifyOtp();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void handleVerifyOtp()}
+                      disabled={verifyLoading || otpLockSeconds > 0}
+                      className={`rounded-xl px-5 py-3 font-semibold transition-all ${verifyLoading || otpLockSeconds > 0 ? 'cursor-not-allowed bg-primary/50 text-on-primary' : 'bg-primary text-on-primary hover:opacity-90 shadow-lg shadow-primary/20'}`}
+                    >
+                      {verifyLoading ? 'Verifying...' : otpLockSeconds > 0 ? `Retry in ${otpLockSeconds}s` : 'Verify'}
+                    </button>
+                  </div>
+                )}
+
+                {otpNotice && (
+                  <p className="text-sm font-medium text-emerald-600">{otpNotice}</p>
+                )}
+
+                {otpError && (
+                  <p className="text-sm font-medium text-error">{otpError}</p>
+                )}
               </div>
 
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-xl">lock</span>
+              <div className="space-y-2">
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
+                    <span className="material-symbols-outlined text-xl">lock</span>
+                  </div>
+                  <input
+                    type="password"
+                    placeholder="Create a password"
+                    className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
                 </div>
-                <input
-                  type="password"
-                  placeholder="Create a password"
-                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <p className="text-xs text-on-surface-variant">
+                  Use at least 8 characters with uppercase, lowercase, a number, and a special character.
+                </p>
               </div>
             </div>
 
@@ -192,7 +437,7 @@ function RegisterForm() {
                 className="mt-1 h-4 w-4 rounded border-outline accent-primary"
               />
               <span>
-                I agree to SaaSzo's{' '}
+                I agree to SaaSzo&apos;s{' '}
                 <Link href="/terms" className="font-semibold text-primary hover:text-tertiary">
                   Terms of Service
                 </Link>{' '}
@@ -206,15 +451,15 @@ function RegisterForm() {
 
             <button
               type="submit"
-              disabled={isLoading}
-              className={`mt-6 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${isLoading ? 'opacity-80 cursor-not-allowed' : 'shadow-lg shadow-primary/20 hover:shadow-primary/40'}`}
+              disabled={isLoading || !emailVerified}
+              className={`mt-6 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${isLoading || !emailVerified ? 'opacity-80 cursor-not-allowed' : 'shadow-lg shadow-primary/20 hover:shadow-primary/40'}`}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
-              {!isLoading && <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />}
+              {!isLoading && emailVerified && <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />}
               <span className="relative z-10 flex items-center justify-center gap-2">
                 {isLoading ? 'Creating Account...' : 'Create Account'}
-                {!isLoading && <span className={`material-symbols-outlined transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`}>arrow_forward</span>}
+                {!isLoading && emailVerified && <span className={`material-symbols-outlined transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`}>arrow_forward</span>}
               </span>
             </button>
           </form>
@@ -259,10 +504,9 @@ function RegisterForm() {
 
           <div className="mt-12 text-center">
             <p className="text-xs text-outline max-w-xs mx-auto">
-              By registering, you agree to SaaSzo's <Link href="/terms" className="underline hover:text-on-surface transition-colors">Terms of Service</Link> and <Link href="/privacy" className="underline hover:text-on-surface transition-colors">Privacy Policy</Link>.
+              By registering, you agree to SaaSzo&apos;s <Link href="/terms" className="underline hover:text-on-surface transition-colors">Terms of Service</Link> and <Link href="/privacy" className="underline hover:text-on-surface transition-colors">Privacy Policy</Link>.
             </p>
           </div>
-
         </div>
       </div>
     </div>

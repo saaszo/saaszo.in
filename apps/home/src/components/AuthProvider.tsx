@@ -852,17 +852,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // 2. Perform Signup
+    // 2. Perform Signup only after verification-gated backend path
     const displayName = name?.trim() || email.split('@')[0] || 'SaaSzo User';
     const companyName = `${displayName} Workspace`;
 
-    const payload = await fetchBackendJson('/auth/register-unified', {
+    const payload = await fetchBackendJson('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
-        company_name: companyName,
+        business_name: companyName,
         name: displayName,
         email,
         password,
+        password_confirmation: password,
+        email_verified_via: 'otp',
       }),
     });
 

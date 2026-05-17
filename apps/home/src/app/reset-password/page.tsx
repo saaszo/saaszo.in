@@ -51,8 +51,8 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+    if (!meetsPasswordRequirements(password)) {
+      setError('Password must be at least 8 characters and include uppercase, lowercase, number, and special character.');
       return;
     }
 
@@ -255,6 +255,9 @@ function ResetPasswordForm() {
                         </p>
                       </div>
                     )}
+                    <p className="text-xs text-on-surface-variant">
+                      Use at least 8 characters with uppercase, lowercase, a number, and a special character.
+                    </p>
                   </div>
 
                   {/* Confirm Password */}
@@ -341,3 +344,9 @@ export default function ResetPasswordPage() {
     </Suspense>
   );
 }
+  const meetsPasswordRequirements = (value: string) =>
+    value.length >= 8 &&
+    /[a-z]/.test(value) &&
+    /[A-Z]/.test(value) &&
+    /[0-9]/.test(value) &&
+    /[^A-Za-z0-9]/.test(value);

@@ -42,6 +42,8 @@ export default function PhoneOtpAuth() {
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
   const [recaptchaSolved, setRecaptchaSolved] = useState(false);
+  const [verifyAttempts, setVerifyAttempts] = useState(0);
+  const [verifyLockSeconds, setVerifyLockSeconds] = useState(0);
 
   /* ── Refs ── */
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -80,16 +82,26 @@ export default function PhoneOtpAuth() {
   }, [step, recaptchaVerifier, setupRecaptcha]);
 
   useEffect(() => {
-    if (resendTimer <= 0) {
+    if (resendTimer <= 0 && verifyLockSeconds <= 0) {
       return;
     }
 
     const timer = window.setTimeout(() => {
       setResendTimer((current) => Math.max(current - 1, 0));
+      setVerifyLockSeconds((current) => Math.max(current - 1, 0));
     }, 1000);
 
     return () => window.clearTimeout(timer);
-  }, [resendTimer]);
+  }, [resendTimer, verifyLockSeconds]);
+
+  useEffect(() => {
+    if (verifyLockSeconds === 0 && verifyAttempts >= 5) {
+      setVerifyAttempts(0);
+      if (/too many incorrect otp attempts/i.test(error)) {
+        setError('');
+      }
+    }
+  }, [error, verifyAttempts, verifyLockSeconds]);
 
   useEffect(() => {
     return () => {
@@ -175,6 +187,8 @@ export default function PhoneOtpAuth() {
       setConfirmationResult(result);
       setStep('otp');
       setOtp(['', '', '', '', '', '']);
+      setVerifyAttempts(0);
+      setVerifyLockSeconds(0);
       setResendTimer(60);
       setNotice(`OTP sent successfully to ${fullPhone}.`);
       return true;
@@ -207,6 +221,11 @@ export default function PhoneOtpAuth() {
       return;
     }
 
+    if (verifyLockSeconds > 0) {
+      setError(`Too many incorrect OTP attempts. Please wait ${verifyLockSeconds} seconds and request a new OTP.`);
+      return;
+    }
+
     if (!confirmationResult) {
       setError('Verification session expired. Please request a new OTP.');
       setStep('phone');
@@ -216,9 +235,26 @@ export default function PhoneOtpAuth() {
     setIsLoading(true);
     try {
       await confirmationResult.confirm(code);
+      setVerifyAttempts(0);
+      setVerifyLockSeconds(0);
       setStep('success');
     } catch (err: any) {
-      setError(mapFirebasePhoneError(err));
+      const mapped = mapFirebasePhoneError(err);
+      if (/invalid otp code/i.test(mapped)) {
+        const nextAttempts = verifyAttempts + 1;
+        if (nextAttempts >= 5) {
+          setVerifyAttempts(5);
+          setVerifyLockSeconds(60);
+          setResendTimer((current) => Math.max(current, 60));
+          setConfirmationResult(null);
+          setError('Too many incorrect OTP attempts. Please wait 60 seconds and request a new OTP.');
+        } else {
+          setVerifyAttempts(nextAttempts);
+          setError(`Incorrect OTP. ${5 - nextAttempts} attempts remaining.`);
+        }
+      } else {
+        setError(mapped);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -261,6 +297,8 @@ export default function PhoneOtpAuth() {
     setOtp(['', '', '', '', '', '']);
     setError('');
     setNotice('');
+    setVerifyAttempts(0);
+    setVerifyLockSeconds(0);
     setRecaptchaSolved(false);
     try { recaptchaVerifier?.clear(); } catch { /* already destroyed */ }
     setRecaptchaVerifier(null);
