@@ -638,7 +638,7 @@ export function OnboardingWorkspace() {
     let active = true;
     (async () => {
       const result = await authedRequest<OnboardingResponse>(
-        "/api/auth/onboarding",
+        "/auth/onboarding",
       );
       if (!active) return;
       if (!result.ok || !result.data.success) {
@@ -725,6 +725,9 @@ export function OnboardingWorkspace() {
 
   const signedInWithGoogle = firebaseProviderIds.includes("google.com");
   const signedInWithPhoneOtp = firebaseProviderIds.includes("phone");
+  const signedInWithPassword =
+    auth?.primaryProvider === "Password" ||
+    Boolean(auth?.providers?.includes("password"));
 
   const emailVerified = useMemo(() => {
     if (emailOtpVerified) {
@@ -732,6 +735,13 @@ export function OnboardingWorkspace() {
     }
 
     if (signedInWithGoogle && (auth?.email || profile?.email || user?.email)) {
+      return true;
+    }
+
+    if (
+      signedInWithPassword &&
+      (auth?.email || profile?.email || user?.email)
+    ) {
       return true;
     }
 
@@ -750,6 +760,7 @@ export function OnboardingWorkspace() {
     emailOtpVerified,
     profile?.email,
     signedInWithGoogle,
+    signedInWithPassword,
     user,
   ]);
 
@@ -788,7 +799,6 @@ export function OnboardingWorkspace() {
     ? "Verified by mobile OTP sign-in"
     : "Pending verification";
 
-  const contactsFullyVerified = emailVerified && phoneVerified;
   const selectedRegistrationTypes = form.registration_types || [];
 
   useEffect(() => {
@@ -801,7 +811,7 @@ export function OnboardingWorkspace() {
         step: currentStep,
         meta: { source: "browser-unload" },
       });
-      void fetch(toAbsoluteApiUrl("/api/auth/onboarding/track"), {
+      void fetch(toAbsoluteApiUrl("/auth/onboarding/track"), {
         method: "POST",
         keepalive: true,
         credentials: "include",
@@ -966,8 +976,12 @@ export function OnboardingWorkspace() {
 
   function validateStepBeforeSave(step: number) {
     if (step === 2) {
-      if (!contactsFullyVerified) {
-        return "Please verify both your email and mobile number before continuing.";
+      if (!emailVerified) {
+        return "Please verify your email address before continuing.";
+      }
+
+      if (!phoneVerified) {
+        return "Please verify your mobile number before continuing.";
       }
 
       if (!(form.business_category || "").trim()) {
@@ -1094,7 +1108,7 @@ export function OnboardingWorkspace() {
       return;
     }
     const result = await authedRequest<OnboardingResponse>(
-      "/api/auth/onboarding/save",
+      "/auth/onboarding/save",
       {
         method: "POST",
         body: JSON.stringify({ step, payload: stepPayload(step) }),
@@ -1468,7 +1482,7 @@ export function OnboardingWorkspace() {
     setError("");
     setSuccess("");
     const result = await authedRequest<OnboardingResponse>(
-      "/api/auth/onboarding/complete",
+      "/auth/onboarding/complete",
       {
         method: "POST",
         body: JSON.stringify({ payload: form }),
@@ -1495,7 +1509,7 @@ export function OnboardingWorkspace() {
     setError("");
     setSuccess("");
     const result = await authedRequest<OnboardingResponse>(
-      "/api/auth/onboarding/skip",
+      "/auth/onboarding/skip",
       { method: "POST" },
     );
     setSaving(false);

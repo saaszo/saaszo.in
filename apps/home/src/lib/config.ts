@@ -33,6 +33,16 @@ export const appConfig = {
 };
 
 export function toAbsoluteApiUrl(path: string) {
-  const trimmedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${appConfig.apiBaseUrl.replace(/\/$/, "")}${trimmedPath}`;
+  const baseUrl = appConfig.apiBaseUrl.replace(/\/$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (baseUrl.endsWith("/api") && normalizedPath === "/api") {
+    return baseUrl;
+  }
+
+  if (baseUrl.endsWith("/api") && normalizedPath.startsWith("/api/")) {
+    return `${baseUrl}${normalizedPath.slice(4)}`;
+  }
+
+  return `${baseUrl}${normalizedPath}`;
 }

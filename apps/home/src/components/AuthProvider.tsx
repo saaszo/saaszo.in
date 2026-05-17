@@ -367,6 +367,7 @@ function normalizeBackendSession(
       providers: user.firebase_uid ? ["password", "firebase"] : ["password"],
       primaryProvider: "Password",
       canChangePassword: true,
+      emailVerified: Boolean(user.email),
     },
     subscription: {
       planName: toTitleCase(company.plan_type, "Free"),
