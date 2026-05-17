@@ -531,7 +531,7 @@ export function OnboardingWorkspace() {
   useEffect(() => {
     if (emailOtpLockTimer === 0) {
       setVerificationError((current) =>
-        current.includes("Too many incorrect OTP attempts") ? "" : current,
+        /attempt/i.test(current) ? "" : current,
       );
     }
   }, [emailOtpLockTimer]);
@@ -540,10 +540,19 @@ export function OnboardingWorkspace() {
     if (phoneOtpLockTimer === 0) {
       setPhoneOtpAttempts(0);
       setVerificationError((current) =>
-        current.includes("Too many incorrect OTP attempts") ? "" : current,
+        /attempt/i.test(current) ? "" : current,
       );
     }
   }, [phoneOtpLockTimer]);
+
+  useEffect(() => {
+    if (!verificationModal) {
+      return;
+    }
+
+    setVerificationError("");
+    setVerificationNotice("");
+  }, [verificationModal]);
 
   useEffect(() => {
     if (currentStep !== 2 || phoneVerified) {
@@ -736,6 +745,7 @@ export function OnboardingWorkspace() {
     setEmailResendTimer(60);
     setEmailOtpLockTimer(0);
     setEmailOtp("");
+    setVerificationError("");
     setVerificationNotice(result.data.message || "Email OTP sent successfully.");
   }
 
@@ -766,8 +776,11 @@ export function OnboardingWorkspace() {
     setEmailOtpVerifying(false);
 
     if (!result.ok || !result.data.success) {
-      if (result.status === 423 && result.data.seconds_remaining) {
-        setEmailOtpLockTimer(result.data.seconds_remaining);
+      if (result.status === 423) {
+        const secondsRemaining = result.data.seconds_remaining || 60;
+        setEmailOtpLockTimer(secondsRemaining);
+        setVerificationError(`Too many incorrect OTP attempts. Please wait ${secondsRemaining} seconds before trying again.`);
+        return;
       }
       if (typeof result.data.attempts_remaining === "number") {
         setVerificationError(`${apiErrorMessage("Could not verify email OTP.", result.data)} ${result.data.attempts_remaining} attempts remaining.`);
@@ -844,6 +857,7 @@ export function OnboardingWorkspace() {
       setPhoneOtp("");
       setPhoneOtpAttempts(0);
       setPhoneOtpLockTimer(0);
+      setVerificationError("");
       setVerificationNotice("Mobile OTP sent successfully.");
     } catch (verificationError: any) {
       setVerificationError(verificationError?.message || "Could not send mobile OTP.");
@@ -913,6 +927,13 @@ export function OnboardingWorkspace() {
       } catch {}
       setPhoneVerifier(null);
     } catch (verificationError: any) {
+      if (typeof verificationError?.message === "string" && /too many/i.test(verificationError.message)) {
+        setPhoneOtpAttempts(5);
+        setPhoneOtpLockTimer(60);
+        setVerificationError("Too many incorrect OTP attempts. Please wait 60 seconds before trying again.");
+        return;
+      }
+
       const nextAttempts = phoneOtpAttempts + 1;
       setPhoneOtpAttempts(nextAttempts);
 
