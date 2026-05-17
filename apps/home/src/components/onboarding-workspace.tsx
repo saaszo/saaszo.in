@@ -60,10 +60,10 @@ const stepLabels = ["Basics", "Verify & Category", "Size", "GST", "Needs", "Paym
 const stepHelp = [
   {
     title: "Set your business foundation",
-    description: "Ye details aapke account, invoices aur branch identity ka base banengi.",
+    description: "These details become the foundation for your account, invoices, and branch identity.",
     highlights: [
-      "Correct contact details future login recovery aur notifications ke liye zaroori hain.",
-      "State aur city billing, GST aur branch setup me mismatch kam karte hain.",
+      "Correct contact details are important for future login recovery and notifications.",
+      "State and city details reduce billing, GST, and branch setup mismatches.",
     ],
   },
   {
@@ -76,10 +76,10 @@ const stepHelp = [
   },
   {
     title: "Match the product to your size",
-    description: "Scale samajhne se dashboard aur workflows ko better tune kiya ja sakta hai.",
+    description: "Understanding your scale helps us tune the dashboard and workflows more accurately.",
     highlights: [
-      "Right defaults se onboarding fast hota hai.",
-      "Volume aur team size reports aur automations ko influence karte hain.",
+      "The right defaults make onboarding faster.",
+      "Volume and team size affect reports and automation suggestions.",
     ],
   },
   {
@@ -92,18 +92,18 @@ const stepHelp = [
   },
   {
     title: "Choose only what you need",
-    description: "Is step se dashboard aur feature visibility aapke use case ke hisab se set hoti hai.",
+    description: "This step adjusts dashboard and feature visibility based on how you plan to use the product.",
     highlights: [
-      "Branch model baad ki branch creation ko simple banata hai.",
-      "Relevant reports aur modules hi zyada visible rahenge.",
+      "Your branch model keeps future branch creation simple.",
+      "Only the most relevant reports and modules stay prominent.",
     ],
   },
   {
     title: "Set payment basics",
-    description: "Payment details aapke invoices aur collection flow ko trust-ready banate hain.",
+    description: "Payment details make your invoices and collection flow more trusted and complete.",
     highlights: [
-      "Correct bank info customer trust improve karti hai.",
-      "Bank dropdown aur IFSC format checks manual errors kam karte hain.",
+      "Correct bank details improve customer trust.",
+      "Bank dropdowns and IFSC format checks reduce manual errors.",
     ],
   },
   {
@@ -116,10 +116,10 @@ const stepHelp = [
   },
   {
     title: "You're ready to go",
-    description: "Setup complete hone ke baad dashboard aur modules use ke liye ready ho jayenge.",
+    description: "Once setup is complete, your dashboard and modules will be ready to use.",
     highlights: [
-      "Ab aap product, customer aur invoice workflows start kar sakte ho.",
-      "Skipped info later settings se fill ho sakti hai.",
+      "You can now start product, customer, and invoice workflows.",
+      "Any skipped details can be added later from settings.",
     ],
   },
 ] as const;
@@ -213,6 +213,41 @@ function sanitizeDigits(value: string, maxLength = 20) {
 
 function sanitizeUpiId(value: string, maxLength = 255) {
   return value.replace(/[^a-zA-Z0-9._@-]/g, "").toLowerCase().slice(0, maxLength);
+}
+
+function getReadableFirebaseOtpError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || "");
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("auth/invalid-verification-code")) {
+    return "Incorrect OTP.";
+  }
+
+  if (normalized.includes("auth/code-expired")) {
+    return "This OTP has expired. Please request a new one.";
+  }
+
+  if (normalized.includes("auth/session-expired")) {
+    return "This OTP session has expired. Please request a new OTP.";
+  }
+
+  if (normalized.includes("auth/too-many-requests")) {
+    return "Too many requests. Please wait a moment before trying again.";
+  }
+
+  if (normalized.includes("auth/missing-verification-code")) {
+    return "Enter the OTP to continue.";
+  }
+
+  if (normalized.includes("auth/invalid-phone-number")) {
+    return "Enter a valid mobile number in +91XXXXXXXXXX format.";
+  }
+
+  if (normalized.includes("auth/network-request-failed")) {
+    return "Network issue while verifying OTP. Please try again.";
+  }
+
+  return "Could not verify mobile OTP.";
 }
 
 const defaultOptions: OnboardingOptions = {
@@ -428,12 +463,16 @@ export function OnboardingWorkspace() {
       return true;
     }
 
+    if (auth?.emailVerified && (auth?.email || profile?.email || user?.email)) {
+      return true;
+    }
+
     if (user?.emailVerified && (auth?.email || profile?.email || user?.email)) {
       return true;
     }
 
     return false;
-  }, [auth?.email, emailOtpVerified, profile?.email, signedInWithGoogle, user]);
+  }, [auth?.email, auth?.emailVerified, emailOtpVerified, profile?.email, signedInWithGoogle, user]);
 
   const phoneVerified = useMemo(() => {
     if (phoneOtpVerified) {
@@ -860,7 +899,7 @@ export function OnboardingWorkspace() {
       setVerificationError("");
       setVerificationNotice("Mobile OTP sent successfully.");
     } catch (verificationError: any) {
-      setVerificationError(verificationError?.message || "Could not send mobile OTP.");
+      setVerificationError(getReadableFirebaseOtpError(verificationError));
       try {
         phoneVerifier?.clear();
       } catch {}
@@ -943,7 +982,7 @@ export function OnboardingWorkspace() {
         return;
       }
 
-      const baseMessage = verificationError?.message || "Could not verify mobile OTP.";
+      const baseMessage = getReadableFirebaseOtpError(verificationError);
       setVerificationError(`${baseMessage} ${5 - nextAttempts} attempts remaining.`);
     } finally {
       setPhoneOtpVerifying(false);
@@ -1140,7 +1179,7 @@ export function OnboardingWorkspace() {
   const currentStepHelp = stepHelp[currentStep - 1] || stepHelp[0];
 
   return (
-    <div className="flex h-[100dvh] w-full bg-slate-50 overflow-hidden">
+    <div className="flex min-h-[100dvh] w-full bg-slate-50 overflow-hidden lg:h-[100dvh]">
       
       {/* LEFT PANE - Hero & Context */}
       <div className="hidden lg:flex flex-col w-[360px] xl:w-[420px] bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white flex-shrink-0 relative overflow-hidden">
@@ -1232,7 +1271,7 @@ export function OnboardingWorkspace() {
               </div>
             )}
 
-            <div className="flex-1 min-h-0 overflow-visible">
+            <div className="flex-1 min-h-0 overflow-visible pb-24 md:pb-28">
               <h2 className="text-2xl font-extrabold text-slate-900 mb-1">{stepLabels[currentStep - 1]}</h2>
               <p className="text-slate-500 mb-5 font-medium text-base">Please provide the necessary details below.</p>
 
@@ -1544,9 +1583,9 @@ export function OnboardingWorkspace() {
                           </div>
                         )}
                       </div>
-                      <Button type="button" onClick={() => setReportsModalOpen(true)} className="w-full sm:w-auto">
-                        {(form.required_reports || []).length ? "Edit reports" : "Select reports"}
-                      </Button>
+                          <Button type="button" onClick={() => setReportsModalOpen(true)} className="w-full sm:w-auto self-start sm:self-auto">
+                            {(form.required_reports || []).length ? "Edit reports" : "Select reports"}
+                          </Button>
                     </div>
                   </Card>
                 </div>
@@ -1713,10 +1752,6 @@ export function OnboardingWorkspace() {
                     <Button size="lg" className="h-14 text-base w-full shadow-lg" onClick={() => navigateTo("/dashboard")}>
                       Enter Dashboard
                     </Button>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Button variant="outline" className="h-12 w-full" onClick={() => navigateTo("/dashboard/invoices")}>Create Bill</Button>
-                      <Button variant="outline" className="h-12 w-full" onClick={() => navigateTo("/dashboard/products")}>Add Products</Button>
-                    </div>
                   </div>
                 </div>
               )}
@@ -1725,7 +1760,8 @@ export function OnboardingWorkspace() {
 
             {/* Bottom Actions */}
             {currentStep < 8 && (
-              <div className="flex items-center justify-between pt-5 mt-5 border-t border-slate-200 shrink-0">
+              <div className="sticky bottom-0 z-10 -mx-4 mt-5 border-t border-slate-200 bg-slate-50/95 px-4 pt-4 pb-3 backdrop-blur md:-mx-8 md:px-8 shrink-0">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button 
                   variant="ghost" 
                   className={cn("font-semibold", ghostButtonClass)}
@@ -1735,7 +1771,7 @@ export function OnboardingWorkspace() {
                   <ChevronLeft className="w-4 h-4 mr-1" /> Back
                 </Button>
                 
-                <div className="flex gap-3">
+                <div className="flex flex-col-reverse gap-3 sm:flex-row">
                   {currentStep > 1 && currentStep < 8 && currentStep !== 2 && (
                     <Button variant="outline" className={softButtonClass} onClick={skipCurrentStep} disabled={saving}>
                       Skip this step
@@ -1754,6 +1790,7 @@ export function OnboardingWorkspace() {
                       {saving ? "Completing..." : "Complete Setup"} <CheckCircle2 className="w-4 h-4 ml-1" />
                     </Button>
                   )}
+                </div>
                 </div>
               </div>
             )}
@@ -1807,7 +1844,7 @@ export function OnboardingWorkspace() {
                     {emailOtpSending ? "Sending..." : emailOtpLockTimer > 0 ? `Retry in ${emailOtpLockTimer}s` : emailResendTimer > 0 ? `Resend in ${emailResendTimer}s` : emailOtpSent ? "Resend OTP" : "Send OTP"}
                   </Button>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <Input
                     className="h-11 bg-white"
                     value={emailOtp}
@@ -1823,7 +1860,7 @@ export function OnboardingWorkspace() {
                       )
                     }
                   />
-                  <Button type="button" variant="outline" className={softButtonClass} onClick={verifyEmailVerificationOtp} disabled={emailOtpVerifying || emailOtp.length !== 4}>
+                  <Button type="button" variant="outline" className={cn("sm:w-auto", softButtonClass)} onClick={verifyEmailVerificationOtp} disabled={emailOtpVerifying || emailOtp.length !== 4}>
                     {emailOtpVerifying ? "Verifying..." : "Verify"}
                   </Button>
                 </div>
@@ -1838,7 +1875,7 @@ export function OnboardingWorkspace() {
                     {phoneOtpSending ? "Sending..." : phoneOtpLockTimer > 0 ? `Retry in ${phoneOtpLockTimer}s` : phoneResendTimer > 0 ? `Resend in ${phoneResendTimer}s` : phoneOtpSent ? "Resend OTP" : "Send OTP"}
                   </Button>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <Input
                     className="h-11 bg-white"
                     value={phoneOtp}
@@ -1854,7 +1891,7 @@ export function OnboardingWorkspace() {
                       )
                     }
                   />
-                  <Button type="button" variant="outline" className={softButtonClass} onClick={verifyPhoneVerificationOtp} disabled={phoneOtpVerifying || phoneOtp.length !== 6 || !phoneOtpSent}>
+                  <Button type="button" variant="outline" className={cn("sm:w-auto", softButtonClass)} onClick={verifyPhoneVerificationOtp} disabled={phoneOtpVerifying || phoneOtp.length !== 6 || !phoneOtpSent}>
                     {phoneOtpVerifying ? "Verifying..." : "Verify"}
                   </Button>
                 </div>

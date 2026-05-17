@@ -39,6 +39,7 @@ type AuthInfo = {
   providers: string[];
   primaryProvider: string;
   canChangePassword: boolean;
+  emailVerified?: boolean;
 };
 
 type SubscriptionInfo = {
