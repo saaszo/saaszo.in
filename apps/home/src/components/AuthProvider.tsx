@@ -346,6 +346,18 @@ function navigateAfterAuth(router: ReturnType<typeof useRouter>, target?: string
     const sameOrigin = destination.startsWith(window.location.origin);
 
     if (!sameOrigin) {
+      try {
+        const redirectHost = new URL(destination).hostname;
+        const isAllowed =
+          redirectHost === 'saaszo.in' || redirectHost.endsWith('.saaszo.in');
+        if (!isAllowed) {
+          router.push('/dashboard');
+          return;
+        }
+      } catch {
+        router.push('/dashboard');
+        return;
+      }
       window.location.assign(destination);
       return;
     }
