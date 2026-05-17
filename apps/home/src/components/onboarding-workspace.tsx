@@ -964,6 +964,23 @@ export function OnboardingWorkspace() {
     setVerificationModal(kind);
   }
 
+  function handleVerificationEnter(
+    event: React.KeyboardEvent<HTMLInputElement>,
+    action: () => void | Promise<void>,
+    canSubmit: boolean,
+  ) {
+    if (event.key !== "Enter") {
+      return;
+    }
+
+    event.preventDefault();
+    if (!canSubmit) {
+      return;
+    }
+
+    void action();
+  }
+
   async function handleComplete() {
     setSaving(true); setError(""); setSuccess("");
     const result = await authedRequest<OnboardingResponse>("/api/auth/onboarding/complete", {
@@ -1798,6 +1815,13 @@ export function OnboardingWorkspace() {
                     maxLength={4}
                     inputMode="numeric"
                     onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    onKeyDown={(event) =>
+                      handleVerificationEnter(
+                        event,
+                        verifyEmailVerificationOtp,
+                        !emailOtpVerifying && emailOtp.length === 4,
+                      )
+                    }
                   />
                   <Button type="button" variant="outline" className={softButtonClass} onClick={verifyEmailVerificationOtp} disabled={emailOtpVerifying || emailOtp.length !== 4}>
                     {emailOtpVerifying ? "Verifying..." : "Verify"}
@@ -1822,6 +1846,13 @@ export function OnboardingWorkspace() {
                     maxLength={6}
                     inputMode="numeric"
                     onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onKeyDown={(event) =>
+                      handleVerificationEnter(
+                        event,
+                        verifyPhoneVerificationOtp,
+                        !phoneOtpVerifying && phoneOtp.length === 6,
+                      )
+                    }
                   />
                   <Button type="button" variant="outline" className={softButtonClass} onClick={verifyPhoneVerificationOtp} disabled={phoneOtpVerifying || phoneOtp.length !== 6 || !phoneOtpSent}>
                     {phoneOtpVerifying ? "Verifying..." : "Verify"}
