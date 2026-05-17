@@ -555,7 +555,6 @@ export function OnboardingWorkspace() {
   const [phoneVerifier, setPhoneVerifier] = useState<RecaptchaVerifier | null>(
     null,
   );
-  const [phoneRecaptchaSolved, setPhoneRecaptchaSolved] = useState(false);
   const [verificationModal, setVerificationModal] = useState<
     "email" | "phone" | null
   >(null);
@@ -1012,7 +1011,6 @@ export function OnboardingWorkspace() {
       return;
     }
 
-    setPhoneRecaptchaSolved(false);
     if (!phoneVerifier) {
       return;
     }
@@ -1413,18 +1411,16 @@ export function OnboardingWorkspace() {
       return phoneVerifier;
     }
 
-    const recaptchaContainer = document.getElementById(
-      "onboarding-phone-recaptcha",
+    const sendOtpButton = document.getElementById(
+      "onboarding-send-phone-otp-button",
     );
-    if (!recaptchaContainer) {
+    if (!sendOtpButton) {
       throw new Error(
         "Phone verification is still loading. Please reopen the mobile verification dialog.",
       );
     }
 
-    recaptchaContainer.innerHTML = "";
-
-    const verificationAuth = getVerificationAuth();
+    const verificationAuth = await getVerificationAuth();
     if (!verificationAuth) {
       throw new Error("Phone verification is not available right now.");
     }
@@ -1433,18 +1429,16 @@ export function OnboardingWorkspace() {
 
     const verifier = new RecaptchaVerifier(
       verificationAuth,
-      "onboarding-phone-recaptcha",
+      "onboarding-send-phone-otp-button",
       {
-        size: "compact",
+        size: "invisible",
         callback: () => {
-          setPhoneRecaptchaSolved(true);
           setError("");
           setVerificationError("");
         },
         "expired-callback": () => {
-          setPhoneRecaptchaSolved(false);
           setVerificationError(
-            "Phone verification CAPTCHA expired. Complete it again before sending OTP.",
+            "Security check expired. Tap Send OTP again.",
           );
         },
       },
@@ -1470,19 +1464,12 @@ export function OnboardingWorkspace() {
       return;
     }
 
-    if (!phoneRecaptchaSolved) {
-      setVerificationError(
-        "Complete the reCAPTCHA before sending the mobile OTP.",
-      );
-      return;
-    }
-
     setVerificationError("");
     setVerificationNotice("");
     setPhoneOtpSending(true);
 
     try {
-      const verificationAuth = getVerificationAuth();
+      const verificationAuth = await getVerificationAuth();
       if (!verificationAuth) {
         throw new Error("Phone verification is not available right now.");
       }
@@ -1516,7 +1503,6 @@ export function OnboardingWorkspace() {
         phoneVerifier?.clear();
       } catch {}
       setPhoneVerifier(null);
-      setPhoneRecaptchaSolved(false);
     } finally {
       setPhoneOtpSending(false);
     }
@@ -1545,7 +1531,7 @@ export function OnboardingWorkspace() {
     setPhoneOtpVerifying(true);
 
     try {
-      const verificationAuth = getVerificationAuth();
+      const verificationAuth = await getVerificationAuth();
       if (!verificationAuth) {
         throw new Error("Phone verification is not available right now.");
       }
@@ -3107,17 +3093,9 @@ export function OnboardingWorkspace() {
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                   {form.phone || "No mobile number added"}
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-4">
-                  <div
-                    id="onboarding-phone-recaptcha"
-                    className="min-h-[94px] overflow-hidden"
-                  />
-                  <p className="mt-3 text-xs text-slate-500">
-                    Complete this security check once, then tap Send OTP.
-                  </p>
-                </div>
                 <div className="flex gap-2">
                   <Button
+                    id="onboarding-send-phone-otp-button"
                     type="button"
                     onClick={sendPhoneVerificationOtp}
                     disabled={
@@ -3139,6 +3117,10 @@ export function OnboardingWorkspace() {
                             : "Send OTP"}
                   </Button>
                 </div>
+                <p className="text-xs text-slate-500">
+                  Security check runs automatically in the background before OTP
+                  is sent.
+                </p>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Input
                     className="h-11 bg-white"
