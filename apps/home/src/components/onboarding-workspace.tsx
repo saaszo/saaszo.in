@@ -219,6 +219,7 @@ const stepHelp = [
 ] as const;
 const GSTIN_REGEX = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const OTHER_BANK_VALUE = "__other_bank__";
+const MANUAL_CITY_VALUE = "__manual_city__";
 const BANK_OPTIONS = [
   "State Bank of India",
   "HDFC Bank",
@@ -282,6 +283,10 @@ function sanitizeIndianPhone(value: string) {
   const digits = value.replace(/\D/g, "");
   const local = digits.startsWith("91") ? digits.slice(2) : digits;
   return `+91${local.slice(0, 10)}`;
+}
+
+function normalizeLocationValue(value: string | null | undefined) {
+  return (value || "").trim().toLocaleLowerCase();
 }
 
 function normalizeIndianPhone(value: string | null | undefined) {
@@ -535,7 +540,9 @@ export function OnboardingWorkspace() {
   const [emailOtpLockTimer, setEmailOtpLockTimer] = useState(0);
   const [phoneOtpAttempts, setPhoneOtpAttempts] = useState(0);
   const [phoneOtpLockTimer, setPhoneOtpLockTimer] = useState(0);
-  const { states, isLoading: locationsLoading } = useLocations();
+  const [manualCityMode, setManualCityMode] = useState(false);
+  const { states, citiesByState, isLoading: locationsLoading } =
+    useLocations();
   const { user, profile, auth } = useAuthSession();
   const primaryButtonClass =
     "cursor-pointer bg-primary text-white shadow-md hover:bg-primary/90";
@@ -547,6 +554,55 @@ export function OnboardingWorkspace() {
   const stateOptions = useMemo(
     () => states.map((s) => ({ label: s.label, value: s.state_name })),
     [states],
+  );
+  const getCitiesForState = (stateName: string) => {
+    const matchedStateKey = Object.keys(citiesByState).find(
+      (key) => normalizeLocationValue(key) === normalizeLocationValue(stateName),
+    );
+
+    return Array.from(
+      new Set(
+        (citiesByState[matchedStateKey || stateName] || [])
+          .map((city) => city.trim())
+          .filter(Boolean),
+      ),
+    ).sort((left, right) => left.localeCompare(right));
+  };
+  const selectedStateCities = useMemo(
+    () => getCitiesForState((form.state || "").trim()),
+    [citiesByState, form.state],
+  );
+  const currentCityMatchesState = useMemo(() => {
+    const normalizedCity = normalizeLocationValue(form.city);
+
+    if (!normalizedCity) {
+      return false;
+    }
+
+    return selectedStateCities.some(
+      (city) => normalizeLocationValue(city) === normalizedCity,
+    );
+  }, [form.city, selectedStateCities]);
+  const showManualCityInput =
+    manualCityMode ||
+    (!locationsLoading &&
+      Boolean((form.city || "").trim()) &&
+      !currentCityMatchesState) ||
+    (!locationsLoading &&
+      Boolean((form.state || "").trim()) &&
+      selectedStateCities.length === 0);
+  const cityOptions = useMemo(
+    () => [
+      ...selectedStateCities.map((city) => ({ label: city, value: city })),
+      {
+        label:
+          selectedStateCities.length > 0
+            ? "My city is not listed"
+            : "Enter city manually",
+        value: MANUAL_CITY_VALUE,
+      },
+    ],
+    [selectedStateCities],
   );
   const businessCategoryOptions = useMemo(
     () =>
@@ -953,6 +1009,43 @@ export function OnboardingWorkspace() {
     maxLength?: number,
   ) {
     setValue(key, sanitizeLetters(value, maxLength) as OnboardingProfile[K]);
+  }
+
+  function handleStateSelection(value: string) {
+    const nextState = value.trim();
+    const nextCities = getCitiesForState(nextState);
+    const currentCity = (form.city || "").trim();
+    const cityStillMatches = nextCities.some(
+      (city) => normalizeLocationValue(city) === normalizeLocationValue(currentCity),
+    );
+
+    setForm((current) => ({
+      ...current,
+      state: nextState,
+      city: cityStillMatches ? current.city : "",
+    }));
+    setManualCityMode(nextCities.length === 0);
+  }
+
+  function handleCitySelection(value: string) {
+    if (value === MANUAL_CITY_VALUE) {
+      setManualCityMode(true);
+      if (currentCityMatchesState) {
+        setValue("city", "" as OnboardingProfile["city"]);
+      }
+      return;
+    }
+
+    setManualCityMode(false);
+    setValue("city", value as OnboardingProfile["city"]);
+  }
+
+  function useSuggestedCityList() {
+    setManualCityMode(false);
+
+    if (!currentCityMatchesState) {
+      setValue("city", "" as OnboardingProfile["city"]);
+    }
   }
 
   function handleAlphaNumericField<K extends keyof OnboardingProfile>(
@@ -2028,7 +2121,7 @@ export function OnboardingWorkspace() {
                     <SearchableSelect
                       options={stateOptions}
                       value={form.state || ""}
-                      onChange={(val) => setValue("state", val)}
+                      onChange={handleStateSelection}
                       emptyMessage={
                         locationsLoading
                           ? "Loading states..."
@@ -2040,15 +2133,63 @@ export function OnboardingWorkspace() {
                     <Label className="text-slate-700">
                       City <span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      className="h-12 bg-white"
-                      value={form.city || ""}
-                      placeholder="Enter city name"
-                      maxLength={120}
-                      onChange={(e) =>
-                        handleLetterField("city", e.target.value, 120)
-                      }
-                    />
+                    {showManualCityInput ? (
+                      <>
+                        <Input
+                          className="h-12 bg-white"
+                          value={form.city || ""}
+                          placeholder={
+                            form.state
+                              ? "Enter city name"
+                              : "Select state first"
+                          }
+                          maxLength={120}
+                          onChange={(e) =>
+                            handleLetterField("city", e.target.value, 120)
+                          }
+                        />
+                        <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
+                          <span>
+                            {selectedStateCities.length > 0
+                              ? "If your city is missing from the government-backed list, enter it manually."
+                              : "No suggested city list is available for this state yet, so you can add it manually."}
+                          </span>
+                          {selectedStateCities.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={useSuggestedCityList}
+                              className="font-semibold text-primary hover:underline"
+                            >
+                              Choose from list
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <SearchableSelect
+                          options={cityOptions}
+                          value={currentCityMatchesState ? form.city || "" : ""}
+                          onChange={handleCitySelection}
+                          placeholder={
+                            form.state ? "Select city..." : "Select state first"
+                          }
+                          emptyMessage={
+                            locationsLoading
+                              ? "Loading cities..."
+                              : "No city found. Choose manual entry."
+                          }
+                          disabled={!form.state || locationsLoading}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleCitySelection(MANUAL_CITY_VALUE)}
+                          className="text-xs font-semibold text-primary hover:underline"
+                        >
+                          City not listed? Enter manually
+                        </button>
+                      </>
+                    )}
                   </div>
                   <div className="col-span-full space-y-3 mt-4">
                     <Label className="text-slate-700">
