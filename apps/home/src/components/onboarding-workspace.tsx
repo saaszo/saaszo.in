@@ -1411,14 +1411,16 @@ export function OnboardingWorkspace() {
       return phoneVerifier;
     }
 
-    const sendOtpButton = document.getElementById(
-      "onboarding-send-phone-otp-button",
+    const recaptchaContainer = document.getElementById(
+      "onboarding-phone-recaptcha",
     );
-    if (!sendOtpButton) {
+    if (!recaptchaContainer) {
       throw new Error(
         "Phone verification is still loading. Please reopen the mobile verification dialog.",
       );
     }
+
+    recaptchaContainer.innerHTML = "";
 
     const verificationAuth = await getVerificationAuth();
     if (!verificationAuth) {
@@ -1429,7 +1431,7 @@ export function OnboardingWorkspace() {
 
     const verifier = new RecaptchaVerifier(
       verificationAuth,
-      "onboarding-send-phone-otp-button",
+      "onboarding-phone-recaptcha",
       {
         size: "invisible",
         callback: () => {
@@ -3093,9 +3095,12 @@ export function OnboardingWorkspace() {
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                   {form.phone || "No mobile number added"}
                 </div>
+                <div
+                  id="onboarding-phone-recaptcha"
+                  className="pointer-events-none absolute -left-[9999px] top-0 h-0 w-0 overflow-hidden opacity-0"
+                />
                 <div className="flex gap-2">
                   <Button
-                    id="onboarding-send-phone-otp-button"
                     type="button"
                     onClick={sendPhoneVerificationOtp}
                     disabled={
