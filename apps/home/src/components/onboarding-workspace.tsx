@@ -290,6 +290,9 @@ export function OnboardingWorkspace() {
   const [verificationError, setVerificationError] = useState("");
   const [emailResendTimer, setEmailResendTimer] = useState(0);
   const [phoneResendTimer, setPhoneResendTimer] = useState(0);
+  const [emailOtpLockTimer, setEmailOtpLockTimer] = useState(0);
+  const [phoneOtpAttempts, setPhoneOtpAttempts] = useState(0);
+  const [phoneOtpLockTimer, setPhoneOtpLockTimer] = useState(0);
   const { states, isLoading: locationsLoading } = useLocations();
   const { user, profile, auth } = useAuthSession();
   const primaryButtonClass = "cursor-pointer bg-primary text-white shadow-md hover:bg-primary/90";
@@ -506,6 +509,43 @@ export function OnboardingWorkspace() {
   }, [phoneResendTimer]);
 
   useEffect(() => {
+    if (emailOtpLockTimer <= 0) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setEmailOtpLockTimer((current) => Math.max(current - 1, 0));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [emailOtpLockTimer]);
+
+  useEffect(() => {
+    if (phoneOtpLockTimer <= 0) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setPhoneOtpLockTimer((current) => Math.max(current - 1, 0));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [phoneOtpLockTimer]);
+
+  useEffect(() => {
+    if (emailOtpLockTimer === 0) {
+      setVerificationError((current) =>
+        current.includes("Too many incorrect OTP attempts") ? "" : current,
+      );
+    }
+  }, [emailOtpLockTimer]);
+
+  useEffect(() => {
+    if (phoneOtpLockTimer === 0) {
+      setPhoneOtpAttempts(0);
+      setVerificationError((current) =>
+        current.includes("Too many incorrect OTP attempts") ? "" : current,
+      );
+    }
+  }, [phoneOtpLockTimer]);
+
+  useEffect(() => {
     if (currentStep !== 2 || phoneVerified) {
       return;
     }
@@ -660,6 +700,11 @@ export function OnboardingWorkspace() {
   }
 
   async function sendEmailVerificationOtp() {
+    if (emailOtpLockTimer > 0) {
+      setVerificationError(`Too many incorrect OTP attempts. Please wait ${emailOtpLockTimer} seconds before trying again.`);
+      return;
+    }
+
     if (!form.email) {
       setVerificationError("Enter your email address first.");
       return;
@@ -669,7 +714,7 @@ export function OnboardingWorkspace() {
     setVerificationNotice("");
     setEmailOtpSending(true);
 
-    const result = await authedRequest<{ success?: boolean; message?: string }>("/api/auth/account/send-email-otp", {
+    const result = await authedRequest<{ success?: boolean; message?: string; seconds_remaining?: number }>("/api/auth/account/send-email-otp", {
       method: "POST",
       body: JSON.stringify({
         purpose: "current_email",
@@ -680,16 +725,26 @@ export function OnboardingWorkspace() {
     setEmailOtpSending(false);
 
     if (!result.ok || !result.data.success) {
+      if (result.status === 423 && result.data.seconds_remaining) {
+        setEmailOtpLockTimer(result.data.seconds_remaining);
+      }
       setVerificationError(apiErrorMessage("Could not send email OTP.", result.data));
       return;
     }
 
     setEmailOtpSent(true);
     setEmailResendTimer(60);
+    setEmailOtpLockTimer(0);
+    setEmailOtp("");
     setVerificationNotice(result.data.message || "Email OTP sent successfully.");
   }
 
   async function verifyEmailVerificationOtp() {
+    if (emailOtpLockTimer > 0) {
+      setVerificationError(`Too many incorrect OTP attempts. Please wait ${emailOtpLockTimer} seconds before trying again.`);
+      return;
+    }
+
     if (emailOtp.length !== 4) {
       setVerificationError("Enter the 4-digit email OTP.");
       return;
@@ -699,7 +754,7 @@ export function OnboardingWorkspace() {
     setVerificationNotice("");
     setEmailOtpVerifying(true);
 
-    const result = await authedRequest<{ success?: boolean; message?: string }>("/api/auth/account/verify-email-otp", {
+    const result = await authedRequest<{ success?: boolean; message?: string; attempts_remaining?: number; seconds_remaining?: number }>("/api/auth/account/verify-email-otp", {
       method: "POST",
       body: JSON.stringify({
         purpose: "current_email",
@@ -711,6 +766,13 @@ export function OnboardingWorkspace() {
     setEmailOtpVerifying(false);
 
     if (!result.ok || !result.data.success) {
+      if (result.status === 423 && result.data.seconds_remaining) {
+        setEmailOtpLockTimer(result.data.seconds_remaining);
+      }
+      if (typeof result.data.attempts_remaining === "number") {
+        setVerificationError(`${apiErrorMessage("Could not verify email OTP.", result.data)} ${result.data.attempts_remaining} attempts remaining.`);
+        return;
+      }
       setVerificationError(apiErrorMessage("Could not verify email OTP.", result.data));
       return;
     }
@@ -718,6 +780,7 @@ export function OnboardingWorkspace() {
     setEmailOtp("");
     setEmailOtpSent(false);
     setEmailResendTimer(0);
+    setEmailOtpLockTimer(0);
     setEmailOtpVerified(true);
     setVerificationModal(null);
     setSuccess(result.data.message || "Email verified successfully.");
@@ -749,6 +812,11 @@ export function OnboardingWorkspace() {
   }
 
   async function sendPhoneVerificationOtp() {
+    if (phoneOtpLockTimer > 0) {
+      setVerificationError(`Too many incorrect OTP attempts. Please wait ${phoneOtpLockTimer} seconds before trying again.`);
+      return;
+    }
+
     if (!/^\+91\d{10}$/.test(form.phone || "")) {
       setVerificationError("Enter a valid mobile number in +91XXXXXXXXXX format first.");
       return;
@@ -773,6 +841,9 @@ export function OnboardingWorkspace() {
       setVerificationConfirmation(confirmation);
       setPhoneOtpSent(true);
       setPhoneResendTimer(60);
+      setPhoneOtp("");
+      setPhoneOtpAttempts(0);
+      setPhoneOtpLockTimer(0);
       setVerificationNotice("Mobile OTP sent successfully.");
     } catch (verificationError: any) {
       setVerificationError(verificationError?.message || "Could not send mobile OTP.");
@@ -786,6 +857,11 @@ export function OnboardingWorkspace() {
   }
 
   async function verifyPhoneVerificationOtp() {
+    if (phoneOtpLockTimer > 0) {
+      setVerificationError(`Too many incorrect OTP attempts. Please wait ${phoneOtpLockTimer} seconds before trying again.`);
+      return;
+    }
+
     if (!verificationConfirmation) {
       setVerificationError("Please send the mobile OTP first.");
       return;
@@ -826,6 +902,8 @@ export function OnboardingWorkspace() {
       setPhoneOtpSent(false);
       setPhoneResendTimer(0);
       setVerificationConfirmation(null);
+      setPhoneOtpAttempts(0);
+      setPhoneOtpLockTimer(0);
       setPhoneOtpVerified(true);
       setVerificationModal(null);
       setSuccess(result.data.message || "Mobile verified successfully.");
@@ -835,7 +913,17 @@ export function OnboardingWorkspace() {
       } catch {}
       setPhoneVerifier(null);
     } catch (verificationError: any) {
-      setVerificationError(verificationError?.message || "Could not verify mobile OTP.");
+      const nextAttempts = phoneOtpAttempts + 1;
+      setPhoneOtpAttempts(nextAttempts);
+
+      if (nextAttempts >= 5) {
+        setPhoneOtpLockTimer(60);
+        setVerificationError("Too many incorrect OTP attempts. Please wait 60 seconds before trying again.");
+        return;
+      }
+
+      const baseMessage = verificationError?.message || "Could not verify mobile OTP.";
+      setVerificationError(`${baseMessage} ${5 - nextAttempts} attempts remaining.`);
     } finally {
       setPhoneOtpVerifying(false);
     }
@@ -846,6 +934,12 @@ export function OnboardingWorkspace() {
     setSuccess("");
     setVerificationError("");
     setVerificationNotice("");
+    if (kind === "email" && emailOtpLockTimer === 0) {
+      setEmailOtp("");
+    }
+    if (kind === "phone" && phoneOtpLockTimer === 0) {
+      setPhoneOtp("");
+    }
     setVerificationModal(kind);
   }
 
@@ -1671,8 +1765,8 @@ export function OnboardingWorkspace() {
                   {form.email || "No email added"}
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={sendEmailVerificationOtp} disabled={emailOtpSending || emailOtpVerifying || emailResendTimer > 0} className={cn("flex-1", primaryButtonClass)}>
-                    {emailOtpSending ? "Sending..." : emailResendTimer > 0 ? `Resend in ${emailResendTimer}s` : emailOtpSent ? "Resend OTP" : "Send OTP"}
+                  <Button type="button" onClick={sendEmailVerificationOtp} disabled={emailOtpSending || emailOtpVerifying || emailResendTimer > 0 || emailOtpLockTimer > 0} className={cn("flex-1", primaryButtonClass)}>
+                    {emailOtpSending ? "Sending..." : emailOtpLockTimer > 0 ? `Retry in ${emailOtpLockTimer}s` : emailResendTimer > 0 ? `Resend in ${emailResendTimer}s` : emailOtpSent ? "Resend OTP" : "Send OTP"}
                   </Button>
                 </div>
                 <div className="flex gap-2">
@@ -1695,8 +1789,8 @@ export function OnboardingWorkspace() {
                   {form.phone || "No mobile number added"}
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={sendPhoneVerificationOtp} disabled={phoneOtpSending || phoneOtpVerifying || phoneResendTimer > 0} className={cn("flex-1", primaryButtonClass)}>
-                    {phoneOtpSending ? "Sending..." : phoneResendTimer > 0 ? `Resend in ${phoneResendTimer}s` : phoneOtpSent ? "Resend OTP" : "Send OTP"}
+                  <Button type="button" onClick={sendPhoneVerificationOtp} disabled={phoneOtpSending || phoneOtpVerifying || phoneResendTimer > 0 || phoneOtpLockTimer > 0} className={cn("flex-1", primaryButtonClass)}>
+                    {phoneOtpSending ? "Sending..." : phoneOtpLockTimer > 0 ? `Retry in ${phoneOtpLockTimer}s` : phoneResendTimer > 0 ? `Resend in ${phoneResendTimer}s` : phoneOtpSent ? "Resend OTP" : "Send OTP"}
                   </Button>
                 </div>
                 <div className="flex gap-2">
