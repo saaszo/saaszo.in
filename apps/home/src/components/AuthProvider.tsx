@@ -349,7 +349,8 @@ function navigateAfterAuth(router: ReturnType<typeof useRouter>, target?: string
       try {
         const redirectHost = new URL(destination).hostname;
         const isAllowed =
-          redirectHost === 'saaszo.in' || redirectHost.endsWith('.saaszo.in');
+          redirectHost === 'saaszo.in' ||
+          (redirectHost.endsWith('.saaszo.in') && redirectHost !== '.saaszo.in');
         if (!isAllowed) {
           router.push('/dashboard');
           return;
