@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo, useState, Suspense } from 'react';
+import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuthSession } from '@/components/AuthProvider';
@@ -89,6 +89,7 @@ function RegisterForm() {
   const [emailVerified, setEmailVerified] = useState(false);
   const [otpLockSeconds, setOtpLockSeconds] = useState(0);
   const [resendTimer, setResendTimer] = useState(0);
+  const verifyRequestInFlight = useRef(false);
 
   const normalizedEmail = useMemo(() => normalizeEmail(email), [email]);
 
@@ -166,7 +167,8 @@ function RegisterForm() {
   };
 
   const handleVerifyOtp = async () => {
-    if (verifyLoading || otpLockSeconds > 0) return;
+    if (verifyRequestInFlight.current || verifyLoading || otpLockSeconds > 0) return;
+    verifyRequestInFlight.current = true;
     setVerifyLoading(true);
     setOtpError('');
     setOtpNotice('');
@@ -197,13 +199,14 @@ function RegisterForm() {
     } catch (err: any) {
       const payload = err?.payload;
       const seconds = Number(payload?.seconds_remaining ?? 0);
-      if (err?.status === 423 && seconds > 0) {
+      if ((err?.status === 423 || err?.status === 429) && seconds > 0) {
         setOtpLockSeconds(seconds);
         setResendTimer(seconds);
       }
-      setOtpError(err?.message || 'Verification failed.');
+      setOtpError(err?.message || (err?.status === 429 ? 'Too many verification requests. Please wait a moment and try again.' : 'Verification failed.'));
       setEmailVerified(false);
     } finally {
+      verifyRequestInFlight.current = false;
       setVerifyLoading(false);
     }
   };
