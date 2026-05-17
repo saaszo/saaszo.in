@@ -84,10 +84,10 @@ const stepHelp = [
   },
   {
     title: "Keep GST data clean",
-    description: "GST details invoice accuracy aur compliance ke liye important hain.",
+    description: "Accurate GST details keep invoices cleaner and reduce compliance mistakes later.",
     highlights: [
-      "Galat GST state ya GSTIN future filing issues create kar sakta hai.",
-      "Valid format checks abhi se errors ko reduce karte hain.",
+      "A wrong GST state or GSTIN can create filing issues later.",
+      "Format checks here reduce avoidable data errors early.",
     ],
   },
   {
@@ -108,18 +108,18 @@ const stepHelp = [
   },
   {
     title: "Finish branding",
-    description: "Template aur logo se aapka invoice professional aur recognizable hota hai.",
+    description: "Your logo and template make invoices feel professional, trusted, and recognizable.",
     highlights: [
-      "Customer-facing documents me consistent brand important hota hai.",
-      "Logo aur template baad me settings se update ho sakte hain.",
+      "Consistent branding improves trust in customer-facing documents.",
+      "You can always update the logo and template later from settings.",
     ],
   },
   {
     title: "You're ready to go",
     description: "Once setup is complete, your dashboard and modules will be ready to use.",
     highlights: [
-      "You can now start product, customer, and invoice workflows.",
-      "Any skipped details can be added later from settings.",
+      "You can now start customer, product, and billing workflows.",
+      "You can still update business details later from settings.",
     ],
   },
 ] as const;
@@ -785,7 +785,11 @@ export function OnboardingWorkspace() {
     setEmailOtpLockTimer(0);
     setEmailOtp("");
     setVerificationError("");
-    setVerificationNotice(result.data.message || "Email OTP sent successfully.");
+    setVerificationNotice(
+      emailOtpSent
+        ? "A new OTP has been sent. Please use the latest OTP. Older OTPs are no longer valid."
+        : (result.data.message || "Email OTP sent successfully."),
+    );
   }
 
   async function verifyEmailVerificationOtp() {
@@ -897,7 +901,11 @@ export function OnboardingWorkspace() {
       setPhoneOtpAttempts(0);
       setPhoneOtpLockTimer(0);
       setVerificationError("");
-      setVerificationNotice("Mobile OTP sent successfully.");
+      setVerificationNotice(
+        phoneOtpSent
+          ? "A new OTP has been sent. Please use the latest OTP. Older OTPs are no longer valid."
+          : "Mobile OTP sent successfully.",
+      );
     } catch (verificationError: any) {
       setVerificationError(getReadableFirebaseOtpError(verificationError));
       try {
@@ -1042,13 +1050,6 @@ export function OnboardingWorkspace() {
     setForm((current) => ({ ...current, ...(result.data.profile || {}), setup_skipped: true }));
     setSuccess(result.data.message || "Setup skipped.");
     navigateTo("/dashboard");
-  }
-
-  function skipCurrentStep() {
-    if (currentStep <= 1 || currentStep >= 8) return;
-    setError("");
-    setSuccess("Current step skipped. You can complete it later.");
-    setCurrentStep((step) => Math.min(step + 1, 8));
   }
 
   async function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -1271,12 +1272,12 @@ export function OnboardingWorkspace() {
               </div>
             )}
 
-            <div className="flex-1 min-h-0 overflow-visible pb-24 md:pb-28">
+            <div className="flex-1 min-h-0 overflow-visible pb-40 md:pb-36">
               <h2 className="text-2xl font-extrabold text-slate-900 mb-1">{stepLabels[currentStep - 1]}</h2>
               <p className="text-slate-500 mb-5 font-medium text-base">Please provide the necessary details below.</p>
 
               {currentStep === 1 && (
-                <div className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label className="text-slate-700">Owner Name <span className="text-red-500">*</span></Label>
                     <Input className="h-12 bg-white" value={form.owner_name || ""} placeholder="Pankaj Kumar" maxLength={255} onChange={e => handleLetterField("owner_name", e.target.value, 255)} />
@@ -1316,7 +1317,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 2 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
+                <div className="space-y-6 pb-4">
                   <div id="onboarding-phone-recaptcha" className="pointer-events-none absolute -left-[9999px] top-0 h-0 w-0 overflow-hidden opacity-0" />
 
                   <div className="grid xl:grid-cols-2 gap-4">
@@ -1390,7 +1391,7 @@ export function OnboardingWorkspace() {
                     />
                   </div>
                   {form.business_category === "Other" && (
-                    <div className="space-y-2 animate-in fade-in zoom-in-95">
+                    <div className="space-y-2">
                       <Label className="text-slate-700">Specify Category</Label>
                       <Input className="h-12 bg-white" value={form.other_business_category || ""} placeholder="E.g. Event Management" maxLength={255} onChange={e => handleTextField("other_business_category", e.target.value, 255)} />
                     </div>
@@ -1399,7 +1400,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 3 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[calc(100dvh-220px)] pr-2">
+                <div className="space-y-6 overflow-y-auto pr-2 lg:max-h-[calc(100dvh-220px)]">
                   <div className="space-y-3">
                     <Label className="text-slate-700">Team Size <span className="text-red-500">*</span></Label>
                     {renderPills(options.team_sizes, form.team_size, val => setValue("team_size", val))}
@@ -1412,7 +1413,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 4 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
+                <div className="space-y-5 pb-4">
                   <div className="grid gap-4 lg:grid-cols-2">
                     <div className="space-y-2">
                       <Label className="text-slate-700">GST status <span className="text-red-500">*</span></Label>
@@ -1512,7 +1513,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 5 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
+                <div className="space-y-5 pb-4">
                   <div className="grid gap-4 lg:grid-cols-2">
                     <div className="space-y-2">
                       <Label className="text-slate-700">What do you invoice most? <span className="text-red-500">*</span></Label>
@@ -1592,7 +1593,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 6 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
+                <div className="space-y-5 pb-4">
                   <div className="grid gap-4 lg:grid-cols-2">
                     <Card className="p-5 bg-white border-slate-200 shadow-sm">
                       <div className="flex h-full flex-col gap-4">
@@ -1676,7 +1677,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 7 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-4">
+                <div className="space-y-5 pb-4">
                   <div className="grid gap-4 lg:grid-cols-2">
                     <Card className="p-5 bg-white border-slate-200 shadow-sm">
                       <div className="flex h-full flex-col gap-4 sm:flex-row sm:items-center">
@@ -1739,7 +1740,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 8 && (
-                <div className="space-y-8 animate-in zoom-in duration-500 flex flex-col items-center text-center py-12">
+                <div className="flex flex-col items-center space-y-8 py-12 text-center">
                   <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 ring-8 ring-green-50">
                     <CheckCircle2 className="w-12 h-12 text-green-600" />
                   </div>
@@ -1760,7 +1761,7 @@ export function OnboardingWorkspace() {
 
             {/* Bottom Actions */}
             {currentStep < 8 && (
-              <div className="sticky bottom-0 z-10 -mx-4 mt-5 border-t border-slate-200 bg-slate-50/95 px-4 pt-4 pb-3 backdrop-blur md:-mx-8 md:px-8 shrink-0">
+              <div className="sticky bottom-0 z-10 -mx-4 mt-5 shrink-0 border-t border-slate-200 bg-white/95 px-4 pb-3 pt-4 backdrop-blur md:-mx-8 md:px-8">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button 
                   variant="ghost" 
@@ -1772,11 +1773,6 @@ export function OnboardingWorkspace() {
                 </Button>
                 
                 <div className="flex flex-col-reverse gap-3 sm:flex-row">
-                  {currentStep > 1 && currentStep < 8 && currentStep !== 2 && (
-                    <Button variant="outline" className={softButtonClass} onClick={skipCurrentStep} disabled={saving}>
-                      Skip this step
-                    </Button>
-                  )}
                   <Button variant="secondary" className={softButtonClass} onClick={() => saveStep(currentStep, false)} disabled={saving}>
                     {saving ? "Saving..." : "Save Progress"}
                   </Button>

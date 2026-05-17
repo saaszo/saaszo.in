@@ -89,6 +89,7 @@ function RegisterForm() {
   const [emailVerified, setEmailVerified] = useState(false);
   const [otpLockSeconds, setOtpLockSeconds] = useState(0);
   const [resendTimer, setResendTimer] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
   const verifyRequestInFlight = useRef(false);
 
   const normalizedEmail = useMemo(() => normalizeEmail(email), [email]);
@@ -152,7 +153,11 @@ function RegisterForm() {
       setOtp('');
       setOtpLockSeconds(0);
       setResendTimer(60);
-      setOtpNotice(result.message || `A verification code has been sent to ${normalizedEmail}.`);
+      setOtpNotice(
+        otpSent
+          ? `A new verification code has been sent to ${normalizedEmail}. Please use the latest OTP. Older OTPs are no longer valid.`
+          : (result.message || `A verification code has been sent to ${normalizedEmail}.`),
+      );
     } catch (err: any) {
       const payload = err?.payload;
       const seconds = Number(payload?.seconds_remaining ?? 0);
@@ -203,7 +208,15 @@ function RegisterForm() {
         setOtpLockSeconds(seconds);
         setResendTimer(seconds);
       }
-      setOtpError(err?.message || (err?.status === 429 ? 'Too many verification requests. Please wait a moment and try again.' : 'Verification failed.'));
+      const fallbackMessage = err?.status === 429
+        ? 'Too many verification requests. Please wait a moment and try again.'
+        : 'Verification failed.';
+      const nextMessage = err?.message || fallbackMessage;
+      setOtpError(
+        /incorrect otp|invalid otp|invalid verification/i.test(nextMessage)
+          ? 'Incorrect OTP. If you requested a new OTP, please enter the latest code.'
+          : nextMessage,
+      );
       setEmailVerified(false);
     } finally {
       verifyRequestInFlight.current = false;
@@ -412,23 +425,45 @@ function RegisterForm() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-xl">lock</span>
-                  </div>
-                  <input
-                    type="password"
+            <div className="space-y-2">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
+                  <span className="material-symbols-outlined text-xl">lock</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  className="absolute inset-y-0 right-0 flex items-center justify-center px-4 text-on-surface-variant transition-colors hover:text-primary"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  <span className="material-symbols-outlined text-xl">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                </button>
+                <input
+                    type={showPassword ? "text" : "password"}
                     placeholder="Create a password"
-                    className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
+                    className={`w-full rounded-xl border bg-surface-container py-4 pl-12 pr-12 outline-none transition-all duration-300 placeholder-outline shadow-sm ${
+                      password.length > 0 && !passwordMeetsRequirements(password)
+                        ? 'border-amber-300 bg-amber-50/70 focus:border-amber-400 focus:shadow-[0_0_0_4px_rgba(251,191,36,0.18)]'
+                        : 'border-transparent hover:bg-surface-container-high focus:border-primary focus:bg-surface-container-lowest focus:shadow-[0_0_0_4px_var(--color-primary-container)]'
+                    }`}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
-                <p className="text-xs text-on-surface-variant">
-                  Use at least 8 characters with uppercase, lowercase, a number, and a special character.
-                </p>
+                <div className={`rounded-xl border px-3 py-2 text-xs ${
+                  password.length === 0
+                    ? 'border-outline-variant/60 bg-surface-container-low text-on-surface-variant'
+                    : passwordMeetsRequirements(password)
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-amber-200 bg-amber-50 text-amber-700'
+                }`}>
+                  {password.length === 0
+                    ? 'Use at least 8 characters with uppercase, lowercase, a number, and a special character.'
+                    : passwordMeetsRequirements(password)
+                      ? 'Strong password format ready.'
+                      : 'Password must include uppercase, lowercase, a number, and a special character.'}
+                </div>
               </div>
             </div>
 
