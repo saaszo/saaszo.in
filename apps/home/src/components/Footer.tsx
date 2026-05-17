@@ -36,8 +36,7 @@ export default function Footer() {
       <div
         className="py-20"
         style={{
-          background:
-            "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+          background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
         }}
       >
         <div className="max-w-3xl mx-auto px-6 text-center">
@@ -45,7 +44,8 @@ export default function Footer() {
             Ready to transform your business?
           </h2>
           <p className="text-white/70 text-lg mb-8">
-            Join 2,400+ teams already using SaaSzo to run their entire operation.
+            Join 2,400+ teams already using SaaSzo to run their entire
+            operation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

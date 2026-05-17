@@ -1,6 +1,6 @@
-import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
-import { FIREBASE_PUBLIC_CONFIG } from './app-config';
+import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { FIREBASE_PUBLIC_CONFIG } from "./app-config";
 
 const firebaseConfig = FIREBASE_PUBLIC_CONFIG;
 
@@ -15,7 +15,7 @@ let auth: Auth | null = null;
 let verificationApp: FirebaseApp | null = null;
 let verificationAuth: Auth | null = null;
 
-if (typeof window !== 'undefined' && hasFirebaseConfig) {
+if (typeof window !== "undefined" && hasFirebaseConfig) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
 }
@@ -23,13 +23,14 @@ if (typeof window !== 'undefined' && hasFirebaseConfig) {
 export { app, auth };
 
 export function getVerificationAuth() {
-  if (typeof window === 'undefined' || !hasFirebaseConfig) {
+  if (typeof window === "undefined" || !hasFirebaseConfig) {
     return null;
   }
 
   if (!verificationApp) {
-    verificationApp = getApps().find((candidate) => candidate.name === 'phone-verification')
-      ?? initializeApp(firebaseConfig, 'phone-verification');
+    verificationApp =
+      getApps().find((candidate) => candidate.name === "phone-verification") ??
+      initializeApp(firebaseConfig, "phone-verification");
   }
 
   if (!verificationAuth) {

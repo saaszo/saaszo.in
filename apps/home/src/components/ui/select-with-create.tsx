@@ -31,12 +31,17 @@ export function SelectWithCreate({
   const [isCreating, setIsCreating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const filteredOptions = options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()));
+  const filteredOptions = options.filter((o) =>
+    o.label.toLowerCase().includes(search.toLowerCase()),
+  );
   const selectedOption = options.find((o) => o.value === value);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -73,7 +78,20 @@ export function SelectWithCreate({
         <span className={selectedOption ? "text-ink" : "text-muted"}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <svg className="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        <svg
+          className="h-4 w-4 opacity-50"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </div>
 
       {isOpen && (
@@ -100,7 +118,9 @@ export function SelectWithCreate({
                 </div>
               ))
             ) : (
-              <div className="py-2 text-center text-sm text-muted">No results found.</div>
+              <div className="py-2 text-center text-sm text-muted">
+                No results found.
+              </div>
             )}
           </div>
           <div className="border-t border-border mt-1 p-1">
@@ -123,7 +143,9 @@ export function SelectWithCreate({
       {isCreateOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-bold text-ink">{createModalTitle}</h3>
+            <h3 className="mb-4 text-lg font-bold text-ink">
+              {createModalTitle}
+            </h3>
             <form onSubmit={handleCreateSubmit}>
               <div className="mb-4 space-y-2">
                 <Label>Name</Label>
@@ -135,7 +157,11 @@ export function SelectWithCreate({
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCreateOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isCreating}>

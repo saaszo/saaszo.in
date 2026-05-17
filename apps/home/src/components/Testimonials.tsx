@@ -68,7 +68,9 @@ export default function Testimonials() {
                 className="w-10 h-10 rounded-full object-cover bg-surface-container-high"
               />
               <div>
-                <p className="text-sm font-semibold text-on-surface">{t.name}</p>
+                <p className="text-sm font-semibold text-on-surface">
+                  {t.name}
+                </p>
                 <p className="text-xs text-on-surface-variant">{t.role}</p>
               </div>
             </div>

@@ -1,49 +1,51 @@
-'use client';
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useAuthSession } from '@/components/AuthProvider';
-import { lookupAuthIdentifier, parseAuthIdentifier } from '@/lib/auth-utils';
+"use client";
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuthSession } from "@/components/AuthProvider";
+import { lookupAuthIdentifier, parseAuthIdentifier } from "@/lib/auth-utils";
 
 export default function ForgotPassword() {
   const router = useRouter();
   const { sendPasswordReset } = useAuthSession();
-  const [identifier, setIdentifier] = useState('');
+  const [identifier, setIdentifier] = useState("");
   const [isHovered, setIsHovered] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
 
     setIsLoading(true);
-    setError('');
-    setSuccessMessage('');
+    setError("");
+    setSuccessMessage("");
 
     try {
       const parsedIdentifier = parseAuthIdentifier(identifier);
 
-      if (parsedIdentifier.type === 'unknown') {
-        throw new Error('Enter a valid email address or mobile number.');
+      if (parsedIdentifier.type === "unknown") {
+        throw new Error("Enter a valid email address or mobile number.");
       }
 
       const lookup = await lookupAuthIdentifier(
-        parsedIdentifier.type === 'email'
+        parsedIdentifier.type === "email"
           ? parsedIdentifier.email
           : parsedIdentifier.e164,
       );
 
       if (!lookup.exists) {
-        throw new Error('No account was found for that email or mobile number.');
+        throw new Error(
+          "No account was found for that email or mobile number.",
+        );
       }
 
-      if (parsedIdentifier.type === 'phone') {
+      if (parsedIdentifier.type === "phone") {
         if (!lookup.canUsePhoneOtp) {
           throw new Error(
-            'This number is not enabled for mobile OTP sign-in. Please use your email login method instead.',
+            "This number is not enabled for mobile OTP sign-in. Please use your email login method instead.",
           );
         }
 
@@ -58,12 +60,12 @@ export default function ForgotPassword() {
       if (!lookup.canUsePassword) {
         if (lookup.canUseGoogle) {
           throw new Error(
-            'This account uses Google sign-in. Please continue with Google on the sign-in page.',
+            "This account uses Google sign-in. Please continue with Google on the sign-in page.",
           );
         }
 
         throw new Error(
-          'This account does not use password recovery. Please use its original sign-in method.',
+          "This account does not use password recovery. Please use its original sign-in method.",
         );
       }
 
@@ -83,7 +85,10 @@ export default function ForgotPassword() {
         );
       }, 1200);
     } catch (err: any) {
-      setError(err.message || 'The server is currently unreachable. Please try again later.');
+      setError(
+        err.message ||
+          "The server is currently unreachable. Please try again later.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -96,9 +101,12 @@ export default function ForgotPassword() {
         {/* Dynamic Abstract Background (Glassmorphism & Orbs) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-tertiary rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-pulse" style={{ animationDelay: '2s' }} />
+          <div
+            className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-tertiary rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-pulse"
+            style={{ animationDelay: "2s" }}
+          />
           <div className="absolute top-[40%] left-[30%] w-[40%] h-[40%] bg-secondary rounded-full mix-blend-overlay filter blur-[100px] opacity-40 animate-float" />
-          
+
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_10%,transparent_100%)] dark:bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)]" />
         </div>
 
@@ -115,20 +123,30 @@ export default function ForgotPassword() {
               Secure your operations.
             </h1>
             <p className="text-xl text-on-surface-variant leading-relaxed">
-              We employ military-grade encryption to ensure your workspace remains impenetrable.
+              We employ military-grade encryption to ensure your workspace
+              remains impenetrable.
             </p>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-col gap-8 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          
+        <div
+          className="relative z-10 flex flex-col gap-8 animate-fade-up"
+          style={{ animationDelay: "0.2s" }}
+        >
           <div className="flex gap-4 items-start group">
             <div className="p-3 rounded-2xl bg-primary-container text-on-primary-container shrink-0 mt-1 transition-transform duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_var(--color-primary-container)]">
-              <span className="material-symbols-outlined text-2xl">password</span>
+              <span className="material-symbols-outlined text-2xl">
+                password
+              </span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-1">Advanced Verification</h3>
-              <p className="text-on-surface-variant leading-relaxed">Multi-layered security protocols guarantee only authorized personnel can access your mission-critical data.</p>
+              <h3 className="text-lg font-semibold mb-1">
+                Advanced Verification
+              </h3>
+              <p className="text-on-surface-variant leading-relaxed">
+                Multi-layered security protocols guarantee only authorized
+                personnel can access your mission-critical data.
+              </p>
             </div>
           </div>
         </div>
@@ -137,9 +155,11 @@ export default function ForgotPassword() {
       {/* Right Panel - Forgot Password Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative">
         <div className="absolute inset-0 bg-surface pointer-events-none" />
-        
-        <div className="w-full max-w-md relative z-10 animate-fade-up pt-8 lg:pt-0" style={{ animationDelay: '0.3s' }}>
-          
+
+        <div
+          className="w-full max-w-md relative z-10 animate-fade-up pt-8 lg:pt-0"
+          style={{ animationDelay: "0.3s" }}
+        >
           <div className="flex lg:hidden items-center gap-2 mb-12 justify-center">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary font-bold text-xl shadow-[0_0_20px_var(--color-primary)]">
               S
@@ -150,13 +170,20 @@ export default function ForgotPassword() {
           {!isSent ? (
             <>
               <div className="mb-10 text-center lg:text-left">
-                <h2 className="text-3xl font-bold mb-3 tracking-tight">Recover Identity</h2>
-                <p className="text-on-surface-variant">Enter your registered email address or mobile number to recover access.</p>
+                <h2 className="text-3xl font-bold mb-3 tracking-tight">
+                  Recover Identity
+                </h2>
+                <p className="text-on-surface-variant">
+                  Enter your registered email address or mobile number to
+                  recover access.
+                </p>
               </div>
 
               {error && (
                 <div className="mb-6 p-4 rounded-xl bg-error-container text-on-error-container border border-error/20 flex gap-3 items-center animate-fade-up">
-                  <span className="material-symbols-outlined text-error">error</span>
+                  <span className="material-symbols-outlined text-error">
+                    error
+                  </span>
                   <p className="text-sm font-medium">{error}</p>
                 </div>
               )}
@@ -165,7 +192,9 @@ export default function ForgotPassword() {
                 <div className="space-y-4">
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                      <span className="material-symbols-outlined text-xl">mail</span>
+                      <span className="material-symbols-outlined text-xl">
+                        mail
+                      </span>
                     </div>
                     <input
                       type="text"
@@ -181,14 +210,22 @@ export default function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`mt-6 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${isLoading ? 'opacity-80 cursor-not-allowed' : 'shadow-lg shadow-primary/20 hover:shadow-primary/40'}`}
+                  className={`mt-6 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${isLoading ? "opacity-80 cursor-not-allowed" : "shadow-lg shadow-primary/20 hover:shadow-primary/40"}`}
                   onMouseEnter={() => setIsHovered(true)}
                   onMouseLeave={() => setIsHovered(false)}
                 >
-                  {!isLoading && <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />}
+                  {!isLoading && (
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                  )}
                   <span className="relative z-10 flex items-center justify-center gap-2">
-                    {isLoading ? 'Continuing...' : 'Continue'}
-                    {!isLoading && <span className={`material-symbols-outlined transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`}>arrow_forward</span>}
+                    {isLoading ? "Continuing..." : "Continue"}
+                    {!isLoading && (
+                      <span
+                        className={`material-symbols-outlined transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`}
+                      >
+                        arrow_forward
+                      </span>
+                    )}
                   </span>
                 </button>
               </form>
@@ -196,22 +233,36 @@ export default function ForgotPassword() {
           ) : (
             <div className="text-center">
               <div className="w-20 h-20 mx-auto bg-primary-container text-on-primary-container rounded-full flex items-center justify-center mb-6 animate-fade-up">
-                <span className="material-symbols-outlined text-4xl">mark_email_read</span>
+                <span className="material-symbols-outlined text-4xl">
+                  mark_email_read
+                </span>
               </div>
-              <h2 className="text-3xl font-bold mb-3 tracking-tight animate-fade-up" style={{ animationDelay: '0.1s' }}>Check your inbox</h2>
-              <p className="text-on-surface-variant mb-8 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+              <h2
+                className="text-3xl font-bold mb-3 tracking-tight animate-fade-up"
+                style={{ animationDelay: "0.1s" }}
+              >
+                Check your inbox
+              </h2>
+              <p
+                className="text-on-surface-variant mb-8 animate-fade-up"
+                style={{ animationDelay: "0.2s" }}
+              >
                 {successMessage}
               </p>
             </div>
           )}
 
           <div className="mt-10 text-center">
-            <Link href="/auth" className="inline-flex items-center gap-2 font-semibold text-primary hover:text-tertiary transition-colors">
-              <span className="material-symbols-outlined text-sm">arrow_back</span>
+            <Link
+              href="/auth"
+              className="inline-flex items-center gap-2 font-semibold text-primary hover:text-tertiary transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">
+                arrow_back
+              </span>
               Back to Sign In
             </Link>
           </div>
-
         </div>
       </div>
     </div>

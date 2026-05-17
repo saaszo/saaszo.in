@@ -62,7 +62,9 @@ export default function Features() {
                 key={l.name}
                 className="flex items-center gap-2 text-lg font-bold text-on-surface/40 hover:text-on-surface/80 transition-colors duration-300"
               >
-                <span className="material-symbols-outlined text-2xl">{l.icon}</span>
+                <span className="material-symbols-outlined text-2xl">
+                  {l.icon}
+                </span>
                 {l.name}
               </div>
             ))}
@@ -99,15 +101,21 @@ export default function Features() {
                 <span className="material-symbols-outlined">{f.icon}</span>
               </div>
 
-              <h3 className="text-xl font-bold text-on-surface mb-3">{f.title}</h3>
-              <p className="text-on-surface-variant mb-6 leading-relaxed">{f.desc}</p>
+              <h3 className="text-xl font-bold text-on-surface mb-3">
+                {f.title}
+              </h3>
+              <p className="text-on-surface-variant mb-6 leading-relaxed">
+                {f.desc}
+              </p>
 
               <Link
                 href={f.href}
                 className={`${f.accent} font-semibold text-sm flex items-center gap-1.5 group-hover:gap-2.5 transition-all duration-200`}
               >
                 {f.cta}
-                <span className="material-symbols-outlined text-base">arrow_forward</span>
+                <span className="material-symbols-outlined text-base">
+                  arrow_forward
+                </span>
               </Link>
 
               {/* Hover accent line */}
@@ -145,8 +153,8 @@ export default function Features() {
               </span>
             </h2>
             <p className="text-on-surface-variant text-lg mb-8 leading-relaxed">
-              Data shouldn't live in silos. When a deal closes in the CRM, HR
-              is notified for capacity planning, and the AI drafts a welcome
+              Data shouldn't live in silos. When a deal closes in the CRM, HR is
+              notified for capacity planning, and the AI drafts a welcome
               packet—instantly.
             </p>
             <ul className="space-y-4">
@@ -173,15 +181,41 @@ export default function Features() {
               style={{ boxShadow: "0 12px 48px rgba(25,28,30,0.08)" }}
             >
               <div className="w-20 h-20 rounded-full bg-primary-container/10 absolute animate-ping-slow" />
-              <span className="material-symbols-outlined text-5xl text-primary">hub</span>
+              <span className="material-symbols-outlined text-5xl text-primary">
+                hub
+              </span>
             </div>
 
             {/* Orbit modules */}
             {[
-              { icon: "groups", label: "HRMS", top: "10%", left: "5%", color: "text-primary" },
-              { icon: "trending_up", label: "CRM", bottom: "5%", right: "5%", color: "text-secondary" },
-              { icon: "psychology", label: "AI", top: "10%", right: "15%", color: "text-tertiary" },
-              { icon: "forum", label: "Chat", bottom: "5%", left: "15%", color: "text-primary" },
+              {
+                icon: "groups",
+                label: "HRMS",
+                top: "10%",
+                left: "5%",
+                color: "text-primary",
+              },
+              {
+                icon: "trending_up",
+                label: "CRM",
+                bottom: "5%",
+                right: "5%",
+                color: "text-secondary",
+              },
+              {
+                icon: "psychology",
+                label: "AI",
+                top: "10%",
+                right: "15%",
+                color: "text-tertiary",
+              },
+              {
+                icon: "forum",
+                label: "Chat",
+                bottom: "5%",
+                left: "15%",
+                color: "text-primary",
+              },
             ].map((mod) => (
               <div
                 key={mod.label}
@@ -197,7 +231,9 @@ export default function Features() {
                 <span className={`material-symbols-outlined ${mod.color} mb-1`}>
                   {mod.icon}
                 </span>
-                <span className="text-xs font-semibold text-on-surface">{mod.label}</span>
+                <span className="text-xs font-semibold text-on-surface">
+                  {mod.label}
+                </span>
               </div>
             ))}
           </div>

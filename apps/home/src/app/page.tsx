@@ -1,14 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthSession } from '../components/AuthProvider';
-import Navbar from '../components/Navbar';
-import Hero from '../components/Hero';
-import Features from '../components/Features';
-import Testimonials from '../components/Testimonials';
-import Pricing from '../components/Pricing';
-import Footer from '../components/Footer';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { appConfig } from "@/lib/config";
+import { toSafeAppPath } from "@/lib/utils";
+import { useAuthSession } from "../components/AuthProvider";
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+import Features from "../components/Features";
+import Testimonials from "../components/Testimonials";
+import Pricing from "../components/Pricing";
+import Footer from "../components/Footer";
 
 export default function Home() {
   const { authenticated, loading, postAuthRedirect } = useAuthSession();
@@ -17,14 +19,14 @@ export default function Home() {
   useEffect(() => {
     // If the URL has an access token in the hash, redirect to the callback page
     // to handle the session properly.
-    if (window.location.hash.includes('access_token=')) {
+    if (window.location.hash.includes("access_token=")) {
       router.replace(`/auth/callback${window.location.hash}`);
       return;
     }
 
     // If already authenticated and not loading, go to dashboard
     if (!loading && authenticated) {
-      router.replace(postAuthRedirect || '/dashboard');
+      router.replace(toSafeAppPath(postAuthRedirect, appConfig.appUrl));
     }
   }, [authenticated, loading, postAuthRedirect, router]);
 

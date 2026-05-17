@@ -27,12 +27,17 @@ export function SearchableSelect({
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const filteredOptions = options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()));
+  const filteredOptions = options.filter((o) =>
+    o.label.toLowerCase().includes(search.toLowerCase()),
+  );
   const selectedOption = options.find((o) => o.value === value);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -56,7 +61,20 @@ export function SearchableSelect({
         <span className={selectedOption ? "text-ink" : "text-muted"}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <svg className="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        <svg
+          className="h-4 w-4 opacity-50"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </div>
 
       {isOpen && (
@@ -83,7 +101,9 @@ export function SearchableSelect({
                 </div>
               ))
             ) : (
-              <div className="py-2 text-center text-sm text-muted">{emptyMessage}</div>
+              <div className="py-2 text-center text-sm text-muted">
+                {emptyMessage}
+              </div>
             )}
           </div>
         </div>

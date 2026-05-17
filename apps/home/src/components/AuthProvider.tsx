@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   createContext,
@@ -6,10 +6,19 @@ import {
   useContext,
   useEffect,
   useState,
-} from 'react';
-import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '@/lib/app-config';
-import { auth } from '@/lib/firebase';
+} from "react";
+import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/app-config";
+import { appConfig } from "@/lib/config";
+import { auth } from "@/lib/firebase";
+import {
+  buildSearchParams,
+  getCookieValue,
+  meetsPasswordRequirements,
+  toSafeAbsoluteUrl,
+  toSafeAppPath,
+  type SearchParamValue,
+} from "@/lib/utils";
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -20,7 +29,7 @@ import {
   signInWithPhoneNumber,
   ConfirmationResult,
   updatePassword as firebaseUpdatePassword,
-} from 'firebase/auth';
+} from "firebase/auth";
 
 type ProfilePayload = {
   id: string;
@@ -58,7 +67,7 @@ export type SessionUserInfo = {
   role: string | null;
   is_active: boolean;
   branch_id?: number | null;
-  branch_scope?: 'all' | 'single' | null;
+  branch_scope?: "all" | "single" | null;
   tool_access?: string[];
 };
 
@@ -94,7 +103,7 @@ export type StaffMember = {
   phone: string | null;
   role: string;
   branch_id: number;
-  branch_scope: 'all' | 'single';
+  branch_scope: "all" | "single";
   branch_name: string | null;
   employee_id: string | null;
   department: string | null;
@@ -113,7 +122,7 @@ export type RoleTemplate = {
   name: string;
   description: string;
   tools: string[];
-  branch_scope: 'all' | 'single';
+  branch_scope: "all" | "single";
   permissions: Record<string, boolean>;
 };
 
@@ -122,6 +131,7 @@ export type PermissionGroup = {
   actions: Record<string, string>;
 };
 
+type StaffFilters = Record<string, SearchParamValue>;
 
 type AuthContextValue = {
   user: FirebaseUser | null;
@@ -140,7 +150,7 @@ type AuthContextValue = {
   setupRecaptcha: (
     containerId: string,
     options?: {
-      size?: 'normal' | 'invisible';
+      size?: "normal" | "invisible";
       onSolved?: () => void | Promise<void>;
       onExpired?: () => void | Promise<void>;
     },
@@ -150,8 +160,15 @@ type AuthContextValue = {
     appVerifier: RecaptchaVerifier,
   ) => Promise<ConfirmationResult>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string, name?: string) => Promise<void>;
-  updateProfile: (values: Partial<ProfilePayload>) => Promise<{ error?: string }>;
+  signUpWithEmail: (
+    email: string,
+    password: string,
+    name?: string,
+    companyName?: string,
+  ) => Promise<void>;
+  updateProfile: (
+    values: Partial<ProfilePayload>,
+  ) => Promise<{ error?: string }>;
   updatePassword: (password: string) => Promise<{ error?: string }>;
   sendPasswordReset: (email: string) => Promise<{ error?: string }>;
   confirmPasswordReset: (
@@ -159,21 +176,44 @@ type AuthContextValue = {
     code: string,
     password: string,
   ) => Promise<{ error?: string }>;
-  getHandoffToken: (tool: string) => Promise<{ redirectUrl?: string; error?: string }>;
+  getHandoffToken: (
+    tool: string,
+  ) => Promise<{ redirectUrl?: string; error?: string }>;
   getBranches: () => Promise<BranchInfo[]>;
-  saveBranch: (data: any) => Promise<{ success: boolean; message?: string; branch?: BranchInfo }>;
+  saveBranch: (
+    data: any,
+  ) => Promise<{ success: boolean; message?: string; branch?: BranchInfo }>;
   deleteBranch: (id: number) => Promise<{ success: boolean; message?: string }>;
-  getStaff: (filters?: any) => Promise<StaffMember[]>;
-  saveStaff: (data: any) => Promise<{ success: boolean; message?: string; staff?: StaffMember }>;
+  getStaff: (filters?: StaffFilters) => Promise<StaffMember[]>;
+  saveStaff: (
+    data: any,
+  ) => Promise<{ success: boolean; message?: string; staff?: StaffMember }>;
   deleteStaff: (id: number) => Promise<{ success: boolean; message?: string }>;
-  getStaffTemplates: () => Promise<{ roles: Record<string, RoleTemplate>; groups: Record<string, PermissionGroup> }>;
-  checkToolAccess: (tool: string) => Promise<{ allowed: boolean; status: string; message?: string; redirectUrl?: string }>;
+  getStaffTemplates: () => Promise<{
+    roles: Record<string, RoleTemplate>;
+    groups: Record<string, PermissionGroup>;
+  }>;
+  checkToolAccess: (
+    tool: string,
+  ) => Promise<{
+    allowed: boolean;
+    status: string;
+    message?: string;
+    redirectUrl?: string;
+  }>;
 };
-
 
 type AuthSessionState = Pick<
   AuthContextValue,
-  'user' | 'authenticated' | 'error' | 'loading' | 'workspaceUser' | 'profile' | 'auth' | 'subscription' | 'onboarding'
+  | "user"
+  | "authenticated"
+  | "error"
+  | "loading"
+  | "workspaceUser"
+  | "profile"
+  | "auth"
+  | "subscription"
+  | "onboarding"
 >;
 
 type BackendAuthResponse = {
@@ -195,7 +235,7 @@ type BackendAuthResponse = {
     firebase_uid?: string | null;
     is_active?: boolean;
     branch_id?: number | null;
-    branch_scope?: 'all' | 'single' | null;
+    branch_scope?: "all" | "single" | null;
     tool_access?: string[] | null;
   };
   company?: {
@@ -208,12 +248,12 @@ type BackendAuthResponse = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const BACKEND_AUTH_STORAGE_KEY = 'saaszo.backend_auth_token';
+const BACKEND_AUTH_STORAGE_KEY = "saaszo.backend_auth_token";
 
 const signedOutState = {
   user: null,
   authenticated: false,
-  error: '',
+  error: "",
   loading: false,
   workspaceUser: null,
   profile: null,
@@ -223,7 +263,7 @@ const signedOutState = {
 };
 
 function getStoredBackendToken() {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return null;
   }
 
@@ -231,7 +271,7 @@ function getStoredBackendToken() {
 }
 
 function setStoredBackendToken(token: string) {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return;
   }
 
@@ -239,7 +279,7 @@ function setStoredBackendToken(token: string) {
 }
 
 function clearStoredBackendToken() {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return;
   }
 
@@ -257,26 +297,26 @@ function toTitleCase(value: string | null | undefined, fallback: string) {
 }
 
 function getErrorMessage(payload: any, fallback: string) {
-  if (payload?.message && typeof payload.message === 'string') {
+  if (payload?.message && typeof payload.message === "string") {
     return payload.message;
   }
 
-  const firstError = payload?.errors
-    ? Object.values(payload.errors)[0]
-    : null;
+  const firstError = payload?.errors ? Object.values(payload.errors)[0] : null;
 
-  if (Array.isArray(firstError) && typeof firstError[0] === 'string') {
+  if (Array.isArray(firstError) && typeof firstError[0] === "string") {
     return firstError[0];
   }
 
   return fallback;
 }
 
-function normalizeBackendSession(payload: BackendAuthResponse): Omit<AuthSessionState, 'user' | 'authenticated' | 'error' | 'loading'> {
+function normalizeBackendSession(
+  payload: BackendAuthResponse,
+): Omit<AuthSessionState, "user" | "authenticated" | "error" | "loading"> {
   if (payload.profile && payload.auth && payload.subscription) {
     return {
       workspaceUser: {
-        id: String(payload.user?.id ?? payload.profile.id ?? ''),
+        id: String(payload.user?.id ?? payload.profile.id ?? ""),
         name: payload.user?.name ?? payload.profile.fullName ?? null,
         email: payload.user?.email ?? payload.profile.email ?? null,
         phone: payload.user?.phone ?? payload.profile.phone ?? null,
@@ -298,7 +338,7 @@ function normalizeBackendSession(payload: BackendAuthResponse): Omit<AuthSession
 
   return {
     workspaceUser: {
-      id: String(user.id ?? ''),
+      id: String(user.id ?? ""),
       name: user.name ?? null,
       email: user.email ?? null,
       phone: user.phone ?? null,
@@ -309,29 +349,29 @@ function normalizeBackendSession(payload: BackendAuthResponse): Omit<AuthSession
       tool_access: user.tool_access ?? [],
     },
     profile: {
-      id: String(user.id ?? ''),
+      id: String(user.id ?? ""),
       email: user.email ?? null,
       phone: user.phone ?? null,
       fullName: user.name ?? null,
       companyName: company.name ?? null,
       avatarUrl: null,
       profileCompleted: Boolean(
-        (user.name ?? '').toString().trim() &&
-          (company.name ?? '').toString().trim(),
+        (user.name ?? "").toString().trim() &&
+          (company.name ?? "").toString().trim(),
       ),
     },
     auth: {
-      kind: 'backend',
+      kind: "backend",
       email: user.email ?? null,
       phone: user.phone ?? null,
-      providers: user.firebase_uid ? ['password', 'firebase'] : ['password'],
-      primaryProvider: 'Password',
+      providers: user.firebase_uid ? ["password", "firebase"] : ["password"],
+      primaryProvider: "Password",
       canChangePassword: true,
     },
     subscription: {
-      planName: toTitleCase(company.plan_type, 'Free'),
-      status: company.is_active === false ? 'inactive' : 'active',
-      billingCycle: 'monthly',
+      planName: toTitleCase(company.plan_type, "Free"),
+      status: company.is_active === false ? "inactive" : "active",
+      billingCycle: "monthly",
       seats: 1,
       currentPeriodEnd: null,
     },
@@ -339,36 +379,29 @@ function normalizeBackendSession(payload: BackendAuthResponse): Omit<AuthSession
   };
 }
 
-function navigateAfterAuth(router: ReturnType<typeof useRouter>, target?: string | null) {
-  const destination = target?.trim() || '/dashboard';
+function navigateAfterAuth(
+  router: ReturnType<typeof useRouter>,
+  target?: string | null,
+) {
+  const safePath = toSafeAppPath(target, appConfig.appUrl);
+  const safeAbsoluteUrl = toSafeAbsoluteUrl(target, appConfig.appUrl);
 
-  if (typeof window !== 'undefined' && /^https?:\/\//i.test(destination)) {
-    const sameOrigin = destination.startsWith(window.location.origin);
+  if (safeAbsoluteUrl) {
+    try {
+      const url = new URL(safeAbsoluteUrl);
+      const appOrigin = new URL(appConfig.appUrl).origin;
 
-    if (!sameOrigin) {
-      try {
-        const redirectHost = new URL(destination).hostname;
-        const isAllowed =
-          redirectHost === 'saaszo.in' ||
-          (redirectHost.endsWith('.saaszo.in') && redirectHost !== '.saaszo.in');
-        if (!isAllowed) {
-          router.push('/dashboard');
-          return;
-        }
-      } catch {
-        router.push('/dashboard');
+      if (url.origin !== appOrigin) {
+        window.location.assign(safeAbsoluteUrl);
         return;
       }
-      window.location.assign(destination);
+    } catch {
+      router.push("/dashboard");
       return;
     }
-
-    const url = new URL(destination);
-    router.push(`${url.pathname}${url.search}${url.hash}`);
-    return;
   }
 
-  router.push(destination);
+  router.push(safePath);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -380,18 +413,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [backendToken, setBackendToken] = useState<string | null>(null);
   const [postAuthRedirect, setPostAuthRedirect] = useState<string | null>(null);
 
-  function getCookie(name: string) {
-    if (typeof document === 'undefined') return null;
-    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-    if (match) return decodeURIComponent(match[2]);
-    return null;
-  }
-
   async function refreshBackendTokenFromSession() {
     const response = await fetchWithCsrf(`${API_BASE_URL}/auth/bridge-token`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        Accept: 'application/json',
+        Accept: "application/json",
       },
     });
 
@@ -399,9 +425,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
 
-    const payload = (await response.json().catch(() => null)) as
-      | { access_token?: string | null }
-      | null;
+    const payload = (await response.json().catch(() => null)) as {
+      access_token?: string | null;
+    } | null;
 
     const token = payload?.access_token ?? null;
 
@@ -416,25 +442,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function syncFirebaseUserSession(firebaseUser: FirebaseUser) {
     const token = await firebaseUser.getIdToken();
     const response = await fetchWithCsrf(`${API_BASE_URL}/auth/sync`, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as
-        | BackendAuthResponse
-        | null;
+      const payload = (await response
+        .json()
+        .catch(() => null)) as BackendAuthResponse | null;
 
       throw new Error(
-        getErrorMessage(payload, 'Failed to sync profile with server.'),
+        getErrorMessage(payload, "Failed to sync profile with server."),
       );
     }
 
-    const data = (await response.json()) as BackendAuthResponse & { access_token?: string };
-    setPostAuthRedirect(data.redirect ?? '/dashboard');
+    const data = (await response.json()) as BackendAuthResponse & {
+      access_token?: string;
+    };
+    setPostAuthRedirect(data.redirect ?? "/dashboard");
 
     // ✅ CRITICAL: Store the Sanctum token returned by /auth/sync.
     // Without this, Firebase-authenticated users have no backend token,
@@ -452,11 +480,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState({
       user: firebaseUser,
       authenticated: true,
-      error: '',
+      error: "",
       loading: false,
       workspaceUser: data.user
         ? {
-            id: String(data.user.id ?? ''),
+            id: String(data.user.id ?? ""),
             name: data.user.name ?? null,
             email: data.user.email ?? null,
             phone: data.user.phone ?? null,
@@ -477,17 +505,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function hydrateCookieSession() {
-    const payload = await fetchBackendJson('/auth/profile', {
-      method: 'GET',
+    const payload = await fetchBackendJson("/auth/profile", {
+      method: "GET",
     });
 
     const session = normalizeBackendSession(payload);
-    setPostAuthRedirect(payload.redirect ?? '/dashboard');
+    setPostAuthRedirect(payload.redirect ?? "/dashboard");
 
     setState({
       user: null,
       authenticated: true,
-      error: '',
+      error: "",
       loading: false,
       workspaceUser: session.workspaceUser,
       profile: session.profile,
@@ -505,28 +533,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function fetchWithCsrf(url: string, init: RequestInit = {}) {
-    const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(init.method?.toUpperCase() || 'GET');
-    
-    if (isMutation && !getCookie('XSRF-TOKEN')) {
-      await fetch(`${API_BASE_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
-        method: 'GET',
-        credentials: 'include',
+    const isMutation = !["GET", "HEAD", "OPTIONS"].includes(
+      init.method?.toUpperCase() || "GET",
+    );
+
+    if (isMutation && !getCookieValue("XSRF-TOKEN")) {
+      await fetch(`${API_BASE_URL.replace("/api", "")}/sanctum/csrf-cookie`, {
+        method: "GET",
+        credentials: "include",
       }).catch(() => null);
     }
 
     const headers: Record<string, string> = {
-      ...(init.headers as Record<string, string> ?? {}),
+      ...((init.headers as Record<string, string>) ?? {}),
     };
 
-    const xsrfToken = getCookie('XSRF-TOKEN');
+    const xsrfToken = getCookieValue("XSRF-TOKEN");
     if (xsrfToken && isMutation) {
-      headers['X-XSRF-TOKEN'] = xsrfToken;
+      headers["X-XSRF-TOKEN"] = xsrfToken;
     }
 
     return fetch(url, {
       ...init,
       headers,
-      credentials: 'include',
+      credentials: "include",
     });
   }
 
@@ -564,9 +594,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const performRequest = async (authorizationHeader?: string) => {
       const headers: Record<string, string> = {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(init.headers as Record<string, string> ?? {}),
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...((init.headers as Record<string, string>) ?? {}),
         ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
       };
 
@@ -575,9 +605,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers,
       });
 
-      const payload = (await response.json().catch(() => null)) as
-        | BackendAuthResponse
-        | null;
+      const payload = (await response
+        .json()
+        .catch(() => null)) as BackendAuthResponse | null;
 
       return { response, payload };
     };
@@ -603,7 +633,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const sessionToken = await refreshBackendTokenFromSession();
           if (sessionToken) {
-            ({ response, payload } = await performRequest(`Bearer ${sessionToken}`));
+            ({ response, payload } = await performRequest(
+              `Bearer ${sessionToken}`,
+            ));
           }
         } catch {
           // noop; let the final error surface below
@@ -618,7 +650,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       throw new Error(
-        getErrorMessage(payload, 'The authentication server is currently unreachable.'),
+        getErrorMessage(
+          payload,
+          "The authentication server is currently unreachable.",
+        ),
       );
     }
 
@@ -626,8 +661,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function hydrateBackendSession(token: string) {
-    const payload = await fetchBackendJson('/auth/profile', {
-      method: 'GET',
+    const payload = await fetchBackendJson("/auth/profile", {
+      method: "GET",
       headers: token
         ? {
             Authorization: `Bearer ${token}`,
@@ -636,13 +671,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const session = normalizeBackendSession(payload);
-    setPostAuthRedirect(payload.redirect ?? '/dashboard');
+    setPostAuthRedirect(payload.redirect ?? "/dashboard");
 
     setBackendToken(token);
     setState({
       user: null,
       authenticated: true,
-      error: '',
+      error: "",
       loading: false,
       workspaceUser: session.workspaceUser,
       profile: session.profile,
@@ -690,7 +725,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (isMounted) {
-        setState((current) => ({ ...current, loading: true, error: '' }));
+        setState((current) => ({ ...current, loading: true, error: "" }));
       }
 
       try {
@@ -711,7 +746,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               error:
                 error instanceof Error
                   ? error.message
-                  : 'Authentication failed.',
+                  : "Authentication failed.",
             });
           }
         }
@@ -735,7 +770,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      setState((current) => ({ ...current, loading: true, error: '' }));
+      setState((current) => ({ ...current, loading: true, error: "" }));
 
       try {
         await syncFirebaseUserSession(user);
@@ -744,9 +779,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setState({
             ...signedOutState,
             error:
-              error instanceof Error
-                ? error.message
-                : 'Authentication failed.',
+              error instanceof Error ? error.message : "Authentication failed.",
           });
         }
       }
@@ -760,33 +793,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signInWithGoogle() {
     if (!auth) {
-      throw new Error('Firebase not initialized');
+      throw new Error("Firebase not initialized");
     }
 
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
     const data = await syncFirebaseUserSession(result.user);
-    navigateAfterAuth(router, data.redirect ?? '/dashboard');
+    navigateAfterAuth(router, data.redirect ?? "/dashboard");
   }
 
   function setupRecaptcha(
     containerId: string,
     options?: {
-      size?: 'normal' | 'invisible';
+      size?: "normal" | "invisible";
       onSolved?: () => void | Promise<void>;
       onExpired?: () => void | Promise<void>;
     },
   ) {
     if (!auth) {
-      throw new Error('Firebase not initialized');
+      throw new Error("Firebase not initialized");
     }
 
     return new RecaptchaVerifier(auth, containerId, {
-      size: options?.size ?? 'normal',
+      size: options?.size ?? "normal",
       callback: () => {
         void options?.onSolved?.();
       },
-      'expired-callback': () => {
+      "expired-callback": () => {
         void options?.onExpired?.();
       },
     });
@@ -797,7 +830,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     appVerifier: RecaptchaVerifier,
   ) {
     if (!auth) {
-      throw new Error('Firebase not initialized');
+      throw new Error("Firebase not initialized");
     }
 
     return await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
@@ -805,23 +838,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signInWithEmail(email: string, password: string) {
     // 1. Check if identifier exists first
-    const checkResponse = await fetchWithCsrf(`${API_BASE_URL}/auth/check-identifier`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier: email }),
-    });
-    
+    const checkResponse = await fetchWithCsrf(
+      `${API_BASE_URL}/auth/check-identifier`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: email }),
+      },
+    );
+
     if (checkResponse.ok) {
       const checkData = await checkResponse.json();
       if (checkData.success && !checkData.exists) {
-        navigateAfterAuth(router, `/register?email=${encodeURIComponent(email)}`);
-        throw new Error('Not registered. Redirecting to signup...');
+        navigateAfterAuth(
+          router,
+          `/register?email=${encodeURIComponent(email)}`,
+        );
+        throw new Error("Not registered. Redirecting to signup...");
       }
     }
 
     // 2. Perform Login
-    const payload = await fetchBackendJson('/auth/login', {
-      method: 'POST',
+    const payload = await fetchBackendJson("/auth/login", {
+      method: "POST",
       body: JSON.stringify({
         email,
         password,
@@ -829,11 +868,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!payload.success) {
-      if (payload.redirect && ['NOT_REGISTERED', 'LOCKOUT', 'ACCOUNT_RECOVERY'].includes(payload.type ?? '')) {
+      if (
+        payload.redirect &&
+        ["NOT_REGISTERED", "LOCKOUT", "ACCOUNT_RECOVERY"].includes(
+          payload.type ?? "",
+        )
+      ) {
         navigateAfterAuth(router, payload.redirect);
       }
 
-      throw new Error(payload.message || 'Login failed.');
+      throw new Error(payload.message || "Login failed.");
     }
 
     // Backend wraps token inside a 'data' object: { success, message, data: { access_token, redirect } }
@@ -850,40 +894,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     navigateAfterAuth(router, redirectUrl);
   }
 
-  async function signUpWithEmail(email: string, password: string, name?: string) {
+  async function signUpWithEmail(
+    email: string,
+    password: string,
+    name?: string,
+    companyName?: string,
+  ) {
     // 1. Check if identifier already exists
-    const checkResponse = await fetchWithCsrf(`${API_BASE_URL}/auth/check-identifier`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier: email }),
-    });
-    
+    const checkResponse = await fetchWithCsrf(
+      `${API_BASE_URL}/auth/check-identifier`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: email }),
+      },
+    );
+
     if (checkResponse.ok) {
       const checkData = await checkResponse.json();
       if (checkData.success && checkData.exists) {
         navigateAfterAuth(router, `/auth?email=${encodeURIComponent(email)}`);
-        throw new Error('Account already exists. Redirecting to login...');
+        throw new Error("Account already exists. Redirecting to login...");
       }
     }
 
     // 2. Perform Signup only after verification-gated backend path
-    const displayName = name?.trim() || email.split('@')[0] || 'SaaSzo User';
-    const companyName = `${displayName} Workspace`;
+    const displayName = name?.trim() || email.split("@")[0] || "SaaSzo User";
+    const normalizedCompanyName = companyName?.trim() || "SaaSzo Workspace";
 
-    const payload = await fetchBackendJson('/auth/register', {
-      method: 'POST',
+    const payload = await fetchBackendJson("/auth/register", {
+      method: "POST",
       body: JSON.stringify({
-        business_name: companyName,
+        business_name: normalizedCompanyName,
         name: displayName,
         email,
         password,
         password_confirmation: password,
-        email_verified_via: 'otp',
+        email_verified_via: "otp",
       }),
     });
 
     if (!payload.success) {
-      throw new Error(payload.message || 'Could not create your account.');
+      throw new Error(payload.message || "Could not create your account.");
     }
 
     // Backend wraps token inside a 'data' object: { success, message, data: { access_token } }
@@ -896,7 +948,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       await hydrateCookieSession();
     }
-    router.push('/dashboard/setup');
+    router.push("/dashboard/setup");
   }
 
   async function updateProfile(values: Partial<ProfilePayload>) {
@@ -906,22 +958,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!firebaseUser) {
         return {
           error:
-            'Profile editing for password accounts will be enabled from the backend settings module.',
+            "Profile editing for password accounts will be enabled from the backend settings module.",
         };
       }
 
       const token = await firebaseUser.getIdToken();
       const response = await fetchWithCsrf(`${API_BASE_URL}/profile/me`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update profile');
+        throw new Error("Failed to update profile");
       }
 
       const data = (await response.json()) as BackendAuthResponse;
@@ -930,15 +982,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...current,
         workspaceUser: data.user
           ? {
-              id: String(data.user.id ?? current.workspaceUser?.id ?? ''),
+              id: String(data.user.id ?? current.workspaceUser?.id ?? ""),
               name: data.user.name ?? current.workspaceUser?.name ?? null,
               email: data.user.email ?? current.workspaceUser?.email ?? null,
               phone: data.user.phone ?? current.workspaceUser?.phone ?? null,
               role: data.user.role ?? current.workspaceUser?.role ?? null,
-              is_active: data.user.is_active ?? current.workspaceUser?.is_active ?? true,
-              branch_id: data.user.branch_id ?? current.workspaceUser?.branch_id ?? null,
-              branch_scope: data.user.branch_scope ?? current.workspaceUser?.branch_scope ?? null,
-              tool_access: data.user.tool_access ?? current.workspaceUser?.tool_access ?? [],
+              is_active:
+                data.user.is_active ?? current.workspaceUser?.is_active ?? true,
+              branch_id:
+                data.user.branch_id ?? current.workspaceUser?.branch_id ?? null,
+              branch_scope:
+                data.user.branch_scope ??
+                current.workspaceUser?.branch_scope ??
+                null,
+              tool_access:
+                data.user.tool_access ??
+                current.workspaceUser?.tool_access ??
+                [],
             }
           : current.workspaceUser,
         profile: data.profile ?? current.profile,
@@ -955,12 +1015,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function updatePassword(password: string) {
     try {
+      if (!meetsPasswordRequirements(password)) {
+        return {
+          error:
+            "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+        };
+      }
+
       const firebaseUser = auth?.currentUser;
 
       if (!firebaseUser) {
         return {
           error:
-            'Use the forgot password flow for email/password accounts until the backend password settings screen is connected.',
+            "Use the forgot password flow for email/password accounts until the backend password settings screen is connected.",
         };
       }
 
@@ -973,13 +1040,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function sendPasswordReset(email: string) {
     try {
-      const payload = await fetchBackendJson('/auth/password/reset/send', {
-        method: 'POST',
+      const payload = await fetchBackendJson("/auth/password/reset/send", {
+        method: "POST",
         body: JSON.stringify({ email }),
       });
 
       if (!payload.success) {
-        throw new Error(payload.message || 'Could not start password reset.');
+        throw new Error(payload.message || "Could not start password reset.");
       }
 
       return { error: undefined };
@@ -994,8 +1061,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
   ) {
     try {
-      const payload = await fetchBackendJson('/auth/password/reset/verify', {
-        method: 'POST',
+      const payload = await fetchBackendJson("/auth/password/reset/verify", {
+        method: "POST",
         body: JSON.stringify({
           email,
           otp: code,
@@ -1004,7 +1071,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!payload.success) {
-        throw new Error(payload.message || 'Password reset failed.');
+        throw new Error(payload.message || "Password reset failed.");
       }
 
       return { error: undefined };
@@ -1013,7 +1080,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function getHandoffToken(tool: string): Promise<{ redirectUrl?: string; error?: string }> {
+  async function getHandoffToken(
+    tool: string,
+  ): Promise<{ redirectUrl?: string; error?: string }> {
     try {
       // Primary: use Sanctum backend token (set after login or Firebase sync)
       let bearerToken = backendToken ?? getStoredBackendToken();
@@ -1022,20 +1091,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         bearerToken = await auth.currentUser.getIdToken();
       }
 
-      const response = await fetchWithCsrf(`${API_BASE_URL}/auth/product-token`, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
+      const response = await fetchWithCsrf(
+        `${API_BASE_URL}/auth/product-token`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
+          },
+          body: JSON.stringify({ tool }),
         },
-        body: JSON.stringify({ tool }),
-      });
+      );
 
       const payload = (await response.json().catch(() => null)) as any;
 
       if (!response.ok || !payload?.success) {
-        throw new Error(payload?.message || 'Could not generate product access token.');
+        throw new Error(
+          payload?.message || "Could not generate product access token.",
+        );
       }
 
       return { redirectUrl: payload.redirect_url as string };
@@ -1056,35 +1130,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (token) {
       await fetchWithCsrf(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
+          Accept: "application/json",
         },
       }).catch(() => undefined);
     }
 
     setState(signedOutState);
     startTransition(() => {
-      router.push('/auth');
+      router.push("/auth");
     });
   }
 
   async function getBranches(): Promise<BranchInfo[]> {
     try {
-      const payload = await fetchBackendJson('/auth/workspace/branches');
+      const payload = await fetchBackendJson("/auth/workspace/branches");
       return ((payload as any).data || []) as BranchInfo[];
     } catch (err) {
-      console.error('getBranches error:', err);
+      console.error("getBranches error:", err);
       return [];
     }
   }
 
-  async function saveBranch(data: any): Promise<{ success: boolean; message?: string; branch?: BranchInfo }> {
+  async function saveBranch(
+    data: any,
+  ): Promise<{ success: boolean; message?: string; branch?: BranchInfo }> {
     try {
       const isUpdate = !!data.id;
-      const path = isUpdate ? `/auth/workspace/branches/${data.id}` : '/auth/workspace/branches';
-      const method = isUpdate ? 'PUT' : 'POST';
+      const path = isUpdate
+        ? `/auth/workspace/branches/${data.id}`
+        : "/auth/workspace/branches";
+      const method = isUpdate ? "PUT" : "POST";
 
       const payload = await fetchBackendJson(path, {
         method,
@@ -1101,10 +1179,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function deleteBranch(id: number): Promise<{ success: boolean; message?: string }> {
+  async function deleteBranch(
+    id: number,
+  ): Promise<{ success: boolean; message?: string }> {
     try {
       const payload = await fetchBackendJson(`/auth/workspace/branches/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       return { success: !!payload.success, message: payload.message };
     } catch (err: any) {
@@ -1112,22 +1192,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function getStaff(filters?: any): Promise<StaffMember[]> {
+  async function getStaff(filters?: StaffFilters): Promise<StaffMember[]> {
     try {
-      const query = new URLSearchParams(filters).toString();
-      const payload = await fetchBackendJson(`/auth/workspace/staff?${query}`);
+      const query = buildSearchParams(filters);
+      const path = query
+        ? `/auth/workspace/staff?${query}`
+        : "/auth/workspace/staff";
+      const payload = await fetchBackendJson(path);
       return ((payload as any).data || []) as StaffMember[];
     } catch (err) {
-      console.error('getStaff error:', err);
+      console.error("getStaff error:", err);
       return [];
     }
   }
 
-  async function saveStaff(data: any): Promise<{ success: boolean; message?: string; staff?: StaffMember }> {
+  async function saveStaff(
+    data: any,
+  ): Promise<{ success: boolean; message?: string; staff?: StaffMember }> {
     try {
       const isUpdate = !!data.id;
-      const path = isUpdate ? `/auth/workspace/staff/${data.id}` : '/auth/workspace/staff';
-      const method = isUpdate ? 'PUT' : 'POST';
+      const path = isUpdate
+        ? `/auth/workspace/staff/${data.id}`
+        : "/auth/workspace/staff";
+      const method = isUpdate ? "PUT" : "POST";
 
       const payload = await fetchBackendJson(path, {
         method,
@@ -1144,10 +1231,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function deleteStaff(id: number): Promise<{ success: boolean; message?: string }> {
+  async function deleteStaff(
+    id: number,
+  ): Promise<{ success: boolean; message?: string }> {
     try {
       const payload = await fetchBackendJson(`/auth/workspace/staff/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       return { success: !!payload.success, message: payload.message };
     } catch (err: any) {
@@ -1157,32 +1246,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function getStaffTemplates() {
     try {
-      const res = await fetchBackendJson('/auth/workspace/staff/templates');
+      const res = await fetchBackendJson("/auth/workspace/staff/templates");
       return (res as any).data || { roles: {}, groups: {} };
     } catch (err) {
-      console.error('getStaffTemplates error:', err);
+      console.error("getStaffTemplates error:", err);
       return { roles: {}, groups: {} };
     }
   }
 
   async function checkToolAccess(tool: string) {
     try {
-      const payload = await fetchBackendJson('/tools/check-access', {
-        method: 'POST',
+      const payload = await fetchBackendJson("/tools/check-access", {
+        method: "POST",
         body: JSON.stringify({ tool }),
       });
 
       return {
         allowed: Boolean((payload as any).allowed),
-        status: String((payload as any).status || 'unknown'),
+        status: String((payload as any).status || "unknown"),
         message: payload.message,
         redirectUrl: (payload as any).redirect_url,
       };
     } catch (err: any) {
       return {
         allowed: false,
-        status: 'error',
-        message: err.message || 'Could not verify tool access.',
+        status: "error",
+        message: err.message || "Could not verify tool access.",
       };
     }
   }
@@ -1213,9 +1302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }
 
@@ -1223,7 +1310,7 @@ export function useAuthSession() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error('useAuthSession must be used inside AuthProvider.');
+    throw new Error("useAuthSession must be used inside AuthProvider.");
   }
 
   return context;

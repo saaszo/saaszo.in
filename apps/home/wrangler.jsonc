@@ -5,12 +5,12 @@
   "compatibility_date": "2026-04-19",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
-    "enabled": true,
+    "enabled": true
   },
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS",
-  },
+    "binding": "ASSETS"
+  }
   // Add INVOICE_APP_ORIGIN at deploy time, for example:
   // "vars": {
   //   "INVOICE_APP_ORIGIN": "https://saaszo-invoice.<your-workers-subdomain>.workers.dev"

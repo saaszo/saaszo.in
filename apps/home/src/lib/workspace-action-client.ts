@@ -1,8 +1,15 @@
 "use client";
 
-import { normalizeErrorMessage, readAccessToken, requestJson } from "@/lib/auth-client";
+import {
+  normalizeErrorMessage,
+  readAccessToken,
+  requestJson,
+} from "@/lib/auth-client";
 
-export async function authedRequest<T extends Record<string, unknown>>(path: string, init?: RequestInit) {
+export async function authedRequest<T extends Record<string, unknown>>(
+  path: string,
+  init?: RequestInit,
+) {
   const token = readAccessToken();
   return requestJson<T>(path, {
     ...init,
@@ -11,11 +18,14 @@ export async function authedRequest<T extends Record<string, unknown>>(path: str
           Authorization: `Bearer ${token}`,
           ...(init?.headers || {}),
         }
-      : (init?.headers || {}),
+      : init?.headers || {},
   });
 }
 
-export function apiErrorMessage(fallback: string, payload?: { message?: string | null } | null) {
+export function apiErrorMessage(
+  fallback: string,
+  payload?: { message?: string | null } | null,
+) {
   return normalizeErrorMessage(fallback, payload);
 }
 

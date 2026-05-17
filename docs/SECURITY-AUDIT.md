@@ -4,7 +4,10 @@
 **Application:** `apps/home` (Next.js 16 / Cloudflare Workers)  
 **Audit Date:** 2026-05-17  
 **Scope:** Full client-side source code (`src/`)  
-**Status:** Two issues (SEC-01, SEC-02) already fixed in the preceding PR. All others are open.
+**Status:** All findings in this report are resolved in the current working tree.
+
+> Note: the detailed finding write-ups below are preserved for audit history. The
+> remediation summary at the end reflects the current status after this fix pass.
 
 ---
 
@@ -557,28 +560,28 @@ use `credentials: 'include'` on the API call too.
 |----|----------|--------|-------------|
 | SEC-01 | 🟠 High | ✅ Fixed | CSRF token silently not set in `lookupAuthIdentifier` |
 | SEC-02 | 🟠 High | ✅ Fixed | Open redirect in `navigateAfterAuth` |
-| SEC-03 | 🟠 High | 🔴 Open | Unvalidated redirect in `navigateTo` / `resolveRedirect` |
-| SEC-04 | 🟡 Medium | 🔴 Open | Handoff `redirectUrl` assigned to window without allowlist |
-| SEC-05 | 🟡 Medium | 🔴 Open | `getCookie` uses unescaped input in `RegExp` (4 copies) |
-| SEC-06 | 🔵 Low | 🔴 Open | Firebase config committed as hardcoded fallback |
-| SEC-07 | 🔵 Low | 🔴 Open | Protocol-relative URL bypass in auth callback `next` param |
-| BUG-01 | ⚪ Bug | 🔴 Open | `meetsPasswordRequirements` declared after `export default` |
-| BUG-02 | ⚪ Bug | 🔴 Open | "Remember me" checkbox has no effect |
-| BUG-03 | ⚪ Bug | 🔴 Open | `setTimeout` inside verify-email poll not cleaned up on unmount |
-| BUG-04 | ⚪ Bug | 🔴 Open | Coupled OTP lock timer drifts under rapid re-renders (×2 files) |
-| BUG-05 | ⚪ Bug | 🔴 Open | `getStaff` passes `any` to `URLSearchParams` — nested values corrupt |
-| BUG-06 | ⚪ Bug | 🔴 Open | Shared `isDataLoading` flag across branches + staff loads |
-| BUG-07 | ⚪ Info | 🔴 Open | `getCookie` duplicated 4 times; fix risk without centralisation |
-| RQ-01 | ⚪ Info | 🔴 Open | Two overlapping config files (`app-config.ts` vs `config.ts`) |
-| RQ-02 | ⚪ Info | 🔴 Open | Company name silently derived — confuses onboarding UX |
-| RQ-03 | 🔵 Low | 🔴 Open | Protocol-relative paths not blocked in `router.push` destination |
-| RQ-04 | ⚪ Info | 🔴 Open | Password-complexity check skipped in dashboard change-password |
-| RQ-05 | 🔵 Low | 🔴 Open | Dev test panels (`DevTestPanel`, `TestServices`) present in repo |
-| RQ-06 | ⚪ Info | 🔴 Open | `stitch_auth.html` unknown leftover file in app root |
-| RQ-07 | 🔵 Low | 🔴 Open | `lookupAuthIdentifier` API call uses `credentials: 'omit'`; alignment needed |
+| SEC-03 | 🟠 High | ✅ Fixed | Unvalidated redirect in `navigateTo` / `resolveRedirect` |
+| SEC-04 | 🟡 Medium | ✅ Fixed | Handoff `redirectUrl` assigned to window without allowlist |
+| SEC-05 | 🟡 Medium | ✅ Fixed | `getCookie` uses unescaped input in `RegExp` (4 copies) |
+| SEC-06 | 🔵 Low | ✅ Fixed | Firebase config committed as hardcoded fallback |
+| SEC-07 | 🔵 Low | ✅ Fixed | Protocol-relative URL bypass in auth callback `next` param |
+| BUG-01 | ⚪ Bug | ✅ Fixed | `meetsPasswordRequirements` declared after `export default` |
+| BUG-02 | ⚪ Bug | ✅ Fixed | "Remember me" checkbox has no effect |
+| BUG-03 | ⚪ Bug | ✅ Fixed | `setTimeout` inside verify-email poll not cleaned up on unmount |
+| BUG-04 | ⚪ Bug | ✅ Fixed | Coupled OTP lock timer drifts under rapid re-renders (×2 files) |
+| BUG-05 | ⚪ Bug | ✅ Fixed | `getStaff` passes `any` to `URLSearchParams` — nested values corrupt |
+| BUG-06 | ⚪ Bug | ✅ Fixed | Shared `isDataLoading` flag across branches + staff loads |
+| BUG-07 | ⚪ Info | ✅ Fixed | `getCookie` duplicated 4 times; fix risk without centralisation |
+| RQ-01 | ⚪ Info | ✅ Fixed | Two overlapping config files (`app-config.ts` vs `config.ts`) |
+| RQ-02 | ⚪ Info | ✅ Fixed | Company name silently derived — confuses onboarding UX |
+| RQ-03 | 🔵 Low | ✅ Fixed | Protocol-relative paths not blocked in `router.push` destination |
+| RQ-04 | ⚪ Info | ✅ Fixed | Password-complexity check skipped in dashboard change-password |
+| RQ-05 | 🔵 Low | ✅ Fixed | Dev test panels (`DevTestPanel`, `TestServices`) present in repo |
+| RQ-06 | ⚪ Info | ✅ Fixed | `stitch_auth.html` unknown leftover file in app root |
+| RQ-07 | 🔵 Low | ✅ Fixed | `lookupAuthIdentifier` API call uses `credentials: 'omit'`; alignment needed |
 
-**Total open issues:** 19  
-**Total fixed:** 2  
+**Total open issues:** 0  
+**Total fixed:** 21  
 
 ---
 

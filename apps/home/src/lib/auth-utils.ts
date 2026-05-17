@@ -1,19 +1,20 @@
-'use client';
+"use client";
 
-import { API_BASE_URL } from './app-config';
+import { API_BASE_URL } from "./app-config";
+import { getCookieValue } from "./utils";
 
-export const PHONE_SESSION_STORAGE_KEY = 'saaszo.phone_session_token';
-export const PHONE_SESSION_EVENT = 'saaszo-phone-session-changed';
+export const PHONE_SESSION_STORAGE_KEY = "saaszo.phone_session_token";
+export const PHONE_SESSION_EVENT = "saaszo-phone-session-changed";
 
 export const AUTH_COUNTRY_OPTIONS = [
-  { flag: '🇮🇳', code: '+91', name: 'India' },
-  { flag: '🇺🇸', code: '+1', name: 'USA' },
-  { flag: '🇬🇧', code: '+44', name: 'UK' },
-  { flag: '🇦🇪', code: '+971', name: 'UAE' },
-  { flag: '🇸🇬', code: '+65', name: 'Singapore' },
-  { flag: '🇦🇺', code: '+61', name: 'Australia' },
-  { flag: '🇨🇦', code: '+1', name: 'Canada' },
-  { flag: '🇩🇪', code: '+49', name: 'Germany' },
+  { flag: "🇮🇳", code: "+91", name: "India" },
+  { flag: "🇺🇸", code: "+1", name: "USA" },
+  { flag: "🇬🇧", code: "+44", name: "UK" },
+  { flag: "🇦🇪", code: "+971", name: "UAE" },
+  { flag: "🇸🇬", code: "+65", name: "Singapore" },
+  { flag: "🇦🇺", code: "+61", name: "Australia" },
+  { flag: "🇨🇦", code: "+1", name: "Canada" },
+  { flag: "🇩🇪", code: "+49", name: "Germany" },
 ];
 
 const COUNTRY_CODES_BY_PRIORITY = [...AUTH_COUNTRY_OPTIONS].sort(
@@ -24,26 +25,26 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type ParsedAuthIdentifier =
   | {
-      type: 'email';
+      type: "email";
       raw: string;
       email: string;
     }
   | {
-      type: 'phone';
+      type: "phone";
       raw: string;
       countryCode: string;
       nationalNumber: string;
       e164: string;
     }
   | {
-      type: 'unknown';
+      type: "unknown";
       raw: string;
     };
 
 export type IdentifierLookupResponse = {
   success: boolean;
   exists: boolean;
-  identifierType: 'email' | 'phone' | 'unknown';
+  identifierType: "email" | "phone" | "unknown";
   normalizedIdentifier: string | null;
   authProvider: string | null;
   canUseGoogle: boolean;
@@ -54,19 +55,19 @@ export type IdentifierLookupResponse = {
 
 export function parseAuthIdentifier(
   value: string,
-  defaultCountryCode = '+91',
+  defaultCountryCode = "+91",
 ): ParsedAuthIdentifier {
   const raw = value.trim();
 
   if (!raw) {
-    return { type: 'unknown', raw };
+    return { type: "unknown", raw };
   }
 
   const normalizedEmail = raw.toLowerCase();
 
   if (EMAIL_PATTERN.test(normalizedEmail)) {
     return {
-      type: 'email',
+      type: "email",
       raw,
       email: normalizedEmail,
     };
@@ -75,41 +76,36 @@ export function parseAuthIdentifier(
   const normalizedPhone = normalizePhoneInput(raw, defaultCountryCode);
 
   if (!normalizedPhone) {
-    return { type: 'unknown', raw };
+    return { type: "unknown", raw };
   }
 
   return {
-    type: 'phone',
+    type: "phone",
     raw,
     ...normalizedPhone,
   };
 }
 
 export async function lookupAuthIdentifier(identifier: string) {
-  function getCookie(name: string) {
-    if (typeof document === 'undefined') return null;
-    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-    if (match) return decodeURIComponent(match[2]);
-    return null;
-  }
-
-  if (!getCookie('XSRF-TOKEN')) {
-    await fetch(`${API_BASE_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
-      method: 'GET',
-      credentials: 'include',
+  if (!getCookieValue("XSRF-TOKEN")) {
+    await fetch(`${API_BASE_URL.replace("/api", "")}/sanctum/csrf-cookie`, {
+      method: "GET",
+      credentials: "include",
     }).catch(() => null);
   }
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const xsrfToken = getCookie('XSRF-TOKEN');
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const xsrfToken = getCookieValue("XSRF-TOKEN");
   if (xsrfToken) {
-    headers['X-XSRF-TOKEN'] = xsrfToken;
+    headers["X-XSRF-TOKEN"] = xsrfToken;
   }
 
   const response = await fetch(`${API_BASE_URL}/auth/check-identifier`, {
-    method: 'POST',
+    method: "POST",
     headers,
-    credentials: 'omit',
+    credentials: "include",
     body: JSON.stringify({ identifier }),
   });
 
@@ -118,11 +114,11 @@ export async function lookupAuthIdentifier(identifier: string) {
     | { message?: string }
     | null;
 
-  if (!response.ok || !data || !('success' in data)) {
+  if (!response.ok || !data || !("success" in data)) {
     throw new Error(
-      data && 'message' in data && typeof data.message === 'string'
+      data && "message" in data && typeof data.message === "string"
         ? data.message
-        : 'Could not check this account right now.',
+        : "Could not check this account right now.",
     );
   }
 
@@ -130,7 +126,7 @@ export async function lookupAuthIdentifier(identifier: string) {
 }
 
 export function getPhoneSessionToken() {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return null;
   }
 
@@ -138,7 +134,7 @@ export function getPhoneSessionToken() {
 }
 
 export function setPhoneSessionToken(token: string) {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return;
   }
 
@@ -147,7 +143,7 @@ export function setPhoneSessionToken(token: string) {
 }
 
 export function clearPhoneSessionToken() {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return;
   }
 
@@ -156,19 +152,19 @@ export function clearPhoneSessionToken() {
 }
 
 function normalizePhoneInput(value: string, defaultCountryCode: string) {
-  const compactValue = value.replace(/[^\d+]/g, '');
-  const digits = compactValue.replace(/\D/g, '');
+  const compactValue = value.replace(/[^\d+]/g, "");
+  const digits = compactValue.replace(/\D/g, "");
 
   if (digits.length < 7) {
     return null;
   }
 
-  if (compactValue.startsWith('+')) {
+  if (compactValue.startsWith("+")) {
     const e164 = `+${digits}`;
     const countryCode =
       COUNTRY_CODES_BY_PRIORITY.find((option) => e164.startsWith(option.code))
         ?.code ?? defaultCountryCode;
-    const countryDigits = countryCode.replace('+', '');
+    const countryDigits = countryCode.replace("+", "");
     const nationalNumber = e164.startsWith(countryCode)
       ? digits.slice(countryDigits.length)
       : digits;
@@ -192,7 +188,7 @@ function normalizePhoneInput(value: string, defaultCountryCode: string) {
   const countryCode =
     COUNTRY_CODES_BY_PRIORITY.find((option) => e164.startsWith(option.code))
       ?.code ?? defaultCountryCode;
-  const countryDigits = countryCode.replace('+', '');
+  const countryDigits = countryCode.replace("+", "");
   const nationalNumber = e164.startsWith(countryCode)
     ? digits.slice(countryDigits.length)
     : digits;

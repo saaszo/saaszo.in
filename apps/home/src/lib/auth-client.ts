@@ -1,6 +1,7 @@
 "use client";
 
 import { appConfig, toAbsoluteApiUrl } from "@/lib/config";
+import { getCookieValue, resolveSafeRedirectTarget } from "@/lib/utils";
 
 export const authStorageKey = "saaszo_home_token";
 export const lastActivityKey = "saaszo_home_last_activity";
@@ -30,33 +31,35 @@ export async function requestJson<T extends Record<string, unknown>>(
   path: string,
   init?: RequestInit,
 ): Promise<{ ok: boolean; status: number; data: ApiResult<T> }> {
-  const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(init?.method?.toUpperCase() || 'GET');
-  
-  function getCookie(name: string) {
-    if (typeof document === 'undefined') return null;
-    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-    if (match) return decodeURIComponent(match[2]);
-    return null;
+  const isMutation = !["GET", "HEAD", "OPTIONS"].includes(
+    init?.method?.toUpperCase() || "GET",
+  );
+
+  if (isMutation && !getCookieValue("XSRF-TOKEN")) {
+    await fetch(
+      toAbsoluteApiUrl("/sanctum/csrf-cookie").replace(
+        "/api/sanctum",
+        "/sanctum",
+      ),
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    ).catch(() => null);
   }
 
-  if (isMutation && !getCookie('XSRF-TOKEN')) {
-    await fetch(toAbsoluteApiUrl('/sanctum/csrf-cookie').replace('/api/sanctum', '/sanctum'), {
-      method: 'GET',
-      credentials: 'include',
-    }).catch(() => null);
-  }
-
-  const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
+  const isFormData =
+    typeof FormData !== "undefined" && init?.body instanceof FormData;
   const headers: Record<string, string> = {
     Accept: "application/json",
     "X-Device-ID": getDeviceId(),
     ...(isFormData ? {} : { "Content-Type": "application/json" }),
-    ...(init?.headers as Record<string, string> || {}),
+    ...((init?.headers as Record<string, string>) || {}),
   };
 
-  const xsrfToken = getCookie('XSRF-TOKEN');
+  const xsrfToken = getCookieValue("XSRF-TOKEN");
   if (xsrfToken && isMutation) {
-    headers['X-XSRF-TOKEN'] = xsrfToken;
+    headers["X-XSRF-TOKEN"] = xsrfToken;
   }
 
   const response = await fetch(toAbsoluteApiUrl(path), {
@@ -141,11 +144,7 @@ export async function fetchProfile(accessToken?: string | null) {
 }
 
 export function resolveRedirect(redirect?: string) {
-  if (!redirect) {
-    return `${appConfig.appUrl.replace(/\/$/, "")}/dashboard`;
-  }
-
-  return redirect;
+  return resolveSafeRedirectTarget(redirect, appConfig.appUrl);
 }
 
 export function buildAuthBridgeUrl(redirect?: string) {

@@ -13,10 +13,11 @@ export default function Hero() {
       />
 
       <div className="max-w-7xl mx-auto px-6 text-center">
-
         {/* Badge */}
         <div className="inline-flex items-center gap-2 bg-primary-container/20 text-primary border border-primary/20 rounded-full px-4 py-1.5 text-sm font-semibold mb-8">
-          <span className="material-symbols-outlined text-base">auto_awesome</span>
+          <span className="material-symbols-outlined text-base">
+            auto_awesome
+          </span>
           Now with AI-powered insights
         </div>
 
@@ -59,14 +60,17 @@ export default function Hero() {
             href="#"
             className="w-full sm:w-auto flex items-center justify-center gap-2 text-on-surface font-semibold text-base px-8 py-3.5 rounded-xl bg-surface-container-low border border-outline-variant/50 hover:bg-surface-container transition-colors duration-200"
           >
-            <span className="material-symbols-outlined text-xl">play_circle</span>
+            <span className="material-symbols-outlined text-xl">
+              play_circle
+            </span>
             Watch Demo
           </Link>
         </div>
 
         {/* Dashboard Preview */}
         <div className="relative mx-auto max-w-5xl">
-          <div className="bg-surface-container-lowest rounded-2xl p-2 border border-outline-variant/20"
+          <div
+            className="bg-surface-container-lowest rounded-2xl p-2 border border-outline-variant/20"
             style={{ boxShadow: "0 24px 80px rgba(25,28,30,0.10)" }}
           >
             <img
@@ -87,8 +91,12 @@ export default function Hero() {
               </span>
             </div>
             <div className="text-left">
-              <p className="text-sm font-semibold text-on-surface">AI Insight Generated</p>
-              <p className="text-xs text-on-surface-variant">Revenue projected +12%</p>
+              <p className="text-sm font-semibold text-on-surface">
+                AI Insight Generated
+              </p>
+              <p className="text-xs text-on-surface-variant">
+                Revenue projected +12%
+              </p>
             </div>
           </div>
 
@@ -99,12 +107,19 @@ export default function Hero() {
           >
             <div className="flex -space-x-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="w-8 h-8 rounded-full bg-primary-container border-2 border-surface-container-lowest" />
+                <div
+                  key={i}
+                  className="w-8 h-8 rounded-full bg-primary-container border-2 border-surface-container-lowest"
+                />
               ))}
             </div>
             <div className="text-left">
-              <p className="text-sm font-semibold text-on-surface">2,400+ teams</p>
-              <p className="text-xs text-on-surface-variant">trust SaaSzo daily</p>
+              <p className="text-sm font-semibold text-on-surface">
+                2,400+ teams
+              </p>
+              <p className="text-xs text-on-surface-variant">
+                trust SaaSzo daily
+              </p>
             </div>
           </div>
         </div>

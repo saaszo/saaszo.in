@@ -1,46 +1,58 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import {
-  AUTH_COUNTRY_OPTIONS,
-  lookupAuthIdentifier,
-} from '@/lib/auth-utils';
-import { useAuthSession } from '@/components/AuthProvider';
-import { ConfirmationResult, RecaptchaVerifier } from 'firebase/auth';
+import React, { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { appConfig } from "@/lib/config";
+import { AUTH_COUNTRY_OPTIONS, lookupAuthIdentifier } from "@/lib/auth-utils";
+import { useAuthSession } from "@/components/AuthProvider";
+import { toSafeAppPath } from "@/lib/utils";
+import { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
 
 /* ─── Types ─────────────────────────────────────────────────── */
-type Step = 'phone' | 'otp' | 'success';
-type AuthIntent = 'signin' | 'signup' | 'recover';
+type Step = "phone" | "otp" | "success";
+type AuthIntent = "signin" | "signup" | "recover";
 
 // Removed custom phone response types in favor of Firebase types
 
 function mapFirebasePhoneError(error: any) {
-  const code = error.code || '';
-  if (code === 'auth/invalid-phone-number') return 'Invalid phone number format.';
-  if (code === 'auth/too-many-requests') return 'Too many requests. Please try again later.';
-  if (code === 'auth/captcha-check-failed') return 'reCAPTCHA verification failed. Please try again.';
-  if (code === 'auth/invalid-verification-code') return 'Invalid OTP code. Please check and try again.';
-  if (code === 'auth/code-expired') return 'OTP code has expired. Please request a new one.';
-  return error.message || 'Phone verification failed.';
+  const code = error.code || "";
+  if (code === "auth/invalid-phone-number")
+    return "Invalid phone number format.";
+  if (code === "auth/too-many-requests")
+    return "Too many requests. Please try again later.";
+  if (code === "auth/captcha-check-failed")
+    return "reCAPTCHA verification failed. Please try again.";
+  if (code === "auth/invalid-verification-code")
+    return "Invalid OTP code. Please check and try again.";
+  if (code === "auth/code-expired")
+    return "OTP code has expired. Please request a new one.";
+  return error.message || "Phone verification failed.";
 }
 export default function PhoneOtpAuth() {
   const router = useRouter();
-  const { authenticated, loading, setupRecaptcha, sendPhoneOtp, postAuthRedirect } = useAuthSession();
+  const {
+    authenticated,
+    loading,
+    setupRecaptcha,
+    sendPhoneOtp,
+    postAuthRedirect,
+  } = useAuthSession();
 
   /* ── State ── */
-  const [step, setStep] = useState<Step>('phone');
-  const [intent, setIntent] = useState<AuthIntent>('signin');
-  const [countryCode, setCountryCode] = useState('+91');
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [step, setStep] = useState<Step>("phone");
+  const [intent, setIntent] = useState<AuthIntent>("signin");
+  const [countryCode, setCountryCode] = useState("+91");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
+  const [confirmationResult, setConfirmationResult] =
+    useState<ConfirmationResult | null>(null);
+  const [recaptchaVerifier, setRecaptchaVerifier] =
+    useState<RecaptchaVerifier | null>(null);
   const [recaptchaSolved, setRecaptchaSolved] = useState(false);
   const [verifyAttempts, setVerifyAttempts] = useState(0);
   const [verifyLockSeconds, setVerifyLockSeconds] = useState(0);
@@ -49,19 +61,19 @@ export default function PhoneOtpAuth() {
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
     const params = new URLSearchParams(window.location.search);
-    const requestedIntent = params.get('intent');
-    const requestedCountryCode = params.get('countryCode');
-    const requestedPhone = params.get('phone');
+    const requestedIntent = params.get("intent");
+    const requestedCountryCode = params.get("countryCode");
+    const requestedPhone = params.get("phone");
 
     if (
-      requestedIntent === 'signin' ||
-      requestedIntent === 'signup' ||
-      requestedIntent === 'recover'
+      requestedIntent === "signin" ||
+      requestedIntent === "signup" ||
+      requestedIntent === "recover"
     ) {
       setIntent(requestedIntent);
     }
@@ -76,7 +88,7 @@ export default function PhoneOtpAuth() {
   }, []);
 
   useEffect(() => {
-    if (step === 'phone' && !recaptchaVerifier) {
+    if (step === "phone" && !recaptchaVerifier) {
       void ensureRecaptcha();
     }
   }, [step, recaptchaVerifier, setupRecaptcha]);
@@ -86,19 +98,19 @@ export default function PhoneOtpAuth() {
       return;
     }
 
-    const timer = window.setTimeout(() => {
-      setResendTimer((current) => Math.max(current - 1, 0));
-      setVerifyLockSeconds((current) => Math.max(current - 1, 0));
+    const timer = window.setInterval(() => {
+      setResendTimer((current) => (current > 0 ? current - 1 : current));
+      setVerifyLockSeconds((current) => (current > 0 ? current - 1 : current));
     }, 1000);
 
-    return () => window.clearTimeout(timer);
-  }, [resendTimer, verifyLockSeconds]);
+    return () => window.clearInterval(timer);
+  }, [resendTimer > 0, verifyLockSeconds > 0]);
 
   useEffect(() => {
     if (verifyLockSeconds === 0 && verifyAttempts >= 5) {
       setVerifyAttempts(0);
       if (/too many incorrect otp attempts/i.test(error)) {
-        setError('');
+        setError("");
       }
     }
   }, [error, verifyAttempts, verifyLockSeconds]);
@@ -106,14 +118,18 @@ export default function PhoneOtpAuth() {
   useEffect(() => {
     return () => {
       if (recaptchaVerifier) {
-        try { recaptchaVerifier.clear(); } catch { /* already destroyed */ }
+        try {
+          recaptchaVerifier.clear();
+        } catch {
+          /* already destroyed */
+        }
       }
     };
   }, [recaptchaVerifier]);
 
   useEffect(() => {
     if (!loading && authenticated) {
-      router.replace(postAuthRedirect || '/dashboard');
+      router.replace(toSafeAppPath(postAuthRedirect, appConfig.appUrl));
     }
   }, [authenticated, loading, postAuthRedirect, router]);
 
@@ -122,27 +138,27 @@ export default function PhoneOtpAuth() {
       return recaptchaVerifier;
     }
 
-    if (typeof window === 'undefined') {
-      throw new Error('This verification flow must run in the browser.');
+    if (typeof window === "undefined") {
+      throw new Error("This verification flow must run in the browser.");
     }
 
     const recaptchaContainer = document.getElementById(
-      'phone-otp-recaptcha-container',
+      "phone-otp-recaptcha-container",
     );
 
     if (!recaptchaContainer) {
-      throw new Error('Phone verification is still loading. Please try again.');
+      throw new Error("Phone verification is still loading. Please try again.");
     }
 
-    const verifier = setupRecaptcha('phone-otp-recaptcha-container', {
-      size: 'invisible',
+    const verifier = setupRecaptcha("phone-otp-recaptcha-container", {
+      size: "invisible",
       onSolved: () => {
         setRecaptchaSolved(true);
-        setError('');
+        setError("");
       },
       onExpired: () => {
         setRecaptchaSolved(false);
-        setError('reCAPTCHA expired. Please complete it again.');
+        setError("reCAPTCHA expired. Please complete it again.");
       },
     });
 
@@ -152,41 +168,41 @@ export default function PhoneOtpAuth() {
   };
 
   const requestPhoneOtp = async () => {
-    setError('');
-    setNotice('');
+    setError("");
+    setNotice("");
     if (phone.trim().length < 6) {
-      setError('Please enter a valid phone number.');
+      setError("Please enter a valid phone number.");
       return false;
     }
 
     if (!recaptchaSolved) {
-      setError('Please complete the reCAPTCHA before sending OTP.');
+      setError("Please complete the reCAPTCHA before sending OTP.");
       return false;
     }
 
-    const fullPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
+    const fullPhone = `${countryCode}${phone.replace(/\D/g, "")}`;
 
     setIsLoading(true);
     try {
       const verifier = await ensureRecaptcha();
       const lookup = await lookupAuthIdentifier(fullPhone);
 
-      if (intent === 'signup' && lookup.exists) {
+      if (intent === "signup" && lookup.exists) {
         throw new Error(
-          'This mobile number is already registered. Please sign in instead.',
+          "This mobile number is already registered. Please sign in instead.",
         );
       }
 
-      if ((intent === 'signin' || intent === 'recover') && !lookup.exists) {
+      if ((intent === "signin" || intent === "recover") && !lookup.exists) {
         throw new Error(
-          'No account was found for this mobile number. Please sign up first.',
+          "No account was found for this mobile number. Please sign up first.",
         );
       }
 
       const result = await sendPhoneOtp(fullPhone, verifier);
       setConfirmationResult(result);
-      setStep('otp');
-      setOtp(['', '', '', '', '', '']);
+      setStep("otp");
+      setOtp(["", "", "", "", "", ""]);
       setVerifyAttempts(0);
       setVerifyLockSeconds(0);
       setResendTimer(60);
@@ -195,7 +211,11 @@ export default function PhoneOtpAuth() {
     } catch (err: any) {
       setError(mapFirebasePhoneError(err));
       // Reset recaptcha safely — verifier may already be destroyed on error
-      try { recaptchaVerifier?.clear(); } catch { /* already destroyed */ }
+      try {
+        recaptchaVerifier?.clear();
+      } catch {
+        /* already destroyed */
+      }
       setRecaptchaVerifier(null);
       setRecaptchaSolved(false);
       return false;
@@ -213,22 +233,24 @@ export default function PhoneOtpAuth() {
   /* ── Verify OTP ── */
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setNotice('');
-    const code = otp.join('');
+    setError("");
+    setNotice("");
+    const code = otp.join("");
     if (code.length !== 6) {
-      setError('Please enter all 6 digits.');
+      setError("Please enter all 6 digits.");
       return;
     }
 
     if (verifyLockSeconds > 0) {
-      setError(`Too many incorrect OTP attempts. Please wait ${verifyLockSeconds} seconds and request a new OTP.`);
+      setError(
+        `Too many incorrect OTP attempts. Please wait ${verifyLockSeconds} seconds and request a new OTP.`,
+      );
       return;
     }
 
     if (!confirmationResult) {
-      setError('Verification session expired. Please request a new OTP.');
-      setStep('phone');
+      setError("Verification session expired. Please request a new OTP.");
+      setStep("phone");
       return;
     }
 
@@ -237,7 +259,7 @@ export default function PhoneOtpAuth() {
       await confirmationResult.confirm(code);
       setVerifyAttempts(0);
       setVerifyLockSeconds(0);
-      setStep('success');
+      setStep("success");
     } catch (err: any) {
       const mapped = mapFirebasePhoneError(err);
       if (/invalid otp code/i.test(mapped)) {
@@ -247,7 +269,9 @@ export default function PhoneOtpAuth() {
           setVerifyLockSeconds(60);
           setResendTimer((current) => Math.max(current, 60));
           setConfirmationResult(null);
-          setError('Too many incorrect OTP attempts. Please wait 60 seconds and request a new OTP.');
+          setError(
+            "Too many incorrect OTP attempts. Please wait 60 seconds and request a new OTP.",
+          );
         } else {
           setVerifyAttempts(nextAttempts);
           setError(`Incorrect OTP. ${5 - nextAttempts} attempts remaining.`);
@@ -275,16 +299,21 @@ export default function PhoneOtpAuth() {
     index: number,
     e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
       otpInputRefs.current[index - 1]?.focus();
     }
   };
 
   const handleOtpPaste = (e: React.ClipboardEvent) => {
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     if (pasted.length) {
       const next = [...otp];
-      pasted.split('').forEach((ch, i) => { next[i] = ch; });
+      pasted.split("").forEach((ch, i) => {
+        next[i] = ch;
+      });
       setOtp(next);
       otpInputRefs.current[Math.min(pasted.length, 5)]?.focus();
       e.preventDefault();
@@ -294,34 +323,38 @@ export default function PhoneOtpAuth() {
   /* ── Resend ── */
   const handleResend = async () => {
     if (resendTimer > 0) return;
-    setOtp(['', '', '', '', '', '']);
-    setError('');
-    setNotice('');
+    setOtp(["", "", "", "", "", ""]);
+    setError("");
+    setNotice("");
     setVerifyAttempts(0);
     setVerifyLockSeconds(0);
     setRecaptchaSolved(false);
-    try { recaptchaVerifier?.clear(); } catch { /* already destroyed */ }
+    try {
+      recaptchaVerifier?.clear();
+    } catch {
+      /* already destroyed */
+    }
     setRecaptchaVerifier(null);
     await requestPhoneOtp();
   };
 
-  const isRecoverIntent = intent === 'recover';
-  const isSignupIntent = intent === 'signup';
+  const isRecoverIntent = intent === "recover";
+  const isSignupIntent = intent === "signup";
   const primaryHeading = isRecoverIntent
-    ? 'Recover with Mobile OTP'
+    ? "Recover with Mobile OTP"
     : isSignupIntent
-      ? 'Sign up with Mobile'
-      : 'Sign in with Mobile';
+      ? "Sign up with Mobile"
+      : "Sign in with Mobile";
   const primaryDescription = isRecoverIntent
     ? "We'll verify your number and take you back into your workspace."
     : isSignupIntent
       ? "We'll send a 6-digit OTP to create and secure your mobile account."
       : "We'll send a 6-digit OTP to verify your number.";
   const submitLabel = isRecoverIntent
-    ? 'Send Recovery OTP'
+    ? "Send Recovery OTP"
     : isSignupIntent
-      ? 'Send Signup OTP'
-      : 'Send OTP';
+      ? "Send Signup OTP"
+      : "Send OTP";
 
   /* ─── Shared left-panel orb background ─── */
   const LeftPanel = () => (
@@ -330,7 +363,7 @@ export default function PhoneOtpAuth() {
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-pulse" />
         <div
           className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-tertiary rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-pulse"
-          style={{ animationDelay: '2s' }}
+          style={{ animationDelay: "2s" }}
         />
         <div className="absolute top-[40%] left-[30%] w-[40%] h-[40%] bg-secondary rounded-full mix-blend-overlay filter blur-[100px] opacity-40 animate-float" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
@@ -346,33 +379,39 @@ export default function PhoneOtpAuth() {
 
         <div className="max-w-xl">
           <h1 className="text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary">
-            One tap.<br />Full access.
+            One tap.
+            <br />
+            Full access.
           </h1>
           <p className="text-xl text-on-surface-variant leading-relaxed">
-            Verify your identity in seconds with a one-time password sent directly to your mobile.
+            Verify your identity in seconds with a one-time password sent
+            directly to your mobile.
           </p>
         </div>
       </div>
 
-      <div className="relative z-10 flex flex-col gap-8 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+      <div
+        className="relative z-10 flex flex-col gap-8 animate-fade-up"
+        style={{ animationDelay: "0.2s" }}
+      >
         {[
           {
-            icon: 'smartphone',
-            color: 'primary',
-            title: 'Passwordless & Secure',
-            desc: 'No password to remember or compromise — just your phone.',
+            icon: "smartphone",
+            color: "primary",
+            title: "Passwordless & Secure",
+            desc: "No password to remember or compromise — just your phone.",
           },
           {
-            icon: 'bolt',
-            color: 'tertiary',
-            title: 'Lightning Fast',
-            desc: 'OTP delivered in seconds through our secure Firebase verification flow.',
+            icon: "bolt",
+            color: "tertiary",
+            title: "Lightning Fast",
+            desc: "OTP delivered in seconds through our secure Firebase verification flow.",
           },
           {
-            icon: 'verified_user',
-            color: 'secondary',
-            title: 'Military-grade Verification',
-            desc: 'Each OTP is single-use and validated before workspace access is granted.',
+            icon: "verified_user",
+            color: "secondary",
+            title: "Military-grade Verification",
+            desc: "Each OTP is single-use and validated before workspace access is granted.",
           },
         ].map(({ icon, color, title, desc }) => (
           <div key={title} className="flex gap-4 items-start group">
@@ -402,7 +441,7 @@ export default function PhoneOtpAuth() {
 
         <div
           className="w-full max-w-md relative z-10 animate-fade-up pt-8 lg:pt-0"
-          style={{ animationDelay: '0.3s' }}
+          style={{ animationDelay: "0.3s" }}
         >
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-2 mb-12 justify-center">
@@ -413,27 +452,29 @@ export default function PhoneOtpAuth() {
           </div>
 
           {/* ═══ STEP 1 — Phone entry ═══ */}
-          {step === 'phone' && (
+          {step === "phone" && (
             <>
               <div className="mb-10 text-center lg:text-left">
                 <h2 className="text-3xl font-bold mb-3 tracking-tight">
                   {primaryHeading}
                 </h2>
-                <p className="text-on-surface-variant">
-                  {primaryDescription}
-                </p>
+                <p className="text-on-surface-variant">{primaryDescription}</p>
               </div>
 
               {error && (
                 <div className="mb-6 p-4 rounded-xl bg-error-container text-on-error-container border border-error/20 flex gap-3 items-center animate-fade-up">
-                  <span className="material-symbols-outlined text-error">error</span>
+                  <span className="material-symbols-outlined text-error">
+                    error
+                  </span>
                   <p className="text-sm font-medium">{error}</p>
                 </div>
               )}
 
               {notice && (
                 <div className="mb-6 p-4 rounded-xl bg-primary-container/40 text-on-primary-container border border-primary/15 flex gap-3 items-center animate-fade-up">
-                  <span className="material-symbols-outlined text-primary">info</span>
+                  <span className="material-symbols-outlined text-primary">
+                    info
+                  </span>
                   <p className="text-sm font-medium">{notice}</p>
                 </div>
               )}
@@ -463,7 +504,9 @@ export default function PhoneOtpAuth() {
                   {/* Phone number input */}
                   <div className="relative flex-1 group">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
-                      <span className="material-symbols-outlined text-xl">phone</span>
+                      <span className="material-symbols-outlined text-xl">
+                        phone
+                      </span>
                     </div>
                     <input
                       type="tel"
@@ -488,8 +531,8 @@ export default function PhoneOtpAuth() {
                   disabled={isLoading}
                   className={`mt-2 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
                     isLoading || !recaptchaSolved
-                      ? 'opacity-80 cursor-not-allowed'
-                      : 'shadow-lg shadow-primary/20 hover:shadow-primary/40'
+                      ? "opacity-80 cursor-not-allowed"
+                      : "shadow-lg shadow-primary/20 hover:shadow-primary/40"
                   }`}
                 >
                   {!isLoading && (
@@ -519,28 +562,34 @@ export default function PhoneOtpAuth() {
 
               <div className="mt-8 text-center">
                 <Link
-                  href={isSignupIntent ? '/register' : '/auth'}
+                  href={isSignupIntent ? "/register" : "/auth"}
                   className="inline-flex items-center gap-2 font-semibold text-primary hover:text-tertiary transition-colors"
                 >
-                  <span className="material-symbols-outlined text-sm">mail</span>
+                  <span className="material-symbols-outlined text-sm">
+                    mail
+                  </span>
                   {isSignupIntent
-                    ? 'Sign up with Email instead'
-                    : 'Sign in with Email instead'}
+                    ? "Sign up with Email instead"
+                    : "Sign in with Email instead"}
                 </Link>
               </div>
             </>
           )}
 
           {/* ═══ STEP 2 — OTP Entry ═══ */}
-          {step === 'otp' && (
+          {step === "otp" && (
             <>
               <div className="mb-10 text-center">
                 <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center animate-fade-up">
-                  <span className="material-symbols-outlined text-3xl">sms</span>
+                  <span className="material-symbols-outlined text-3xl">
+                    sms
+                  </span>
                 </div>
-                <h2 className="text-3xl font-bold mb-3 tracking-tight">Check your messages</h2>
+                <h2 className="text-3xl font-bold mb-3 tracking-tight">
+                  Check your messages
+                </h2>
                 <p className="text-on-surface-variant">
-                  We sent a 6-digit code to{' '}
+                  We sent a 6-digit code to{" "}
                   <span className="font-semibold text-on-surface">
                     {countryCode} {phone}
                   </span>
@@ -549,25 +598,34 @@ export default function PhoneOtpAuth() {
 
               {error && (
                 <div className="mb-6 p-4 rounded-xl bg-error-container text-on-error-container border border-error/20 flex gap-3 items-center animate-fade-up">
-                  <span className="material-symbols-outlined text-error">error</span>
+                  <span className="material-symbols-outlined text-error">
+                    error
+                  </span>
                   <p className="text-sm font-medium">{error}</p>
                 </div>
               )}
 
               {notice && (
                 <div className="mb-6 p-4 rounded-xl bg-primary-container/40 text-on-primary-container border border-primary/15 flex gap-3 items-center animate-fade-up">
-                  <span className="material-symbols-outlined text-primary">info</span>
+                  <span className="material-symbols-outlined text-primary">
+                    info
+                  </span>
                   <p className="text-sm font-medium">{notice}</p>
                 </div>
               )}
 
               <form onSubmit={handleVerifyOtp} className="flex flex-col gap-6">
                 {/* 6 OTP boxes */}
-                <div className="flex gap-2 sm:gap-3 justify-center" onPaste={handleOtpPaste}>
+                <div
+                  className="flex gap-2 sm:gap-3 justify-center"
+                  onPaste={handleOtpPaste}
+                >
                   {otp.map((digit, i) => (
                     <input
                       key={i}
-                      ref={(el) => { otpInputRefs.current[i] = el; }}
+                      ref={(el) => {
+                        otpInputRefs.current[i] = el;
+                      }}
                       type="text"
                       inputMode="numeric"
                       maxLength={1}
@@ -576,8 +634,8 @@ export default function PhoneOtpAuth() {
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
                       className={`w-11 h-14 sm:w-13 sm:h-16 text-center text-2xl font-bold rounded-xl border-2 outline-none transition-all duration-200 bg-surface-container focus:bg-surface-container-lowest ${
                         digit
-                          ? 'border-primary text-on-surface shadow-[0_0_0_4px_var(--color-primary-container)]'
-                          : 'border-outline-variant focus:border-primary focus:shadow-[0_0_0_4px_var(--color-primary-container)]'
+                          ? "border-primary text-on-surface shadow-[0_0_0_4px_var(--color-primary-container)]"
+                          : "border-outline-variant focus:border-primary focus:shadow-[0_0_0_4px_var(--color-primary-container)]"
                       }`}
                       aria-label={`OTP digit ${i + 1}`}
                     />
@@ -586,14 +644,14 @@ export default function PhoneOtpAuth() {
 
                 <button
                   type="submit"
-                  disabled={isLoading || otp.join('').length < 6}
+                  disabled={isLoading || otp.join("").length < 6}
                   className={`relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
-                    isLoading || otp.join('').length < 6
-                      ? 'opacity-75 cursor-not-allowed'
-                      : 'shadow-lg shadow-primary/20 hover:shadow-primary/40'
+                    isLoading || otp.join("").length < 6
+                      ? "opacity-75 cursor-not-allowed"
+                      : "shadow-lg shadow-primary/20 hover:shadow-primary/40"
                   }`}
                 >
-                  {!isLoading && otp.join('').length === 6 && (
+                  {!isLoading && otp.join("").length === 6 && (
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                   )}
                   <span className="relative z-10 flex items-center justify-center gap-2">
@@ -605,7 +663,9 @@ export default function PhoneOtpAuth() {
                     ) : (
                       <>
                         Verify & Continue
-                        <span className="material-symbols-outlined">verified</span>
+                        <span className="material-symbols-outlined">
+                          verified
+                        </span>
                       </>
                     )}
                   </span>
@@ -614,10 +674,10 @@ export default function PhoneOtpAuth() {
 
               <div className="mt-8 text-center flex flex-col gap-3">
                 <p className="text-sm text-on-surface-variant">
-                  Didn't receive the code?{' '}
+                  Didn't receive the code?{" "}
                   {resendTimer > 0 ? (
                     <span className="text-outline">
-                      Resend in{' '}
+                      Resend in{" "}
                       <span className="font-semibold text-primary tabular-nums">
                         {resendTimer}s
                       </span>
@@ -633,14 +693,16 @@ export default function PhoneOtpAuth() {
                 </p>
                 <button
                   onClick={() => {
-                    setStep('phone');
-                    setError('');
-                    setOtp(['', '', '', '', '', '']);
+                    setStep("phone");
+                    setError("");
+                    setOtp(["", "", "", "", "", ""]);
                     setConfirmationResult(null);
                   }}
                   className="inline-flex items-center justify-center gap-1 text-sm text-on-surface-variant hover:text-primary transition-colors"
                 >
-                  <span className="material-symbols-outlined text-sm">arrow_back</span>
+                  <span className="material-symbols-outlined text-sm">
+                    arrow_back
+                  </span>
                   Change phone number
                 </button>
               </div>
@@ -648,18 +710,22 @@ export default function PhoneOtpAuth() {
           )}
 
           {/* ═══ STEP 3 — Success ═══ */}
-          {step === 'success' && (
+          {step === "success" && (
             <div className="text-center animate-fade-up">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
-                <span className="material-symbols-outlined text-4xl">check_circle</span>
+                <span className="material-symbols-outlined text-4xl">
+                  check_circle
+                </span>
               </div>
-              <h2 className="text-3xl font-bold mb-3 tracking-tight">Verified!</h2>
+              <h2 className="text-3xl font-bold mb-3 tracking-tight">
+                Verified!
+              </h2>
               <p className="text-on-surface-variant">
                 {isSignupIntent
-                  ? 'Your mobile account is ready. Redirecting you to your workspace…'
+                  ? "Your mobile account is ready. Redirecting you to your workspace…"
                   : isRecoverIntent
-                    ? 'Your number is verified. Redirecting you back into your workspace…'
-                    : 'Welcome to SaaSzo. Redirecting you to your workspace…'}
+                    ? "Your number is verified. Redirecting you back into your workspace…"
+                    : "Welcome to SaaSzo. Redirecting you to your workspace…"}
               </p>
               <div className="mt-6 flex justify-center">
                 <span className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -668,15 +734,21 @@ export default function PhoneOtpAuth() {
           )}
 
           {/* Footer legal */}
-          {step === 'phone' && (
+          {step === "phone" && (
             <div className="mt-12 text-center">
               <p className="text-xs text-outline max-w-xs mx-auto">
-                By continuing, you agree to SaaSzo's{' '}
-                <Link href="/terms" className="underline hover:text-on-surface transition-colors">
+                By continuing, you agree to SaaSzo's{" "}
+                <Link
+                  href="/terms"
+                  className="underline hover:text-on-surface transition-colors"
+                >
                   Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href="/privacy" className="underline hover:text-on-surface transition-colors">
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  className="underline hover:text-on-surface transition-colors"
+                >
                   Privacy Policy
                 </Link>
                 .

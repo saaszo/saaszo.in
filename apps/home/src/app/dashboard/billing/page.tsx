@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useAuthSession } from '@/components/AuthProvider';
+import Link from "next/link";
+import { useAuthSession } from "@/components/AuthProvider";
 
 export default function BillingPage() {
   const { authenticated, loading, subscription } = useAuthSession();
@@ -43,7 +43,10 @@ export default function BillingPage() {
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <BillingCard label="Plan" value={subscription.planName} />
             <BillingCard label="Status" value={subscription.status} />
-            <BillingCard label="Billing cycle" value={subscription.billingCycle} />
+            <BillingCard
+              label="Billing cycle"
+              value={subscription.billingCycle}
+            />
             <BillingCard label="Seats" value={`${subscription.seats}`} />
           </div>
 
@@ -51,7 +54,7 @@ export default function BillingPage() {
             <p className="text-sm text-on-surface-variant">
               {subscription.currentPeriodEnd
                 ? `Your renewal date is ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`
-                : 'This account is currently on a default trial subscription without a renewal date.'}
+                : "This account is currently on a default trial subscription without a renewal date."}
             </p>
           </div>
         </div>

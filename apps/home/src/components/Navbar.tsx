@@ -19,7 +19,6 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 inset-x-0 z-50 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/20 transition-all duration-200">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-8">
-
         {/* Logo */}
         <Link
           href="/"
@@ -57,7 +56,8 @@ export default function Navbar() {
                 }}
                 className="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-all duration-200 hover:opacity-90 hover:-translate-y-px active:scale-95"
                 style={{
-                  background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+                  background:
+                    "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
                   boxShadow: "0 4px 20px rgba(70,72,212,0.35)",
                 }}
               >
@@ -76,7 +76,8 @@ export default function Navbar() {
                 href="/register"
                 className="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-all duration-200 hover:opacity-90 hover:-translate-y-px active:scale-95"
                 style={{
-                  background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+                  background:
+                    "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
                   boxShadow: "0 4px 20px rgba(70,72,212,0.35)",
                 }}
               >
@@ -128,7 +129,8 @@ export default function Navbar() {
                 }}
                 className="text-left text-white font-semibold px-5 py-2.5 rounded-lg"
                 style={{
-                  background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+                  background:
+                    "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
                 }}
               >
                 Logout
@@ -136,14 +138,18 @@ export default function Navbar() {
             </>
           ) : !loading ? (
             <>
-              <Link href="/auth" className="text-on-surface-variant font-medium">
+              <Link
+                href="/auth"
+                className="text-on-surface-variant font-medium"
+              >
                 Log In
               </Link>
               <Link
                 href="/register"
                 className="text-center text-white font-semibold px-5 py-2.5 rounded-lg"
                 style={{
-                  background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+                  background:
+                    "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
                 }}
               >
                 Get Started Free

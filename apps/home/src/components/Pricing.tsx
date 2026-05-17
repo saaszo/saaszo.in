@@ -123,7 +123,9 @@ export default function Pricing() {
                     <span className="material-symbols-outlined text-primary text-lg shrink-0">
                       check_circle
                     </span>
-                    <span className="text-on-surface-variant text-sm">{feature}</span>
+                    <span className="text-on-surface-variant text-sm">
+                      {feature}
+                    </span>
                   </li>
                 ))}
               </ul>
