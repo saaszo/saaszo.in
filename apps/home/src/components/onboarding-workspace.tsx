@@ -324,8 +324,15 @@ function sanitizeUpiId(value: string, maxLength = 255) {
 }
 
 function getReadableFirebaseOtpError(error: unknown) {
+  const code =
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code?: unknown }).code === "string"
+      ? (error as { code: string }).code.toLowerCase()
+      : "";
   const message = error instanceof Error ? error.message : String(error || "");
-  const normalized = message.toLowerCase();
+  const normalized = `${code} ${message}`.toLowerCase();
 
   if (normalized.includes("auth/invalid-verification-code")) {
     return "Incorrect OTP.";
@@ -349,6 +356,32 @@ function getReadableFirebaseOtpError(error: unknown) {
 
   if (normalized.includes("auth/invalid-phone-number")) {
     return "Enter a valid mobile number in +91XXXXXXXXXX format.";
+  }
+
+  if (normalized.includes("auth/captcha-check-failed")) {
+    return "Complete the reCAPTCHA again before sending OTP.";
+  }
+
+  if (
+    normalized.includes("auth/invalid-app-credential") ||
+    normalized.includes("auth/missing-app-credential")
+  ) {
+    return "Phone verification session expired. Complete the reCAPTCHA again and resend OTP.";
+  }
+
+  if (
+    normalized.includes("auth/app-not-authorized") ||
+    normalized.includes("auth/unauthorized-domain")
+  ) {
+    return "This website domain is not authorized for Firebase phone OTP yet.";
+  }
+
+  if (normalized.includes("auth/operation-not-allowed")) {
+    return "Firebase phone OTP is not enabled right now.";
+  }
+
+  if (normalized.includes("auth/quota-exceeded")) {
+    return "Daily OTP quota is exhausted right now. Please try again later.";
   }
 
   if (normalized.includes("auth/network-request-failed")) {
@@ -522,6 +555,7 @@ export function OnboardingWorkspace() {
   const [phoneVerifier, setPhoneVerifier] = useState<RecaptchaVerifier | null>(
     null,
   );
+  const [phoneRecaptchaSolved, setPhoneRecaptchaSolved] = useState(false);
   const [verificationModal, setVerificationModal] = useState<
     "email" | "phone" | null
   >(null);
@@ -961,12 +995,33 @@ export function OnboardingWorkspace() {
   }, [verificationModal]);
 
   useEffect(() => {
-    if (currentStep !== 2 || phoneVerified) {
+    if (
+      currentStep !== 2 ||
+      phoneVerified ||
+      verificationModal !== "phone" ||
+      phoneVerifier
+    ) {
       return;
     }
 
     void ensurePhoneVerifier().catch(() => null);
-  }, [currentStep, phoneVerified]);
+  }, [currentStep, phoneVerified, phoneVerifier, verificationModal]);
+
+  useEffect(() => {
+    if (verificationModal === "phone") {
+      return;
+    }
+
+    setPhoneRecaptchaSolved(false);
+    if (!phoneVerifier) {
+      return;
+    }
+
+    try {
+      phoneVerifier.clear();
+    } catch {}
+    setPhoneVerifier(null);
+  }, [phoneVerifier, verificationModal]);
 
   function setValue<K extends keyof OnboardingProfile>(
     key: K,
@@ -1358,22 +1413,38 @@ export function OnboardingWorkspace() {
       return phoneVerifier;
     }
 
+    const recaptchaContainer = document.getElementById(
+      "onboarding-phone-recaptcha",
+    );
+    if (!recaptchaContainer) {
+      throw new Error(
+        "Phone verification is still loading. Please reopen the mobile verification dialog.",
+      );
+    }
+
+    recaptchaContainer.innerHTML = "";
+
     const verificationAuth = getVerificationAuth();
     if (!verificationAuth) {
       throw new Error("Phone verification is not available right now.");
     }
 
+    verificationAuth.languageCode = "en";
+
     const verifier = new RecaptchaVerifier(
       verificationAuth,
       "onboarding-phone-recaptcha",
       {
-        size: "invisible",
+        size: "compact",
         callback: () => {
+          setPhoneRecaptchaSolved(true);
           setError("");
+          setVerificationError("");
         },
         "expired-callback": () => {
-          setError(
-            "Phone verification CAPTCHA expired. Please complete it again.",
+          setPhoneRecaptchaSolved(false);
+          setVerificationError(
+            "Phone verification CAPTCHA expired. Complete it again before sending OTP.",
           );
         },
       },
@@ -1395,6 +1466,13 @@ export function OnboardingWorkspace() {
     if (!/^\+91\d{10}$/.test(form.phone || "")) {
       setVerificationError(
         "Enter a valid mobile number in +91XXXXXXXXXX format first.",
+      );
+      return;
+    }
+
+    if (!phoneRecaptchaSolved) {
+      setVerificationError(
+        "Complete the reCAPTCHA before sending the mobile OTP.",
       );
       return;
     }
@@ -1432,11 +1510,13 @@ export function OnboardingWorkspace() {
           : "Mobile OTP sent successfully.",
       );
     } catch (verificationError: any) {
+      console.error("Mobile OTP send failed", verificationError);
       setVerificationError(getReadableFirebaseOtpError(verificationError));
       try {
         phoneVerifier?.clear();
       } catch {}
       setPhoneVerifier(null);
+      setPhoneRecaptchaSolved(false);
     } finally {
       setPhoneOtpSending(false);
     }
@@ -2207,11 +2287,6 @@ export function OnboardingWorkspace() {
 
               {currentStep === 2 && (
                 <div className="space-y-6 pb-4">
-                  <div
-                    id="onboarding-phone-recaptcha"
-                    className="pointer-events-none absolute -left-[9999px] top-0 h-0 w-0 overflow-hidden opacity-0"
-                  />
-
                   <div className="grid xl:grid-cols-2 gap-4">
                     <button
                       type="button"
@@ -3031,6 +3106,15 @@ export function OnboardingWorkspace() {
               <div className="mt-6 space-y-4">
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                   {form.phone || "No mobile number added"}
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-4">
+                  <div
+                    id="onboarding-phone-recaptcha"
+                    className="min-h-[94px] overflow-hidden"
+                  />
+                  <p className="mt-3 text-xs text-slate-500">
+                    Complete this security check once, then tap Send OTP.
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <Button
