@@ -96,7 +96,7 @@ export async function lookupAuthIdentifier(identifier: string) {
   if (!getCookie('XSRF-TOKEN')) {
     await fetch(`${API_BASE_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
       method: 'GET',
-      credentials: 'omit',
+      credentials: 'include',
     }).catch(() => null);
   }
 
