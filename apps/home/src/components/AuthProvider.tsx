@@ -373,6 +373,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   }
 
+  async function refreshBackendTokenFromSession() {
+    const response = await fetchWithCsrf(`${API_BASE_URL}/auth/bridge-token`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json().catch(() => null)) as
+      | { access_token?: string | null }
+      | null;
+
+    const token = payload?.access_token ?? null;
+
+    if (token) {
+      setBackendToken(token);
+      setStoredBackendToken(token);
+    }
+
+    return token;
+  }
+
   async function syncFirebaseUserSession(firebaseUser: FirebaseUser) {
     const token = await firebaseUser.getIdToken();
     const response = await fetchWithCsrf(`${API_BASE_URL}/auth/sync`, {
@@ -455,6 +481,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription: session.subscription,
       onboarding: session.onboarding,
     });
+
+    try {
+      await refreshBackendTokenFromSession();
+    } catch {
+      setBackendToken(null);
+      clearStoredBackendToken();
+    }
   }
 
   async function fetchWithCsrf(url: string, init: RequestInit = {}) {
@@ -487,43 +520,89 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     path: string,
     init: RequestInit = {},
   ): Promise<BackendAuthResponse> {
-    let authorizationHeader =
-      (init.headers as Record<string, string> | undefined)?.Authorization ??
-      (init.headers as Record<string, string> | undefined)?.authorization;
+    const resolveAuthorizationHeader = async () => {
+      let authorizationHeader =
+        (init.headers as Record<string, string> | undefined)?.Authorization ??
+        (init.headers as Record<string, string> | undefined)?.authorization;
 
-    if (!authorizationHeader) {
+      if (authorizationHeader) {
+        return authorizationHeader;
+      }
+
       const sanctumToken = backendToken ?? getStoredBackendToken();
       if (sanctumToken) {
-        authorizationHeader = `Bearer ${sanctumToken}`;
-      } else if (auth?.currentUser) {
+        return `Bearer ${sanctumToken}`;
+      }
+
+      if (auth?.currentUser) {
         try {
           const firebaseToken = await auth.currentUser.getIdToken();
           if (firebaseToken) {
-            authorizationHeader = `Bearer ${firebaseToken}`;
+            return `Bearer ${firebaseToken}`;
           }
         } catch {
-          authorizationHeader = undefined;
+          return undefined;
+        }
+      }
+
+      return undefined;
+    };
+
+    const performRequest = async (authorizationHeader?: string) => {
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(init.headers as Record<string, string> ?? {}),
+        ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
+      };
+
+      const response = await fetchWithCsrf(`${API_BASE_URL}${path}`, {
+        ...init,
+        headers,
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | BackendAuthResponse
+        | null;
+
+      return { response, payload };
+    };
+
+    let authorizationHeader = await resolveAuthorizationHeader();
+    let { response, payload } = await performRequest(authorizationHeader);
+
+    if (response.status === 401) {
+      let recovered = false;
+
+      if (auth?.currentUser) {
+        try {
+          await syncFirebaseUserSession(auth.currentUser);
+          authorizationHeader = await resolveAuthorizationHeader();
+          ({ response, payload } = await performRequest(authorizationHeader));
+          recovered = response.ok;
+        } catch {
+          recovered = false;
+        }
+      }
+
+      if (!recovered) {
+        try {
+          const sessionToken = await refreshBackendTokenFromSession();
+          if (sessionToken) {
+            ({ response, payload } = await performRequest(`Bearer ${sessionToken}`));
+          }
+        } catch {
+          // noop; let the final error surface below
         }
       }
     }
 
-    const headers: Record<string, string> = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(init.headers as Record<string, string> ?? {}),
-      ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
-    };
-
-    const response = await fetchWithCsrf(`${API_BASE_URL}${path}`, {
-      ...init,
-      headers,
-    });
-
-    const payload = (await response.json().catch(() => null)) as
-      | BackendAuthResponse
-      | null;
-
     if (!response.ok) {
+      if (response.status === 401) {
+        clearStoredBackendToken();
+        setBackendToken(null);
+      }
+
       throw new Error(
         getErrorMessage(payload, 'The authentication server is currently unreachable.'),
       );

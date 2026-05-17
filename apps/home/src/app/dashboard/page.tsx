@@ -204,13 +204,13 @@ export default function DashboardPage() {
   }, [profile]);
 
   useEffect(() => {
-    if (authenticated && (activeTab === 'branches' || activeTab === 'overview')) {
+    if (!loading && authenticated && workspaceUser && (activeTab === 'branches' || activeTab === 'overview')) {
       void loadBranches();
     }
-    if (authenticated && (activeTab === 'team' || activeTab === 'overview')) {
+    if (!loading && authenticated && workspaceUser && (activeTab === 'team' || activeTab === 'overview')) {
       void loadStaff();
     }
-  }, [authenticated, activeTab]);
+  }, [authenticated, activeTab, loading, workspaceUser]);
 
   useEffect(() => {
     if (!authenticated || activeTab !== 'overview') {
@@ -222,16 +222,28 @@ export default function DashboardPage() {
 
   async function loadBranches() {
     setIsDataLoading(true);
-    const data = await getBranches();
-    setBranches(data);
-    setIsDataLoading(false);
+    try {
+      const data = await getBranches();
+      setBranches(data);
+    } catch (error) {
+      console.error('loadBranches error:', error);
+      setBranches([]);
+    } finally {
+      setIsDataLoading(false);
+    }
   }
 
   async function loadStaff() {
     setIsDataLoading(true);
-    const data = await getStaff();
-    setStaff(data);
-    setIsDataLoading(false);
+    try {
+      const data = await getStaff();
+      setStaff(data);
+    } catch (error) {
+      console.error('loadStaff error:', error);
+      setStaff([]);
+    } finally {
+      setIsDataLoading(false);
+    }
   }
 
   async function loadToolStates() {
