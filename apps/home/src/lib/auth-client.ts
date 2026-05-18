@@ -3,7 +3,8 @@
 import { appConfig, toAbsoluteApiUrl } from "@/lib/config";
 import { getCookieValue, resolveSafeRedirectTarget } from "@/lib/utils";
 
-export const authStorageKey = "saaszo_home_token";
+export const authStorageKey = "saaszo.backend_auth_token";
+export const legacyAuthStorageKey = "saaszo_home_token";
 export const lastActivityKey = "saaszo_home_last_activity";
 export const deviceIdKey = "saaszo_home_device_id";
 export const authCookieKey = "saaszo_session";
@@ -86,6 +87,7 @@ export function persistAccessToken(token?: string) {
   }
 
   window.localStorage.setItem(authStorageKey, token);
+  window.localStorage.setItem(legacyAuthStorageKey, token);
   const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
   document.cookie = `${authCookieKey}=1; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
   document.cookie = `${authCookieKey}=1; Path=/; Domain=${sharedCookieDomain}; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
@@ -109,6 +111,7 @@ export function clearAccessToken() {
   }
 
   window.localStorage.removeItem(authStorageKey);
+  window.localStorage.removeItem(legacyAuthStorageKey);
   window.localStorage.removeItem(lastActivityKey);
   document.cookie = `${authCookieKey}=; Path=/; Max-Age=0; SameSite=Lax`;
   document.cookie = `${authCookieKey}=; Path=/; Max-Age=0; Domain=${sharedCookieDomain}; SameSite=Lax`;
@@ -126,7 +129,10 @@ export function readAccessToken() {
     return null;
   }
 
-  return window.localStorage.getItem(authStorageKey);
+  return (
+    window.localStorage.getItem(authStorageKey) ||
+    window.localStorage.getItem(legacyAuthStorageKey)
+  );
 }
 
 export async function fetchProfile(accessToken?: string | null) {

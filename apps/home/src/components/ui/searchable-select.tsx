@@ -12,6 +12,7 @@ type SearchableSelectProps = {
   onChange: (val: string) => void;
   emptyMessage?: string;
   disabled?: boolean;
+  triggerClassName?: string;
 };
 
 export function SearchableSelect({
@@ -22,6 +23,7 @@ export function SearchableSelect({
   onChange,
   emptyMessage = "No results found.",
   disabled = false,
+  triggerClassName,
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -55,7 +57,13 @@ export function SearchableSelect({
     <div className="relative" ref={containerRef}>
       {label && <Label className="mb-2 block">{label}</Label>}
       <div
-        className="flex h-12 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background shadow-sm cursor-pointer focus-visible:outline-none"
+        className={[
+          "flex h-12 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background shadow-sm cursor-pointer focus-visible:outline-none",
+          disabled ? "cursor-not-allowed opacity-60" : "",
+          triggerClassName || "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <span className={selectedOption ? "text-ink" : "text-muted"}>

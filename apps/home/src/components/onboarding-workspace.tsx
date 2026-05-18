@@ -133,6 +133,11 @@ type OnboardingResponse = {
   personalization?: Personalization;
 };
 
+type StepValidationResult = {
+  message: string;
+  fields: string[];
+} | null;
+
 const stepLabels = [
   "Basics",
   "Verify & Category",
@@ -577,6 +582,8 @@ export function OnboardingWorkspace() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<string[]>([]);
+  const [validationTick, setValidationTick] = useState(0);
   const [started, setStarted] = useState(false);
   const [useCustomBank, setUseCustomBank] = useState(false);
   const [emailOtp, setEmailOtp] = useState("");
@@ -615,7 +622,13 @@ export function OnboardingWorkspace() {
   const [manualCityMode, setManualCityMode] = useState(false);
   const { states, citiesByState, isLoading: locationsLoading } =
     useLocations();
-  const { user, profile, auth } = useAuthSession();
+  const {
+    user,
+    profile,
+    auth,
+    authenticated,
+    loading: sessionLoading,
+  } = useAuthSession();
   const primaryButtonClass =
     "cursor-pointer bg-primary text-white shadow-md hover:bg-primary/90";
   const softButtonClass =
@@ -751,6 +764,37 @@ export function OnboardingWorkspace() {
       options.template_options.map((item) => ({ label: item, value: item })),
     [options.template_options],
   );
+  const hasFieldError = (field: string) => fieldErrors.includes(field);
+
+  const getFieldShakeStyle = (field: string) =>
+    hasFieldError(field)
+      ? {
+          animation: `setup-field-shake ${0.35 + validationTick * 0.0001}s ease-in-out`,
+        }
+      : undefined;
+
+  const getInputClassName = (field: string, baseClassName: string) =>
+    cn(
+      baseClassName,
+      hasFieldError(field) &&
+        "border-red-300 bg-red-50 text-red-900 placeholder:text-red-400 focus-visible:border-red-400 focus-visible:ring-red-200",
+    );
+
+  const getSelectTriggerClassName = (field: string) =>
+    cn(
+      hasFieldError(field) &&
+        "border-red-300 bg-red-50 text-red-900 ring-2 ring-red-100",
+    );
+
+  const clearFieldErrors = (...fields: string[]) => {
+    if (fields.length === 0) {
+      return;
+    }
+
+    setFieldErrors((current) =>
+      current.filter((field) => !fields.includes(field)),
+    );
+  };
 
   const gstNumberNormalized = (form.gst_number || "")
     .toUpperCase()
@@ -764,6 +808,13 @@ export function OnboardingWorkspace() {
 
   useEffect(() => {
     let active = true;
+
+    if (sessionLoading || !authenticated) {
+      return () => {
+        active = false;
+      };
+    }
+
     (async () => {
       const result = await authedRequest<OnboardingResponse>(
         "/auth/onboarding",
@@ -817,7 +868,7 @@ export function OnboardingWorkspace() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [authenticated, sessionLoading]);
 
   useEffect(() => {
     if (!form.bank_name) {
@@ -1064,6 +1115,16 @@ export function OnboardingWorkspace() {
     key: K,
     value: OnboardingProfile[K],
   ) {
+    const field = String(key);
+    if (field === "state") {
+      clearFieldErrors("state", "city");
+    } else if (field === "email") {
+      clearFieldErrors("email");
+    } else if (field === "phone") {
+      clearFieldErrors("phone");
+    } else {
+      clearFieldErrors(field);
+    }
     setForm((current) => ({ ...current, [key]: value }));
   }
 
@@ -1116,11 +1177,13 @@ export function OnboardingWorkspace() {
       state: nextState,
       city: cityStillMatches ? current.city : "",
     }));
+    clearFieldErrors("state", "city");
     setManualCityMode(nextCities.length === 0);
   }
 
   function handleCitySelection(value: string) {
     if (value === MANUAL_CITY_VALUE) {
+      clearFieldErrors("city");
       setManualCityMode(true);
       if (currentCityMatchesState) {
         setValue("city", "" as OnboardingProfile["city"]);
@@ -1129,11 +1192,13 @@ export function OnboardingWorkspace() {
     }
 
     setManualCityMode(false);
+    clearFieldErrors("city");
     setValue("city", value as OnboardingProfile["city"]);
   }
 
   function useSuggestedCityList() {
     setManualCityMode(false);
+    clearFieldErrors("city");
 
     if (!currentCityMatchesState) {
       setValue("city", "" as OnboardingProfile["city"]);
@@ -1159,42 +1224,161 @@ export function OnboardingWorkspace() {
     setValue(key, sanitizeDigits(value, maxLength) as OnboardingProfile[K]);
   }
 
-  function validateStepBeforeSave(step: number) {
-    if (step === 2) {
-      if (!emailVerified) {
-        return "Please verify your email address before continuing.";
+  function validateStepBeforeSave(step: number): StepValidationResult {
+    const invalidFields: string[] = [];
+
+    if (step === 1) {
+      const email = (form.email || "").trim();
+      const phone = (form.phone || "").trim();
+
+      if (!(form.owner_name || "").trim()) {
+        invalidFields.push("owner_name");
       }
 
-      if (!phoneVerified) {
-        return "Please verify your mobile number before continuing.";
+      if (!(form.business_name || "").trim()) {
+        invalidFields.push("business_name");
       }
 
-      if (!(form.business_category || "").trim()) {
-        return "Select the category that best describes your business.";
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        invalidFields.push("email");
+      }
+
+      if (!phone || !/^\+91\d{10}$/.test(phone)) {
+        invalidFields.push("phone");
+      }
+
+      if (!(form.state || "").trim()) {
+        invalidFields.push("state");
+      }
+
+      if (!(form.city || "").trim()) {
+        invalidFields.push("city");
+      }
+
+      if (!(form.user_type || "").trim()) {
+        invalidFields.push("user_type");
+      }
+
+      if (invalidFields.length > 0) {
+        return {
+          message: "Fill all required basic details before continuing.",
+          fields: invalidFields,
+        };
       }
 
       return null;
     }
 
-    if (step !== 1) return null;
+    if (step === 2) {
+      if (!emailVerified) {
+        invalidFields.push("email_verification");
+      }
 
-    const email = (form.email || "").trim();
-    const phone = (form.phone || "").trim();
+      if (!phoneVerified) {
+        invalidFields.push("phone_verification");
+      }
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return "Enter a valid email address with @ and domain.";
+      if (!(form.business_category || "").trim()) {
+        invalidFields.push("business_category");
+      }
+
+      if (invalidFields.length > 0) {
+        return {
+          message:
+            "Verify your contact details and select a business category before continuing.",
+          fields: invalidFields,
+        };
+      }
+
+      return null;
     }
 
-    if (!phone || !/^\+91\d{10}$/.test(phone)) {
-      return "Enter mobile number in +91XXXXXXXXXX format.";
+    if (step === 3) {
+      if (!(form.team_size || "").trim()) {
+        invalidFields.push("team_size");
+      }
+
+      if (!(form.monthly_invoice_volume || "").trim()) {
+        invalidFields.push("monthly_invoice_volume");
+      }
+
+      if (invalidFields.length > 0) {
+        return {
+          message: "Select team size and invoice volume before continuing.",
+          fields: invalidFields,
+        };
+      }
+
+      return null;
     }
 
-    if (!(form.state || "").trim()) {
-      return "Select your state.";
+    if (step === 4) {
+      if (!(form.gst_registered || "").trim()) {
+        invalidFields.push("gst_registered");
+      }
+
+      if (form.gst_registered !== "Yes" && invalidFields.length > 0) {
+        return {
+          message: "Select your GST status before continuing.",
+          fields: invalidFields,
+        };
+      }
+
+      if (form.gst_registered !== "Yes") {
+        return null;
+      }
+
+      if (!GSTIN_REGEX.test(gstNumberNormalized)) {
+        invalidFields.push("gst_number");
+      }
+
+      if (!(form.legal_business_name || "").trim()) {
+        invalidFields.push("legal_business_name");
+      }
+
+      if (!(form.gst_state || "").trim()) {
+        invalidFields.push("gst_state");
+      }
+
+      if (!(form.gst_type || "").trim()) {
+        invalidFields.push("gst_type");
+      }
+
+      if (invalidFields.length > 0) {
+        return {
+          message: "Complete the required GST details before continuing.",
+          fields: invalidFields,
+        };
+      }
+
+      return null;
     }
 
-    if (!(form.city || "").trim()) {
-      return "Enter your city.";
+    if (step === 5) {
+      if (!(form.invoice_item_type || "").trim()) {
+        invalidFields.push("invoice_item_type");
+      }
+
+      if (!(form.branch_model || "").trim()) {
+        invalidFields.push("branch_model");
+      }
+
+      if (invalidFields.length > 0) {
+        return {
+          message:
+            "Select what you invoice most and your branch model before continuing.",
+          fields: invalidFields,
+        };
+      }
+
+      return null;
+    }
+
+    if (step === 7 && !(form.invoice_template_preference || "").trim()) {
+      return {
+        message: "Select an invoice template before continuing.",
+        fields: ["invoice_template_preference"],
+      };
     }
 
     return null;
@@ -1286,12 +1470,28 @@ export function OnboardingWorkspace() {
     setSaving(true);
     setError("");
     setSuccess("");
-    const stepError = validateStepBeforeSave(step);
-    if (stepError) {
+    const stepValidation = validateStepBeforeSave(step);
+    if (stepValidation) {
       setSaving(false);
-      setError(stepError);
+      setFieldErrors(stepValidation.fields);
+      setValidationTick((current) => current + 1);
+      setError(stepValidation.message);
+      if (
+        step === 2 &&
+        stepValidation.fields.includes("email_verification") &&
+        !emailVerified
+      ) {
+        setVerificationModal("email");
+      } else if (
+        step === 2 &&
+        stepValidation.fields.includes("phone_verification") &&
+        !phoneVerified
+      ) {
+        setVerificationModal("phone");
+      }
       return;
     }
+    setFieldErrors([]);
     const result = await authedRequest<OnboardingResponse>(
       "/auth/onboarding/save",
       {
@@ -1326,7 +1526,17 @@ export function OnboardingWorkspace() {
     }
     if (result.data.personalization)
       setPersonalization(result.data.personalization);
-    if (moveNext && step < 8) setCurrentStep(step + 1);
+    if (moveNext && step < 8) {
+      setCurrentStep(step + 1);
+
+      if (step === 1) {
+        if (!emailVerified) {
+          setVerificationModal("email");
+        } else if (!phoneVerified) {
+          setVerificationModal("phone");
+        }
+      }
+    }
   }
 
   async function sendEmailVerificationOtp() {
@@ -1441,6 +1651,7 @@ export function OnboardingWorkspace() {
     setEmailResendTimer(0);
     setEmailOtpLockTimer(0);
     setEmailOtpVerified(true);
+    clearFieldErrors("email_verification");
     setVerificationModal(null);
     setSuccess(result.data.message || "Email verified successfully.");
   }
@@ -1606,6 +1817,7 @@ export function OnboardingWorkspace() {
       setPhoneOtpAttempts(0);
       setPhoneOtpLockTimer(0);
       setPhoneOtpVerified(true);
+      clearFieldErrors("phone_verification");
       setVerificationModal(null);
       setSuccess(result.data.message || "Mobile verified successfully.");
       await signOut(verificationAuth);
@@ -1695,6 +1907,7 @@ export function OnboardingWorkspace() {
     }
     setStarted(true);
     setCurrentStep(8);
+    setFieldErrors([]);
     setForm((current) => ({
       ...current,
       ...(result.data.profile || {}),
@@ -1757,16 +1970,31 @@ export function OnboardingWorkspace() {
     activeValue: string | undefined,
     onPick: (value: string) => void,
     gridClassName?: string,
+    groupErrorField?: string,
   ) {
     return (
       <div
-        className={cn("grid grid-cols-2 sm:grid-cols-3 gap-3", gridClassName)}
+        className={cn(
+          "grid grid-cols-2 gap-3 rounded-2xl sm:grid-cols-3",
+          gridClassName,
+          groupErrorField &&
+            hasFieldError(groupErrorField) &&
+            "border border-red-200 bg-red-50/60 p-2",
+        )}
+        style={
+          groupErrorField ? getFieldShakeStyle(groupErrorField) : undefined
+        }
       >
         {items.map((item) => (
           <button
             key={item}
             type="button"
-            onClick={() => onPick(item)}
+            onClick={() => {
+              if (groupErrorField) {
+                clearFieldErrors(groupErrorField);
+              }
+              onPick(item);
+            }}
             className={cn(
               "flex items-center justify-center p-3 text-sm font-semibold rounded-xl border-2 transition-all duration-200 text-center",
               activeValue === item
@@ -2011,6 +2239,26 @@ export function OnboardingWorkspace() {
 
   return (
     <div className="flex min-h-[100dvh] w-full bg-slate-50 overflow-hidden lg:h-[100dvh]">
+      <style jsx global>{`
+        @keyframes setup-field-shake {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          20% {
+            transform: translateX(-6px);
+          }
+          40% {
+            transform: translateX(6px);
+          }
+          60% {
+            transform: translateX(-4px);
+          }
+          80% {
+            transform: translateX(4px);
+          }
+        }
+      `}</style>
       {/* LEFT PANE - Hero & Context */}
       <div className="hidden lg:flex flex-col w-[360px] xl:w-[420px] bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white flex-shrink-0 relative overflow-hidden">
         {/* Abstract graphics */}
@@ -2122,7 +2370,7 @@ export function OnboardingWorkspace() {
               </div>
             )}
 
-            <div className="flex-1 min-h-0 overflow-visible pb-40 md:pb-36">
+            <div className="flex-1 min-h-0 overflow-visible pb-16 md:pb-12">
               <h2 className="text-2xl font-extrabold text-slate-900 mb-1">
                 {stepLabels[currentStep - 1]}
               </h2>
@@ -2131,13 +2379,21 @@ export function OnboardingWorkspace() {
               </p>
 
               {currentStep === 1 && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label className="text-slate-700">
+                <div className="grid gap-5 pb-6 sm:grid-cols-2">
+                  <div
+                    className="space-y-2"
+                    style={getFieldShakeStyle("owner_name")}
+                  >
+                    <Label
+                      className={cn(
+                        "text-slate-700",
+                        hasFieldError("owner_name") && "text-red-700",
+                      )}
+                    >
                       Owner Name <span className="text-red-500">*</span>
                     </Label>
                     <Input
-                      className="h-12 bg-white"
+                      className={getInputClassName("owner_name", "h-12 bg-white")}
                       value={form.owner_name || ""}
                       placeholder="Pankaj Kumar"
                       maxLength={255}
@@ -2146,12 +2402,23 @@ export function OnboardingWorkspace() {
                       }
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-700">
+                  <div
+                    className="space-y-2"
+                    style={getFieldShakeStyle("business_name")}
+                  >
+                    <Label
+                      className={cn(
+                        "text-slate-700",
+                        hasFieldError("business_name") && "text-red-700",
+                      )}
+                    >
                       Business Name <span className="text-red-500">*</span>
                     </Label>
                     <Input
-                      className="h-12 bg-white"
+                      className={getInputClassName(
+                        "business_name",
+                        "h-12 bg-white",
+                      )}
                       value={form.business_name || ""}
                       placeholder="SaaSzo Digital"
                       maxLength={255}
@@ -2160,12 +2427,20 @@ export function OnboardingWorkspace() {
                       }
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-700">
+                  <div
+                    className="space-y-2"
+                    style={getFieldShakeStyle("email")}
+                  >
+                    <Label
+                      className={cn(
+                        "text-slate-700",
+                        hasFieldError("email") && "text-red-700",
+                      )}
+                    >
                       Email Address <span className="text-red-500">*</span>
                     </Label>
                     <Input
-                      className="h-12 bg-white"
+                      className={getInputClassName("email", "h-12 bg-white")}
                       type="email"
                       inputMode="email"
                       autoCapitalize="none"
@@ -2182,21 +2457,38 @@ export function OnboardingWorkspace() {
                         )
                       }
                     />
-                    <p
+                    <div className="flex items-center justify-between gap-3">
+                      <p
+                        className={cn(
+                          "text-xs",
+                          emailVerified
+                            ? "text-emerald-600"
+                            : "text-amber-600",
+                        )}
+                      >
+                        {emailVerificationLabel}
+                      </p>
+                      {!emailVerified && (
+                        <span className="text-[11px] font-semibold text-slate-500">
+                          Verification opens in the next step
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div
+                    className="space-y-2"
+                    style={getFieldShakeStyle("phone")}
+                  >
+                    <Label
                       className={cn(
-                        "text-xs",
-                        emailVerified ? "text-emerald-600" : "text-amber-600",
+                        "text-slate-700",
+                        hasFieldError("phone") && "text-red-700",
                       )}
                     >
-                      {emailVerificationLabel}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-700">
                       Mobile Number <span className="text-red-500">*</span>
                     </Label>
                     <Input
-                      className="h-12 bg-white"
+                      className={getInputClassName("phone", "h-12 bg-white")}
                       type="tel"
                       inputMode="numeric"
                       value={form.phone || ""}
@@ -2212,23 +2504,41 @@ export function OnboardingWorkspace() {
                         )
                       }
                     />
-                    <p
+                    <div className="flex items-center justify-between gap-3">
+                      <p
+                        className={cn(
+                          "text-xs",
+                          phoneVerified
+                            ? "text-emerald-600"
+                            : "text-amber-600",
+                        )}
+                      >
+                        {phoneVerificationLabel}
+                      </p>
+                      {!phoneVerified && (
+                        <span className="text-[11px] font-semibold text-slate-500">
+                          Mobile OTP opens in the next step
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div
+                    className="space-y-2"
+                    style={getFieldShakeStyle("state")}
+                  >
+                    <Label
                       className={cn(
-                        "text-xs",
-                        phoneVerified ? "text-emerald-600" : "text-amber-600",
+                        "text-slate-700",
+                        hasFieldError("state") && "text-red-700",
                       )}
                     >
-                      {phoneVerificationLabel}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-700">
                       State <span className="text-red-500">*</span>
                     </Label>
                     <SearchableSelect
                       options={stateOptions}
                       value={form.state || ""}
                       onChange={handleStateSelection}
+                      triggerClassName={getSelectTriggerClassName("state")}
                       emptyMessage={
                         locationsLoading
                           ? "Loading states..."
@@ -2236,14 +2546,22 @@ export function OnboardingWorkspace() {
                       }
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-700">
+                  <div
+                    className="space-y-2"
+                    style={getFieldShakeStyle("city")}
+                  >
+                    <Label
+                      className={cn(
+                        "text-slate-700",
+                        hasFieldError("city") && "text-red-700",
+                      )}
+                    >
                       City <span className="text-red-500">*</span>
                     </Label>
                     {showManualCityInput ? (
                       <>
                         <Input
-                          className="h-12 bg-white"
+                          className={getInputClassName("city", "h-12 bg-white")}
                           value={form.city || ""}
                           placeholder={
                             form.state
@@ -2278,6 +2596,7 @@ export function OnboardingWorkspace() {
                           options={cityOptions}
                           value={currentCityMatchesState ? form.city || "" : ""}
                           onChange={handleCitySelection}
+                          triggerClassName={getSelectTriggerClassName("city")}
                           placeholder={
                             form.state ? "Select city..." : "Select state first"
                           }
@@ -2298,8 +2617,16 @@ export function OnboardingWorkspace() {
                       </>
                     )}
                   </div>
-                  <div className="col-span-full space-y-3 mt-4">
-                    <Label className="text-slate-700">
+                  <div
+                    className="col-span-full mt-4 space-y-3"
+                    style={getFieldShakeStyle("user_type")}
+                  >
+                    <Label
+                      className={cn(
+                        "text-slate-700",
+                        hasFieldError("user_type") && "text-red-700",
+                      )}
+                    >
                       Who are you? <span className="text-red-500">*</span>
                     </Label>
                     {renderPills(
@@ -2307,6 +2634,7 @@ export function OnboardingWorkspace() {
                       form.user_type,
                       (val) => setValue("user_type", val),
                       "lg:grid-cols-4",
+                      "user_type",
                     )}
                   </div>
                 </div>
@@ -2320,11 +2648,14 @@ export function OnboardingWorkspace() {
                       onClick={() =>
                         !emailVerified && openVerificationDialog("email")
                       }
+                      style={getFieldShakeStyle("email_verification")}
                       className={cn(
                         "rounded-2xl border p-4 text-left transition-all shadow-sm",
                         emailVerified
                           ? "border-emerald-200 bg-emerald-50"
                           : "border-red-200 bg-red-50 hover:border-red-300",
+                        hasFieldError("email_verification") &&
+                          "ring-2 ring-red-200",
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -2369,11 +2700,14 @@ export function OnboardingWorkspace() {
                       onClick={() =>
                         !phoneVerified && openVerificationDialog("phone")
                       }
+                      style={getFieldShakeStyle("phone_verification")}
                       className={cn(
                         "rounded-2xl border p-4 text-left transition-all shadow-sm",
                         phoneVerified
                           ? "border-emerald-200 bg-emerald-50"
                           : "border-red-200 bg-red-50 hover:border-red-300",
+                        hasFieldError("phone_verification") &&
+                          "ring-2 ring-red-200",
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -2414,8 +2748,16 @@ export function OnboardingWorkspace() {
                     </button>
                   </div>
 
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">
+                  <div
+                    className="space-y-3"
+                    style={getFieldShakeStyle("business_category")}
+                  >
+                    <Label
+                      className={cn(
+                        "text-slate-700",
+                        hasFieldError("business_category") && "text-red-700",
+                      )}
+                    >
                       What describes your business best?{" "}
                       <span className="text-red-500">*</span>
                     </Label>
@@ -2424,6 +2766,9 @@ export function OnboardingWorkspace() {
                       options={businessCategoryOptions}
                       value={form.business_category || ""}
                       onChange={(val) => setValue("business_category", val)}
+                      triggerClassName={getSelectTriggerClassName(
+                        "business_category",
+                      )}
                       emptyMessage="No category found."
                     />
                   </div>
@@ -2450,16 +2795,37 @@ export function OnboardingWorkspace() {
 
               {currentStep === 3 && (
                 <div className="space-y-6 overflow-y-auto pr-2 lg:max-h-[calc(100dvh-220px)]">
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">
+                  <div
+                    className="space-y-3"
+                    style={getFieldShakeStyle("team_size")}
+                  >
+                    <Label
+                      className={cn(
+                        "text-slate-700",
+                        hasFieldError("team_size") && "text-red-700",
+                      )}
+                    >
                       Team Size <span className="text-red-500">*</span>
                     </Label>
-                    {renderPills(options.team_sizes, form.team_size, (val) =>
-                      setValue("team_size", val),
+                    {renderPills(
+                      options.team_sizes,
+                      form.team_size,
+                      (val) => setValue("team_size", val),
+                      undefined,
+                      "team_size",
                     )}
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-slate-700">
+                  <div
+                    className="space-y-3"
+                    style={getFieldShakeStyle("monthly_invoice_volume")}
+                  >
+                    <Label
+                      className={cn(
+                        "text-slate-700",
+                        hasFieldError("monthly_invoice_volume") &&
+                          "text-red-700",
+                      )}
+                    >
                       Monthly Invoice Volume{" "}
                       <span className="text-red-500">*</span>
                     </Label>
@@ -2467,6 +2833,8 @@ export function OnboardingWorkspace() {
                       options.monthly_invoice_volumes,
                       form.monthly_invoice_volume,
                       (val) => setValue("monthly_invoice_volume", val),
+                      undefined,
+                      "monthly_invoice_volume",
                     )}
                   </div>
                 </div>
@@ -2475,8 +2843,16 @@ export function OnboardingWorkspace() {
               {currentStep === 4 && (
                 <div className="space-y-5 pb-4">
                   <div className="grid gap-4 lg:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-slate-700">
+                    <div
+                      className="space-y-2"
+                      style={getFieldShakeStyle("gst_registered")}
+                    >
+                      <Label
+                        className={cn(
+                          "text-slate-700",
+                          hasFieldError("gst_registered") && "text-red-700",
+                        )}
+                      >
                         GST status <span className="text-red-500">*</span>
                       </Label>
                       <SearchableSelect
@@ -2493,6 +2869,9 @@ export function OnboardingWorkspace() {
                             ),
                           );
                         }}
+                        triggerClassName={getSelectTriggerClassName(
+                          "gst_registered",
+                        )}
                       />
                     </div>
                     <div className="space-y-2">
@@ -2620,8 +2999,17 @@ export function OnboardingWorkspace() {
               {currentStep === 5 && (
                 <div className="space-y-5 pb-4">
                   <div className="grid gap-4 lg:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-slate-700">
+                    <div
+                      className="space-y-2"
+                      style={getFieldShakeStyle("invoice_item_type")}
+                    >
+                      <Label
+                        className={cn(
+                          "text-slate-700",
+                          hasFieldError("invoice_item_type") &&
+                            "text-red-700",
+                        )}
+                      >
                         What do you invoice most?{" "}
                         <span className="text-red-500">*</span>
                       </Label>
@@ -2630,11 +3018,22 @@ export function OnboardingWorkspace() {
                         options={invoiceItemTypeOptions}
                         value={form.invoice_item_type || ""}
                         onChange={(val) => setValue("invoice_item_type", val)}
+                        triggerClassName={getSelectTriggerClassName(
+                          "invoice_item_type",
+                        )}
                         emptyMessage="No item type found."
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-slate-700">
+                    <div
+                      className="space-y-2"
+                      style={getFieldShakeStyle("branch_model")}
+                    >
+                      <Label
+                        className={cn(
+                          "text-slate-700",
+                          hasFieldError("branch_model") && "text-red-700",
+                        )}
+                      >
                         Branch model <span className="text-red-500">*</span>
                       </Label>
                       <SearchableSelect
@@ -2642,6 +3041,9 @@ export function OnboardingWorkspace() {
                         options={branchModelSelectOptions}
                         value={form.branch_model || ""}
                         onChange={(val) => setValue("branch_model", val)}
+                        triggerClassName={getSelectTriggerClassName(
+                          "branch_model",
+                        )}
                         emptyMessage="No branch model found."
                       />
                     </div>
@@ -2900,7 +3302,10 @@ export function OnboardingWorkspace() {
                     </Card>
 
                     <Card className="p-5 bg-white border-slate-200 shadow-sm">
-                      <div className="space-y-2">
+                      <div
+                        className="space-y-2"
+                        style={getFieldShakeStyle("invoice_template_preference")}
+                      >
                         <div className="text-sm font-semibold text-slate-900">
                           Invoice template{" "}
                           <span className="text-red-500">*</span>
@@ -2916,6 +3321,9 @@ export function OnboardingWorkspace() {
                           onChange={(val) =>
                             setValue("invoice_template_preference", val)
                           }
+                          triggerClassName={getSelectTriggerClassName(
+                            "invoice_template_preference",
+                          )}
                           emptyMessage="No template found."
                         />
                       </div>
@@ -2987,7 +3395,7 @@ export function OnboardingWorkspace() {
 
             {/* Bottom Actions */}
             {currentStep < 8 && (
-              <div className="sticky bottom-0 z-10 -mx-4 mt-5 shrink-0 border-t border-slate-200 bg-white/95 px-4 pb-3 pt-4 backdrop-blur md:-mx-8 md:px-8">
+              <div className="-mx-4 mt-6 shrink-0 border-t border-slate-200 bg-white px-4 pb-3 pt-4 md:-mx-8 md:px-8">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <Button
                     variant="ghost"
