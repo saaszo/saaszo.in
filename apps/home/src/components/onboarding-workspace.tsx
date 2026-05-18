@@ -225,6 +225,9 @@ const stepHelp = [
 const GSTIN_REGEX = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const OTHER_BANK_VALUE = "__other_bank__";
 const MANUAL_CITY_VALUE = "__manual_city__";
+const GST_REPORT_OPTION = "GST Report";
+const GST_TEMPLATE_OPTION = "GST Format";
+const DEFAULT_TEMPLATE_OPTION = "Professional";
 const BANK_OPTIONS = [
   "State Bank of India",
   "HDFC Bank",
@@ -527,6 +530,19 @@ const defaultOptions: OnboardingOptions = {
   show_on_invoice_options: [
     "Logo",
     "GST Number",
+    "Legal Business Name",
+    "PAN Number",
+    "CIN",
+    "LLPIN",
+    "TAN",
+    "MSME / Udyam Registration",
+    "Udyog Aadhaar",
+    "NGO Darpan",
+    "Trust Registration",
+    "Society Registration",
+    "FSSAI Number",
+    "IEC Number",
+    "Professional Tax",
     "Bank Details",
     "UPI ID",
     "Terms & Conditions",
@@ -564,7 +580,7 @@ function syncGstRegistrationType(
   values: string[] | undefined,
   gstStatus: string,
 ) {
-  const safeValues = values || [];
+  const safeValues = (values || []).filter((value) => value !== "GST Registration");
   if (gstStatus === "Yes" && !safeValues.includes("GST Registration")) {
     return ["GST Registration", ...safeValues];
   }
@@ -759,10 +775,27 @@ export function OnboardingWorkspace() {
       })),
     [options.yes_no_later_options],
   );
+  const isGstBusiness = (form.gst_registered || "") === "Yes";
+  const registrationTypeOptions = useMemo(
+    () =>
+      options.registration_type_options.filter(
+        (item) => isGstBusiness || item !== "GST Registration",
+      ),
+    [isGstBusiness, options.registration_type_options],
+  );
+  const requiredReportOptions = useMemo(
+    () =>
+      options.required_report_options.filter(
+        (item) => isGstBusiness || item !== GST_REPORT_OPTION,
+      ),
+    [isGstBusiness, options.required_report_options],
+  );
   const templateSelectOptions = useMemo(
     () =>
-      options.template_options.map((item) => ({ label: item, value: item })),
-    [options.template_options],
+      options.template_options
+        .filter((item) => isGstBusiness || item !== GST_TEMPLATE_OPTION)
+        .map((item) => ({ label: item, value: item })),
+    [isGstBusiness, options.template_options],
   );
   const hasFieldError = (field: string) => fieldErrors.includes(field);
 
@@ -979,6 +1012,133 @@ export function OnboardingWorkspace() {
     : "Pending verification";
 
   const selectedRegistrationTypes = form.registration_types || [];
+  const availableShowOnInvoiceOptions = useMemo(() => {
+    const optionsList = [
+      { label: "Logo", value: "Logo" },
+      ...(isGstBusiness && gstNumberNormalized
+        ? [{ label: "GST Number", value: "GST Number" }]
+        : []),
+      ...(form.legal_business_name
+        ? [{ label: "Legal Business Name", value: "Legal Business Name" }]
+        : []),
+      ...(form.pan_number ? [{ label: "PAN Number", value: "PAN Number" }] : []),
+      ...(form.cin_number ? [{ label: "CIN", value: "CIN" }] : []),
+      ...(form.llpin_number ? [{ label: "LLPIN", value: "LLPIN" }] : []),
+      ...(form.tan_number ? [{ label: "TAN", value: "TAN" }] : []),
+      ...(form.udyam_registration_number
+        ? [
+            {
+              label: "MSME / Udyam Registration",
+              value: "MSME / Udyam Registration",
+            },
+          ]
+        : []),
+      ...(form.udyog_aadhaar_number
+        ? [{ label: "Udyog Aadhaar", value: "Udyog Aadhaar" }]
+        : []),
+      ...(form.ngo_darpan_id
+        ? [{ label: "NGO Darpan", value: "NGO Darpan" }]
+        : []),
+      ...(form.trust_registration_number
+        ? [{ label: "Trust Registration", value: "Trust Registration" }]
+        : []),
+      ...(form.society_registration_number
+        ? [{ label: "Society Registration", value: "Society Registration" }]
+        : []),
+      ...(form.fssai_number
+        ? [{ label: "FSSAI Number", value: "FSSAI Number" }]
+        : []),
+      ...(form.iec_number
+        ? [{ label: "IEC Number", value: "IEC Number" }]
+        : []),
+      ...(form.professional_tax_number
+        ? [{ label: "Professional Tax", value: "Professional Tax" }]
+        : []),
+      ...(form.bank_name || form.bank_account_number || form.bank_ifsc
+        ? [{ label: "Bank Details", value: "Bank Details" }]
+        : []),
+      ...(form.upi_id ? [{ label: "UPI ID", value: "UPI ID" }] : []),
+      { label: "Terms & Conditions", value: "Terms & Conditions" },
+      { label: "Signature", value: "Signature" },
+      { label: "Seal", value: "Seal" },
+      { label: "Notes", value: "Notes" },
+    ];
+
+    return optionsList.filter(
+      (option, index, current) =>
+        current.findIndex((item) => item.value === option.value) === index,
+    );
+  }, [
+    form.bank_account_number,
+    form.bank_ifsc,
+    form.bank_name,
+    form.cin_number,
+    form.fssai_number,
+    form.iec_number,
+    form.legal_business_name,
+    form.llpin_number,
+    form.ngo_darpan_id,
+    form.pan_number,
+    form.professional_tax_number,
+    form.society_registration_number,
+    form.tan_number,
+    form.trust_registration_number,
+    form.udyam_registration_number,
+    form.udyog_aadhaar_number,
+    form.upi_id,
+    gstNumberNormalized,
+    isGstBusiness,
+  ]);
+
+  useEffect(() => {
+    const availableRegistrationTypes = new Set(registrationTypeOptions);
+    const availableRequiredReports = new Set(requiredReportOptions);
+    const availableInvoiceOptions = new Set(
+      availableShowOnInvoiceOptions.map((item) => item.value),
+    );
+    const availableTemplates = new Set(
+      templateSelectOptions.map((item) => item.value),
+    );
+
+    setForm((current) => {
+      const nextRegistrationTypes = (current.registration_types || []).filter(
+        (item) => availableRegistrationTypes.has(item),
+      );
+      const nextRequiredReports = (current.required_reports || []).filter(
+        (item) => availableRequiredReports.has(item),
+      );
+      const nextShowOnInvoice = (current.show_on_invoice || []).filter((item) =>
+        availableInvoiceOptions.has(item),
+      );
+      const nextTemplate = availableTemplates.has(
+        current.invoice_template_preference || "",
+      )
+        ? current.invoice_template_preference
+        : DEFAULT_TEMPLATE_OPTION;
+
+      if (
+        nextRegistrationTypes.length === (current.registration_types || []).length &&
+        nextRequiredReports.length === (current.required_reports || []).length &&
+        nextShowOnInvoice.length === (current.show_on_invoice || []).length &&
+        nextTemplate === current.invoice_template_preference
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        registration_types: nextRegistrationTypes,
+        required_reports: nextRequiredReports,
+        show_on_invoice: nextShowOnInvoice,
+        invoice_template_preference: nextTemplate,
+      };
+    });
+  }, [
+    availableShowOnInvoiceOptions,
+    registrationTypeOptions,
+    requiredReportOptions,
+    templateSelectOptions,
+  ]);
 
   useEffect(() => {
     if (!started || form.setup_completed) return;
@@ -1893,6 +2053,15 @@ export function OnboardingWorkspace() {
     setSaving(true);
     setError("");
     setSuccess("");
+    const stepValidation = validateStepBeforeSave(7);
+    if (stepValidation) {
+      setSaving(false);
+      setFieldErrors(stepValidation.fields);
+      setValidationTick((current) => current + 1);
+      setError(stepValidation.message);
+      return;
+    }
+
     const result = await authedRequest<OnboardingResponse>(
       "/auth/onboarding/complete",
       {
@@ -3782,7 +3951,7 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
-              {options.required_report_options.map((opt) => (
+              {requiredReportOptions.map((opt) => (
                 <label
                   key={opt}
                   className={cn(
@@ -4104,12 +4273,12 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
-              {options.show_on_invoice_options.map((opt) => (
+              {availableShowOnInvoiceOptions.map((opt) => (
                 <label
-                  key={opt}
+                  key={opt.value}
                   className={cn(
                     "flex items-center gap-3 rounded-2xl border p-3 cursor-pointer transition-colors",
-                    (form.show_on_invoice || []).includes(opt)
+                    (form.show_on_invoice || []).includes(opt.value)
                       ? "border-primary bg-primary/5 text-primary font-medium"
                       : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
                   )}
@@ -4117,15 +4286,15 @@ export function OnboardingWorkspace() {
                   <input
                     type="checkbox"
                     className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-                    checked={(form.show_on_invoice || []).includes(opt)}
+                    checked={(form.show_on_invoice || []).includes(opt.value)}
                     onChange={() =>
                       setValue(
                         "show_on_invoice",
-                        toggleArrayValue(form.show_on_invoice, opt),
+                        toggleArrayValue(form.show_on_invoice, opt.value),
                       )
                     }
                   />
-                  <span className="text-sm">{opt}</span>
+                  <span className="text-sm">{opt.label}</span>
                 </label>
               ))}
             </div>
@@ -4165,7 +4334,7 @@ export function OnboardingWorkspace() {
             </div>
 
             <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
-              {options.registration_type_options.map((opt) => (
+              {registrationTypeOptions.map((opt) => (
                 <label
                   key={opt}
                   className={cn(
