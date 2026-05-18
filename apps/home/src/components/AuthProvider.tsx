@@ -692,11 +692,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (auth?.currentUser) {
       await auth.currentUser.reload();
       await auth.currentUser.getIdToken(true);
+      await syncFirebaseUserSession(auth.currentUser);
       return;
     }
 
     const storedToken = backendToken ?? getStoredBackendToken();
     if (!storedToken) {
+      await hydrateCookieSession();
       return;
     }
 

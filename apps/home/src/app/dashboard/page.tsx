@@ -220,13 +220,20 @@ export default function DashboardPage() {
     if (
       !loading &&
       authenticated &&
+      requiresSetupCompletion &&
       postAuthRedirect?.includes("/dashboard/setup")
     ) {
       startTransition(() => {
         router.replace("/dashboard/setup");
       });
     }
-  }, [authenticated, loading, onboarding, postAuthRedirect, router]);
+  }, [
+    authenticated,
+    loading,
+    postAuthRedirect,
+    requiresSetupCompletion,
+    router,
+  ]);
 
   useEffect(() => {
     if (!loading && authenticated && requiresSetupCompletion) {

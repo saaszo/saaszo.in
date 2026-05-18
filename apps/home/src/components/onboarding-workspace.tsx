@@ -644,15 +644,26 @@ export function OnboardingWorkspace() {
   const [phoneOtpAttempts, setPhoneOtpAttempts] = useState(0);
   const [phoneOtpLockTimer, setPhoneOtpLockTimer] = useState(0);
   const [manualCityMode, setManualCityMode] = useState(false);
-  const { states, citiesByState, isLoading: locationsLoading } =
-    useLocations();
   const {
     user,
     profile,
     auth,
     authenticated,
     loading: sessionLoading,
+    onboarding,
+    reloadUser,
   } = useAuthSession();
+  const setupAlreadyResolved = Boolean(
+    onboarding?.setup_completed || onboarding?.setup_skipped,
+  );
+  const setupResolvedRedirectTarget = onboarding?.setup_completed
+    ? "/dashboard?tab=settings"
+    : "/dashboard";
+  const shouldFetchLocations =
+    authenticated && !sessionLoading && !setupAlreadyResolved;
+  const { states, citiesByState, isLoading: locationsLoading } = useLocations(
+    shouldFetchLocations,
+  );
   const primaryButtonClass =
     "cursor-pointer bg-primary text-white shadow-md hover:bg-primary/90";
   const softButtonClass =
@@ -848,9 +859,22 @@ export function OnboardingWorkspace() {
       : "Enter a valid 15-character GSTIN like 22AAAAA0000A1Z5.";
 
   useEffect(() => {
+    if (sessionLoading || !authenticated || !setupAlreadyResolved) {
+      return;
+    }
+
+    navigateTo(setupResolvedRedirectTarget);
+  }, [
+    authenticated,
+    sessionLoading,
+    setupAlreadyResolved,
+    setupResolvedRedirectTarget,
+  ]);
+
+  useEffect(() => {
     let active = true;
 
-    if (sessionLoading || !authenticated) {
+    if (sessionLoading || !authenticated || setupAlreadyResolved) {
       return () => {
         active = false;
       };
@@ -892,6 +916,10 @@ export function OnboardingWorkspace() {
         navigateTo("/dashboard?tab=settings");
         return;
       }
+      if (profile.setup_skipped) {
+        navigateTo("/dashboard");
+        return;
+      }
       setStarted(
         Boolean(
           profile.current_step ||
@@ -909,7 +937,7 @@ export function OnboardingWorkspace() {
     return () => {
       active = false;
     };
-  }, [authenticated, sessionLoading]);
+  }, [authenticated, sessionLoading, setupAlreadyResolved]);
 
   useEffect(() => {
     if (!form.bank_name) {
@@ -2092,6 +2120,14 @@ export function OnboardingWorkspace() {
     }));
     setPersonalization(result.data.personalization || null);
     setSuccess(result.data.message || "Setup completed.");
+
+    try {
+      await reloadUser();
+    } catch {
+      // Dashboard bootstrap can still recover from backend state on next load.
+    }
+
+    navigateTo("/dashboard?tab=settings");
   }
 
   async function handleSkip() {
@@ -2114,6 +2150,13 @@ export function OnboardingWorkspace() {
       setup_skipped: true,
     }));
     setSuccess(result.data.message || "Setup skipped.");
+
+    try {
+      await reloadUser();
+    } catch {
+      // Dashboard bootstrap can still recover from backend state on next load.
+    }
+
     navigateTo("/dashboard");
   }
 

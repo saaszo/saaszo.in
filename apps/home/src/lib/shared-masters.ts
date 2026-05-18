@@ -25,6 +25,9 @@ export type LocationsResponse = {
   }>;
 };
 
+let cachedLocationsResponse: LocationsResponse | null = null;
+let locationsRequest: Promise<LocationsResponse | null> | null = null;
+
 const fallbackStates: LocationState[] = [
   {
     label: "Andaman and Nicobar Islands (35)",
@@ -478,7 +481,32 @@ const fallbackCities: Record<string, string[]> = {
   ],
 };
 
-export function useLocations() {
+async function fetchLocationsOnce() {
+  if (cachedLocationsResponse) {
+    return cachedLocationsResponse;
+  }
+
+  if (!locationsRequest) {
+    locationsRequest = authedRequest<LocationsResponse>(
+      "/api/auth/workspace/locations",
+    )
+      .then((res) => {
+        if (res.ok && res.data) {
+          cachedLocationsResponse = res.data;
+          return res.data;
+        }
+
+        return null;
+      })
+      .finally(() => {
+        locationsRequest = null;
+      });
+  }
+
+  return locationsRequest;
+}
+
+export function useLocations(enabled = true) {
   const [states, setStates] = useState<LocationState[]>([]);
   const [countries, setCountries] = useState<LocationCountry[]>([]);
   const [citiesByState, setCitiesByState] = useState<Record<string, string[]>>(
@@ -487,20 +515,34 @@ export function useLocations() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+
+    if (!enabled) {
+      setStates(fallbackStates);
+      setCountries([]);
+      setCitiesByState(fallbackCities);
+      setIsLoading(false);
+      return () => {
+        active = false;
+      };
+    }
+
     async function fetchLocations() {
-      const res = await authedRequest<LocationsResponse>(
-        "/api/auth/workspace/locations",
-      );
-      if (res.ok && res.data) {
+      const data = await fetchLocationsOnce();
+      if (!active) {
+        return;
+      }
+
+      if (data) {
         setStates(
-          res.data.states && res.data.states.length > 0
-            ? res.data.states
+          data.states && data.states.length > 0
+            ? data.states
             : fallbackStates,
         );
-        setCountries(res.data.countries || []);
+        setCountries(data.countries || []);
         setCitiesByState(
-          Object.keys(res.data.cities || {}).length > 0
-            ? res.data.cities || {}
+          Object.keys(data.cities || {}).length > 0
+            ? data.cities || {}
             : fallbackCities,
         );
       } else {
@@ -510,7 +552,10 @@ export function useLocations() {
       setIsLoading(false);
     }
     void fetchLocations();
-  }, []);
+    return () => {
+      active = false;
+    };
+  }, [enabled]);
 
   return { states, countries, citiesByState, isLoading };
 }
