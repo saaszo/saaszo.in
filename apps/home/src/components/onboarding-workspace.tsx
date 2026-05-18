@@ -4,7 +4,12 @@ import Link from "next/link";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { toAbsoluteApiUrl } from "@/lib/config";
 import { apiErrorMessage, authedRequest } from "@/lib/workspace-action-client";
-import { getDeviceId, readAccessToken, navigateTo } from "@/lib/auth-client";
+import {
+  getDeviceId,
+  readAccessToken,
+  navigateTo,
+  markSetupRedirectBypass,
+} from "@/lib/auth-client";
 import { getVerificationAuth } from "@/lib/firebase";
 import {
   CheckCircle2,
@@ -2120,12 +2125,11 @@ export function OnboardingWorkspace() {
     }));
     setPersonalization(result.data.personalization || null);
     setSuccess(result.data.message || "Setup completed.");
+    markSetupRedirectBypass();
 
-    try {
-      await reloadUser();
-    } catch {
+    void reloadUser().catch(() => {
       // Dashboard bootstrap can still recover from backend state on next load.
-    }
+    });
 
     navigateTo("/dashboard?tab=settings");
   }
@@ -2150,12 +2154,11 @@ export function OnboardingWorkspace() {
       setup_skipped: true,
     }));
     setSuccess(result.data.message || "Setup skipped.");
+    markSetupRedirectBypass();
 
-    try {
-      await reloadUser();
-    } catch {
+    void reloadUser().catch(() => {
       // Dashboard bootstrap can still recover from backend state on next load.
-    }
+    });
 
     navigateTo("/dashboard");
   }

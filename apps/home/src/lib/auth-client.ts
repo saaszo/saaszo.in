@@ -8,6 +8,7 @@ export const legacyAuthStorageKey = "saaszo_home_token";
 export const lastActivityKey = "saaszo_home_last_activity";
 export const deviceIdKey = "saaszo_home_device_id";
 export const authCookieKey = "saaszo_session";
+export const setupRedirectBypassKey = "saaszo.setup_redirect_bypass";
 const sharedCookieDomain = ".saaszo.in";
 
 export type ApiResult<T = Record<string, unknown>> = T & {
@@ -122,6 +123,46 @@ export function updateActivityTimestamp() {
     return;
   }
   window.localStorage.setItem(lastActivityKey, Date.now().toString());
+}
+
+export function markSetupRedirectBypass() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.setItem(setupRedirectBypassKey, Date.now().toString());
+}
+
+export function clearSetupRedirectBypass() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.removeItem(setupRedirectBypassKey);
+}
+
+export function hasSetupRedirectBypass(maxAgeMs = 5 * 60 * 1000) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const raw = window.sessionStorage.getItem(setupRedirectBypassKey);
+  if (!raw) {
+    return false;
+  }
+
+  const timestamp = Number(raw);
+  if (!Number.isFinite(timestamp)) {
+    window.sessionStorage.removeItem(setupRedirectBypassKey);
+    return false;
+  }
+
+  if (Date.now() - timestamp > maxAgeMs) {
+    window.sessionStorage.removeItem(setupRedirectBypassKey);
+    return false;
+  }
+
+  return true;
 }
 
 export function readAccessToken() {

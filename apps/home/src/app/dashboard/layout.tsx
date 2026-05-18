@@ -1,17 +1,26 @@
 "use client";
 
-import { startTransition, useEffect, useMemo } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { useAuthSession } from "@/components/AuthProvider";
+import {
+  clearSetupRedirectBypass,
+  hasSetupRedirectBypass,
+} from "@/lib/auth-client";
 
 export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
   const router = useRouter();
   const pathname = usePathname();
   const { authenticated, loading, onboarding, workspaceUser } = useAuthSession();
   const { children } = props;
+  const [setupRedirectBypass, setSetupRedirectBypass] = useState(false);
 
   const isSetupPage = pathname === "/dashboard/setup";
+
+  useEffect(() => {
+    setSetupRedirectBypass(hasSetupRedirectBypass());
+  }, [pathname]);
 
   const requiresSetupCompletion = useMemo(() => {
     const role = workspaceUser?.role ?? "";
@@ -19,12 +28,20 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
     const setupComplete =
       onboarding?.setup_completed || onboarding?.setup_skipped;
 
-    return isPrimaryOwner && !setupComplete;
+    return isPrimaryOwner && !setupComplete && !setupRedirectBypass;
   }, [
     onboarding?.setup_completed,
     onboarding?.setup_skipped,
+    setupRedirectBypass,
     workspaceUser?.role,
   ]);
+
+  useEffect(() => {
+    if (onboarding?.setup_completed || onboarding?.setup_skipped) {
+      clearSetupRedirectBypass();
+      setSetupRedirectBypass(false);
+    }
+  }, [onboarding?.setup_completed, onboarding?.setup_skipped]);
 
   useEffect(() => {
     if (loading || authenticated) {

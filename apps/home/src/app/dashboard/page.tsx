@@ -10,6 +10,10 @@ import {
   type RoleTemplate,
   type PermissionGroup,
 } from "@/components/AuthProvider";
+import {
+  clearSetupRedirectBypass,
+  hasSetupRedirectBypass,
+} from "@/lib/auth-client";
 import { appConfig } from "@/lib/config";
 import {
   meetsPasswordRequirements,
@@ -161,6 +165,11 @@ export default function DashboardPage() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [isBranchesLoading, setIsBranchesLoading] = useState(false);
   const [isStaffLoading, setIsStaffLoading] = useState(false);
+  const [setupRedirectBypass, setSetupRedirectBypass] = useState(false);
+
+  useEffect(() => {
+    setSetupRedirectBypass(hasSetupRedirectBypass());
+  }, []);
 
   const roleLabel = useMemo(() => {
     const role = workspaceUser?.role ?? "owner";
@@ -175,12 +184,20 @@ export default function DashboardPage() {
     const setupComplete =
       onboarding?.setup_completed || onboarding?.setup_skipped;
 
-    return isPrimaryOwner && !setupComplete;
+    return isPrimaryOwner && !setupComplete && !setupRedirectBypass;
   }, [
     onboarding?.setup_completed,
     onboarding?.setup_skipped,
+    setupRedirectBypass,
     workspaceUser?.role,
   ]);
+
+  useEffect(() => {
+    if (onboarding?.setup_completed || onboarding?.setup_skipped) {
+      clearSetupRedirectBypass();
+      setSetupRedirectBypass(false);
+    }
+  }, [onboarding?.setup_completed, onboarding?.setup_skipped]);
 
   const isOwnerOrAdmin = useMemo(
     () =>
