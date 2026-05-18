@@ -228,6 +228,14 @@ const MANUAL_CITY_VALUE = "__manual_city__";
 const GST_REPORT_OPTION = "GST Report";
 const GST_TEMPLATE_OPTION = "GST Format";
 const DEFAULT_TEMPLATE_OPTION = "Professional";
+const LOGO_FILE_PATTERN = /\.(png|jpe?g|webp|svg)$/i;
+const ALLOWED_LOGO_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+]);
 const BANK_OPTIONS = [
   "State Bank of India",
   "HDFC Bank",
@@ -2112,6 +2120,13 @@ export function OnboardingWorkspace() {
   async function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+    const isSupportedLogo =
+      ALLOWED_LOGO_MIME_TYPES.has(file.type) || LOGO_FILE_PATTERN.test(file.name);
+    if (!isSupportedLogo) {
+      setError("Please upload a JPG, PNG, WEBP, or SVG logo.");
+      event.target.value = "";
+      return;
+    }
     const body = new FormData();
     body.append("file", file);
     body.append("folder", "branding/logos");
@@ -3445,8 +3460,8 @@ export function OnboardingWorkspace() {
                             Brand logo
                           </div>
                           <p className="text-xs text-slate-500">
-                            Upload a square PNG or JPG so invoices look more
-                            branded and trustworthy.
+                            Upload a square JPG, PNG, WEBP, or SVG so invoices
+                            look more branded and trustworthy.
                           </p>
                           <Label
                             htmlFor="logo-upload"
@@ -3461,7 +3476,7 @@ export function OnboardingWorkspace() {
                           <input
                             id="logo-upload"
                             type="file"
-                            accept="image/*"
+                            accept=".jpg,.jpeg,.png,.webp,.svg,image/jpeg,image/png,image/webp,image/svg+xml"
                             className="hidden"
                             onChange={handleLogoUpload}
                             disabled={uploading}
