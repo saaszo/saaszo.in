@@ -1,12 +1,37 @@
 "use client";
 
 import Link from "next/link";
+import { startTransition, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/components/AuthProvider";
 
 export default function BillingPage() {
-  const { authenticated, loading, subscription } = useAuthSession();
+  const router = useRouter();
+  const { authenticated, loading, onboarding, subscription, workspaceUser } =
+    useAuthSession();
 
-  if (loading) {
+  const requiresSetupCompletion = useMemo(() => {
+    const role = workspaceUser?.role ?? "";
+    const isPrimaryOwner = role === "owner" || role === "super_admin";
+    const setupComplete =
+      onboarding?.setup_completed || onboarding?.setup_skipped;
+
+    return isPrimaryOwner && !setupComplete;
+  }, [
+    onboarding?.setup_completed,
+    onboarding?.setup_skipped,
+    workspaceUser?.role,
+  ]);
+
+  useEffect(() => {
+    if (!loading && authenticated && requiresSetupCompletion) {
+      startTransition(() => {
+        router.replace("/dashboard/setup");
+      });
+    }
+  }, [authenticated, loading, requiresSetupCompletion, router]);
+
+  if (loading || (authenticated && requiresSetupCompletion)) {
     return (
       <div className="min-h-screen bg-background text-on-surface flex items-center justify-center px-6">
         <p className="text-lg font-semibold">Loading billing...</p>

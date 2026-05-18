@@ -169,6 +169,19 @@ export default function DashboardPage() {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }, [workspaceUser?.role]);
 
+  const requiresSetupCompletion = useMemo(() => {
+    const role = workspaceUser?.role ?? "";
+    const isPrimaryOwner = role === "owner" || role === "super_admin";
+    const setupComplete =
+      onboarding?.setup_completed || onboarding?.setup_skipped;
+
+    return isPrimaryOwner && !setupComplete;
+  }, [
+    onboarding?.setup_completed,
+    onboarding?.setup_skipped,
+    workspaceUser?.role,
+  ]);
+
   const isOwnerOrAdmin = useMemo(
     () =>
       ["owner", "super_admin", "branch_admin"].includes(
@@ -214,6 +227,14 @@ export default function DashboardPage() {
       });
     }
   }, [authenticated, loading, onboarding, postAuthRedirect, router]);
+
+  useEffect(() => {
+    if (!loading && authenticated && requiresSetupCompletion) {
+      startTransition(() => {
+        router.replace("/dashboard/setup");
+      });
+    }
+  }, [authenticated, loading, requiresSetupCompletion, router]);
 
   useEffect(() => {
     const syncTabFromUrl = () => {
@@ -374,7 +395,7 @@ export default function DashboardPage() {
     setToolStates(nextStates);
   }
 
-  if (loading) {
+  if (loading || (authenticated && requiresSetupCompletion)) {
     return (
       <div className="min-h-screen bg-background text-on-surface flex items-center justify-center px-6">
         <div className="rounded-3xl border border-outline-variant/30 bg-surface-container-lowest px-8 py-6 shadow-[0_24px_80px_rgba(25,28,30,0.10)]">
