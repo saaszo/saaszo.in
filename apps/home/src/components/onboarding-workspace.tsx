@@ -323,14 +323,17 @@ function sanitizeUpiId(value: string, maxLength = 255) {
     .slice(0, maxLength);
 }
 
-function getReadableFirebaseOtpError(error: unknown) {
-  const code =
-    typeof error === "object" &&
+function extractFirebaseOtpErrorCode(error: unknown) {
+  return typeof error === "object" &&
     error !== null &&
     "code" in error &&
     typeof (error as { code?: unknown }).code === "string"
-      ? (error as { code: string }).code.toLowerCase()
-      : "";
+    ? (error as { code: string }).code.toLowerCase()
+    : "";
+}
+
+function getReadableFirebaseOtpError(error: unknown) {
+  const code = extractFirebaseOtpErrorCode(error);
   const message = error instanceof Error ? error.message : String(error || "");
   const normalized = `${code} ${message}`.toLowerCase();
 
@@ -363,6 +366,18 @@ function getReadableFirebaseOtpError(error: unknown) {
   }
 
   if (
+    normalized.includes("auth/recaptcha-not-enabled") ||
+    normalized.includes("auth/missing-recaptcha-token") ||
+    normalized.includes("auth/invalid-recaptcha-token") ||
+    normalized.includes("auth/invalid-recaptcha-action") ||
+    normalized.includes("auth/missing-recaptcha-version") ||
+    normalized.includes("auth/invalid-recaptcha-version") ||
+    normalized.includes("auth/missing-client-type")
+  ) {
+    return "Firebase reCAPTCHA protection is not configured correctly for phone OTP yet.";
+  }
+
+  if (
     normalized.includes("auth/invalid-app-credential") ||
     normalized.includes("auth/missing-app-credential")
   ) {
@@ -376,6 +391,14 @@ function getReadableFirebaseOtpError(error: unknown) {
     return "This website domain is not authorized for Firebase phone OTP yet.";
   }
 
+  if (normalized.includes("auth/auth-domain-config-required")) {
+    return "Firebase auth domain is missing from the website configuration.";
+  }
+
+  if (normalized.includes("auth/invalid-api-key")) {
+    return "Firebase API key configuration is invalid for phone OTP.";
+  }
+
   if (normalized.includes("auth/operation-not-allowed")) {
     return "Firebase phone OTP is not enabled right now.";
   }
@@ -386,6 +409,22 @@ function getReadableFirebaseOtpError(error: unknown) {
 
   if (normalized.includes("auth/network-request-failed")) {
     return "Network issue while verifying OTP. Please try again.";
+  }
+
+  if (normalized.includes("configuration_not_found")) {
+    return "Firebase phone OTP configuration is incomplete for this project.";
+  }
+
+  if (normalized.includes("billing_not_enabled")) {
+    return "Firebase phone OTP billing is not enabled for this project.";
+  }
+
+  if (normalized.includes("requests from this domain are blocked")) {
+    return "This website domain is blocked for Firebase phone OTP.";
+  }
+
+  if (code) {
+    return `Could not verify mobile OTP. Firebase returned ${code}.`;
   }
 
   return "Could not verify mobile OTP.";
