@@ -144,6 +144,7 @@ type AuthContextValue = {
   subscription: SubscriptionInfo | null;
   onboarding: OnboardingInfo | null;
   postAuthRedirect: string | null;
+  setOnboardingState: (next: Partial<OnboardingInfo>) => void;
   reloadUser: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -703,6 +704,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     await hydrateBackendSession(storedToken);
+  }
+
+  function setOnboardingState(next: Partial<OnboardingInfo>) {
+    setState((current) => ({
+      ...current,
+      onboarding: {
+        ...(current.onboarding ?? {}),
+        ...next,
+      },
+    }));
   }
 
   useEffect(() => {
@@ -1282,6 +1293,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const contextValue: AuthContextValue = {
     ...state,
     postAuthRedirect,
+    setOnboardingState,
     reloadUser,
     signInWithGoogle,
     signOut,

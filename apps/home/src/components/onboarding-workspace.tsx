@@ -657,6 +657,7 @@ export function OnboardingWorkspace() {
     loading: sessionLoading,
     onboarding,
     reloadUser,
+    setOnboardingState,
   } = useAuthSession();
   const setupAlreadyResolved = Boolean(
     onboarding?.setup_completed || onboarding?.setup_skipped,
@@ -2126,6 +2127,11 @@ export function OnboardingWorkspace() {
     setPersonalization(result.data.personalization || null);
     setSuccess(result.data.message || "Setup completed.");
     markSetupRedirectBypass();
+    setOnboardingState({
+      setup_completed: true,
+      setup_skipped: false,
+      current_step: 8,
+    });
 
     void reloadUser().catch(() => {
       // Dashboard bootstrap can still recover from backend state on next load.
@@ -2155,6 +2161,10 @@ export function OnboardingWorkspace() {
     }));
     setSuccess(result.data.message || "Setup skipped.");
     markSetupRedirectBypass();
+    setOnboardingState({
+      setup_completed: false,
+      setup_skipped: true,
+    });
 
     void reloadUser().catch(() => {
       // Dashboard bootstrap can still recover from backend state on next load.
