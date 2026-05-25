@@ -415,7 +415,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [backendToken, setBackendToken] = useState<string | null>(null);
   const [postAuthRedirect, setPostAuthRedirect] = useState<string | null>(null);
 
+  const hasSharedSessionCookie = () => Boolean(getCookieValue("saaszo_session"));
+
   async function refreshBackendTokenFromSession() {
+    if (!hasSharedSessionCookie()) {
+      return null;
+    }
+
     const response = await fetchWithCsrf(`${API_BASE_URL}/auth/bridge-token`, {
       method: "GET",
       headers: {
@@ -752,6 +758,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedToken = getStoredBackendToken();
 
       if (!storedToken) {
+        if (!hasSharedSessionCookie()) {
+          if (isMounted) {
+            setBackendToken(null);
+            setState(signedOutState);
+          }
+          return;
+        }
+
         try {
           await hydrateCookieSession();
           if (isMounted) {
