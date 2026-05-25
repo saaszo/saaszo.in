@@ -21,7 +21,9 @@ import {
 } from "@/lib/utils";
 import {
   GoogleAuthProvider,
+  getRedirectResult,
   signInWithPopup,
+  signInWithRedirect,
   signOut as firebaseSignOut,
   onIdTokenChanged,
   User as FirebaseUser,
@@ -393,6 +395,17 @@ function navigateAfterAuth(
   router.push(safePath);
 }
 
+function resolveAuthRedirectTarget(
+  target: string | null | undefined,
+  onboarding?: OnboardingInfo | null,
+) {
+  if (!onboarding?.setup_completed && !onboarding?.setup_skipped) {
+    return "/dashboard/setup";
+  }
+
+  return target ?? "/dashboard";
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [state, setState] = useState<AuthSessionState>({
@@ -451,7 +464,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const data = (await response.json()) as BackendAuthResponse & {
       access_token?: string;
     };
-    setPostAuthRedirect(data.redirect ?? "/dashboard");
+    setPostAuthRedirect(
+      resolveAuthRedirectTarget(data.redirect, data.onboarding),
+    );
 
     // ✅ CRITICAL: Store the Sanctum token returned by /auth/sync.
     // Without this, Firebase-authenticated users have no backend token,
@@ -499,7 +514,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const session = normalizeBackendSession(payload);
-    setPostAuthRedirect(payload.redirect ?? "/dashboard");
+    setPostAuthRedirect(
+      resolveAuthRedirectTarget(payload.redirect, session.onboarding),
+    );
 
     setState({
       user: null,
@@ -660,7 +677,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const session = normalizeBackendSession(payload);
-    setPostAuthRedirect(payload.redirect ?? "/dashboard");
+    setPostAuthRedirect(
+      resolveAuthRedirectTarget(payload.redirect, session.onboarding),
+    );
 
     setBackendToken(token);
     setState({
@@ -705,6 +724,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+
+    async function hydrateRedirectResult() {
+      if (!auth) {
+        return;
+      }
+
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user && isMounted) {
+          await syncFirebaseUserSession(result.user);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setState((current) => ({
+            ...current,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Google sign-in could not be completed.",
+          }));
+        }
+      }
+    }
 
     async function hydrateStoredBackendToken() {
       const storedToken = getStoredBackendToken();
@@ -761,6 +803,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
+    void hydrateRedirectResult();
+
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (!isMounted) {
         return;
@@ -798,9 +842,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    const data = await syncFirebaseUserSession(result.user);
-    navigateAfterAuth(router, data.redirect ?? "/dashboard");
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const data = await syncFirebaseUserSession(result.user);
+      navigateAfterAuth(
+        router,
+        resolveAuthRedirectTarget(data.redirect, data.onboarding),
+      );
+    } catch (error: any) {
+      const code = String(error?.code ?? "");
+
+      if (
+        [
+          "auth/popup-blocked",
+          "auth/web-storage-unsupported",
+          "auth/operation-not-supported-in-this-environment",
+        ].includes(code)
+      ) {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
+      throw error;
+    }
   }
 
   function setupRecaptcha(

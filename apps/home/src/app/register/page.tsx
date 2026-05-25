@@ -278,8 +278,8 @@ function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-background text-on-background overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
-      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden bg-surface-container-lowest">
+    <div className="min-h-screen lg:h-screen w-full flex bg-background text-on-background overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+      <div className="hidden lg:flex lg:w-[46%] relative flex-col justify-center gap-10 p-8 xl:p-10 overflow-hidden bg-surface-container-lowest">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-pulse" />
           <div
@@ -291,7 +291,7 @@ function RegisterForm() {
         </div>
 
         <div className="relative z-10 animate-fade-up">
-          <div className="flex items-center gap-2 mb-16">
+          <div className="flex items-center gap-2 mb-10">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary font-bold text-xl shadow-[0_0_20px_var(--color-primary)]">
               S
             </div>
@@ -299,10 +299,10 @@ function RegisterForm() {
           </div>
 
           <div className="max-w-xl">
-            <h1 className="text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary">
+            <h1 className="text-4xl xl:text-5xl font-bold leading-tight tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary via-tertiary to-secondary">
               Start your journey today.
             </h1>
-            <p className="text-xl text-on-surface-variant leading-relaxed">
+            <p className="text-lg text-on-surface-variant leading-relaxed">
               Join thousands of enterprises transforming their operational
               architecture with SaaSzo.
             </p>
@@ -310,7 +310,7 @@ function RegisterForm() {
         </div>
 
         <div
-          className="relative z-10 flex flex-col gap-8 animate-fade-up"
+          className="relative z-10 flex flex-col gap-5 animate-fade-up"
           style={{ animationDelay: "0.2s" }}
         >
           <div className="flex gap-4 items-start group">
@@ -320,7 +320,7 @@ function RegisterForm() {
               </span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-1">Instant Deployment</h3>
+              <h3 className="text-base font-semibold mb-1">Instant Deployment</h3>
               <p className="text-on-surface-variant leading-relaxed">
                 Get your environment up and running in minutes, not months.
               </p>
@@ -334,7 +334,7 @@ function RegisterForm() {
               </span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-1">
+              <h3 className="text-base font-semibold mb-1">
                 Verification-first Signup
               </h3>
               <p className="text-on-surface-variant leading-relaxed">
@@ -346,22 +346,22 @@ function RegisterForm() {
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative">
+      <div className="w-full lg:w-[54%] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative">
         <div className="absolute inset-0 bg-surface pointer-events-none" />
 
         <div
-          className="w-full max-w-md relative z-10 animate-fade-up pt-8 lg:pt-0"
+          className="w-full max-w-[32rem] relative z-10 animate-fade-up py-4 lg:py-0"
           style={{ animationDelay: "0.3s" }}
         >
-          <div className="flex lg:hidden items-center gap-2 mb-12 justify-center">
+          <div className="flex lg:hidden items-center gap-2 mb-6 justify-center">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary font-bold text-xl shadow-[0_0_20px_var(--color-primary)]">
               S
             </div>
             <span className="text-2xl font-bold tracking-tight">SaaSzo</span>
           </div>
 
-          <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-3xl font-bold mb-3 tracking-tight">
+          <div className="mb-6 text-center lg:text-left">
+            <h2 className="text-2xl font-bold mb-2 tracking-tight">
               Create an account
             </h2>
             <p className="text-on-surface-variant">
@@ -378,8 +378,8 @@ function RegisterForm() {
             </div>
           )}
 
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            <div className="space-y-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <div className="space-y-3">
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
                   <span className="material-symbols-outlined text-xl">
@@ -389,7 +389,7 @@ function RegisterForm() {
                 <input
                   type="text"
                   placeholder="Full Name"
-                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -405,13 +405,13 @@ function RegisterForm() {
                 <input
                   type="text"
                   placeholder="Workspace / Company Name"
-                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                 />
               </div>
 
-              <div className="space-y-3 rounded-2xl border border-outline-variant/70 bg-surface-container-lowest p-4">
+              <div className="space-y-3 rounded-2xl border border-outline-variant/70 bg-surface-container-lowest p-3.5">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
                     <span className="material-symbols-outlined text-xl">
@@ -421,7 +421,7 @@ function RegisterForm() {
                   <input
                     type="email"
                     placeholder="name@company.com"
-                    className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-surface-container hover:bg-surface-container-high focus:bg-surface-container-lowest outline-none border border-transparent focus:border-primary transition-all duration-300 shadow-sm focus:shadow-[0_0_0_4px_var(--color-primary-container)] placeholder-outline"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -457,12 +457,12 @@ function RegisterForm() {
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      maxLength={4}
+                      maxLength={6}
                       placeholder="6-digit OTP"
                       className="flex-1 rounded-xl border border-outline-variant/70 bg-surface px-4 py-3 outline-none transition-all focus:border-primary focus:shadow-[0_0_0_4px_var(--color-primary-container)]"
                       value={otp}
                       onChange={(e) =>
-                        setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))
+                        setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
                       }
                       onKeyDown={(event) => {
                         if (event.key === "Enter") {
@@ -577,7 +577,7 @@ function RegisterForm() {
             <button
               type="submit"
               disabled={isLoading || !emailVerified}
-              className={`mt-6 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${isLoading || !emailVerified ? "opacity-80 cursor-not-allowed" : "shadow-lg shadow-primary/20 hover:shadow-primary/40"}`}
+              className={`mt-2 relative w-full py-3.5 rounded-xl bg-primary text-on-primary font-semibold text-base overflow-hidden group transition-all duration-300 ${isLoading || !emailVerified ? "opacity-80 cursor-not-allowed" : "shadow-lg shadow-primary/20 hover:shadow-primary/40"}`}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
@@ -597,7 +597,7 @@ function RegisterForm() {
             </button>
           </form>
 
-          <div className="mt-8 flex items-center justify-center gap-4">
+          <div className="mt-5 flex items-center justify-center gap-4">
             <div className="flex-1 h-px bg-outline-variant" />
             <span className="text-sm text-outline font-medium">
               Or continue with
@@ -605,11 +605,11 @@ function RegisterForm() {
             <div className="flex-1 h-px bg-outline-variant" />
           </div>
 
-          <div className="mt-8 grid grid-cols-2 gap-4">
+          <div className="mt-5 grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-outline-variant hover:bg-surface-container transition-colors font-medium"
+              className="flex items-center justify-center gap-2 py-3 rounded-xl border border-outline-variant hover:bg-surface-container transition-colors font-medium"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path
@@ -633,7 +633,7 @@ function RegisterForm() {
             </button>
             <Link
               href="/auth/phone?intent=signup"
-              className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-primary/30 bg-primary-container/30 hover:bg-primary-container/60 transition-colors font-medium text-primary"
+              className="flex items-center justify-center gap-2 py-3 rounded-xl border border-primary/30 bg-primary-container/30 hover:bg-primary-container/60 transition-colors font-medium text-primary"
             >
               <span className="material-symbols-outlined text-xl">
                 smartphone
@@ -642,7 +642,7 @@ function RegisterForm() {
             </Link>
           </div>
 
-          <div className="mt-10 text-center">
+          <div className="mt-6 text-center">
             <p className="text-on-surface-variant text-sm">
               Already have an account?{" "}
               <Link
@@ -654,7 +654,7 @@ function RegisterForm() {
             </p>
           </div>
 
-          <div className="mt-12 text-center">
+          <div className="mt-5 text-center lg:hidden">
             <p className="text-xs text-outline max-w-xs mx-auto">
               By registering, you agree to SaaSzo&apos;s{" "}
               <Link
