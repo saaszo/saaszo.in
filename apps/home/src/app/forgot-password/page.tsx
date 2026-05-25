@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/components/AuthProvider";
-import { lookupAuthIdentifier, parseAuthIdentifier } from "@/lib/auth-utils";
+import { parseAuthIdentifier } from "@/lib/auth-utils";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -30,43 +30,13 @@ export default function ForgotPassword() {
         throw new Error("Enter a valid email address or mobile number.");
       }
 
-      const lookup = await lookupAuthIdentifier(
-        parsedIdentifier.type === "email"
-          ? parsedIdentifier.email
-          : parsedIdentifier.e164,
-      );
-
-      if (!lookup.exists) {
-        throw new Error(
-          "No account was found for that email or mobile number.",
-        );
-      }
-
       if (parsedIdentifier.type === "phone") {
-        if (!lookup.canUsePhoneOtp) {
-          throw new Error(
-            "This number is not enabled for mobile OTP sign-in. Please use your email login method instead.",
-          );
-        }
-
         router.push(
           `/auth/phone?intent=recover&countryCode=${encodeURIComponent(
             parsedIdentifier.countryCode,
           )}&phone=${encodeURIComponent(parsedIdentifier.nationalNumber)}`,
         );
         return;
-      }
-
-      if (!lookup.canUsePassword) {
-        if (lookup.canUseGoogle) {
-          throw new Error(
-            "This account uses Google sign-in. Please continue with Google on the sign-in page.",
-          );
-        }
-
-        throw new Error(
-          "This account does not use password recovery. Please use its original sign-in method.",
-        );
       }
 
       const result = await sendPasswordReset(parsedIdentifier.email);

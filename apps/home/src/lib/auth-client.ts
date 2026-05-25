@@ -10,6 +10,7 @@ export const deviceIdKey = "saaszo_home_device_id";
 export const authCookieKey = "saaszo_session";
 export const setupRedirectBypassKey = "saaszo.setup_redirect_bypass";
 const sharedCookieDomain = ".saaszo.in";
+let accessTokenCache: string | null = null;
 
 export type ApiResult<T = Record<string, unknown>> = T & {
   success?: boolean;
@@ -87,8 +88,7 @@ export function persistAccessToken(token?: string) {
     return;
   }
 
-  window.localStorage.setItem(authStorageKey, token);
-  window.localStorage.setItem(legacyAuthStorageKey, token);
+  accessTokenCache = token;
   const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
   document.cookie = `${authCookieKey}=1; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
   document.cookie = `${authCookieKey}=1; Path=/; Domain=${sharedCookieDomain}; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
@@ -111,8 +111,7 @@ export function clearAccessToken() {
     return;
   }
 
-  window.localStorage.removeItem(authStorageKey);
-  window.localStorage.removeItem(legacyAuthStorageKey);
+  accessTokenCache = null;
   window.localStorage.removeItem(lastActivityKey);
   document.cookie = `${authCookieKey}=; Path=/; Max-Age=0; SameSite=Lax`;
   document.cookie = `${authCookieKey}=; Path=/; Max-Age=0; Domain=${sharedCookieDomain}; SameSite=Lax`;
@@ -170,10 +169,7 @@ export function readAccessToken() {
     return null;
   }
 
-  return (
-    window.localStorage.getItem(authStorageKey) ||
-    window.localStorage.getItem(legacyAuthStorageKey)
-  );
+  return accessTokenCache;
 }
 
 export async function fetchProfile(accessToken?: string | null) {

@@ -248,8 +248,7 @@ type BackendAuthResponse = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-const BACKEND_AUTH_STORAGE_KEY = "saaszo.backend_auth_token";
+let backendTokenCache: string | null = null;
 
 const signedOutState = {
   user: null,
@@ -264,27 +263,15 @@ const signedOutState = {
 };
 
 function getStoredBackendToken() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return window.localStorage.getItem(BACKEND_AUTH_STORAGE_KEY);
+  return backendTokenCache;
 }
 
 function setStoredBackendToken(token: string) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.localStorage.setItem(BACKEND_AUTH_STORAGE_KEY, token);
+  backendTokenCache = token;
 }
 
 function clearStoredBackendToken() {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.localStorage.removeItem(BACKEND_AUTH_STORAGE_KEY);
+  backendTokenCache = null;
 }
 
 function toTitleCase(value: string | null | undefined, fallback: string) {
@@ -851,28 +838,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signInWithEmail(email: string, password: string) {
-    // 1. Check if identifier exists first
-    const checkResponse = await fetchWithCsrf(
-      `${API_BASE_URL}/auth/check-identifier`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier: email }),
-      },
-    );
-
-    if (checkResponse.ok) {
-      const checkData = await checkResponse.json();
-      if (checkData.success && !checkData.exists) {
-        navigateAfterAuth(
-          router,
-          `/register?email=${encodeURIComponent(email)}`,
-        );
-        throw new Error("Not registered. Redirecting to signup...");
-      }
-    }
-
-    // 2. Perform Login
     const payload = await fetchBackendJson("/auth/login", {
       method: "POST",
       body: JSON.stringify({
@@ -914,25 +879,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     name?: string,
     companyName?: string,
   ) {
-    // 1. Check if identifier already exists
-    const checkResponse = await fetchWithCsrf(
-      `${API_BASE_URL}/auth/check-identifier`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier: email }),
-      },
-    );
-
-    if (checkResponse.ok) {
-      const checkData = await checkResponse.json();
-      if (checkData.success && checkData.exists) {
-        navigateAfterAuth(router, `/auth?email=${encodeURIComponent(email)}`);
-        throw new Error("Account already exists. Redirecting to login...");
-      }
-    }
-
-    // 2. Perform Signup only after verification-gated backend path
     const displayName = name?.trim() || email.split("@")[0] || "SaaSzo User";
     const normalizedCompanyName = companyName?.trim() || "SaaSzo Workspace";
 

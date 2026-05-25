@@ -43,7 +43,7 @@ export type ParsedAuthIdentifier =
 
 export type IdentifierLookupResponse = {
   success: boolean;
-  exists: boolean;
+  exists?: boolean | null;
   identifierType: "email" | "phone" | "unknown";
   normalizedIdentifier: string | null;
   authProvider: string | null;
@@ -130,7 +130,7 @@ export function getPhoneSessionToken() {
     return null;
   }
 
-  return window.localStorage.getItem(PHONE_SESSION_STORAGE_KEY);
+  return window.sessionStorage.getItem(PHONE_SESSION_STORAGE_KEY);
 }
 
 export function setPhoneSessionToken(token: string) {
@@ -138,7 +138,7 @@ export function setPhoneSessionToken(token: string) {
     return;
   }
 
-  window.localStorage.setItem(PHONE_SESSION_STORAGE_KEY, token);
+  window.sessionStorage.setItem(PHONE_SESSION_STORAGE_KEY, token);
   window.dispatchEvent(new Event(PHONE_SESSION_EVENT));
 }
 
@@ -147,7 +147,7 @@ export function clearPhoneSessionToken() {
     return;
   }
 
-  window.localStorage.removeItem(PHONE_SESSION_STORAGE_KEY);
+  window.sessionStorage.removeItem(PHONE_SESSION_STORAGE_KEY);
   window.dispatchEvent(new Event(PHONE_SESSION_EVENT));
 }
 

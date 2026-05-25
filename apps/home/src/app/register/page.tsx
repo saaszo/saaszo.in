@@ -184,8 +184,8 @@ function RegisterForm() {
         throw new Error("Send the verification code first.");
       }
 
-      if (otp.trim().length !== 4) {
-        throw new Error("Enter the 4-digit email verification code.");
+      if (otp.trim().length !== 6) {
+        throw new Error("Enter the 6-digit email verification code.");
       }
 
       const result = await fetchWithCsrf("/auth/signup/verify-otp", {
@@ -458,7 +458,7 @@ function RegisterForm() {
                       inputMode="numeric"
                       pattern="[0-9]*"
                       maxLength={4}
-                      placeholder="4-digit OTP"
+                      placeholder="6-digit OTP"
                       className="flex-1 rounded-xl border border-outline-variant/70 bg-surface px-4 py-3 outline-none transition-all focus:border-primary focus:shadow-[0_0_0_4px_var(--color-primary-container)]"
                       value={otp}
                       onChange={(e) =>

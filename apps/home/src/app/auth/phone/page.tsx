@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { appConfig } from "@/lib/config";
-import { AUTH_COUNTRY_OPTIONS, lookupAuthIdentifier } from "@/lib/auth-utils";
+import { AUTH_COUNTRY_OPTIONS } from "@/lib/auth-utils";
 import { useAuthSession } from "@/components/AuthProvider";
 import { toSafeAppPath } from "@/lib/utils";
 import { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
@@ -185,20 +185,6 @@ export default function PhoneOtpAuth() {
     setIsLoading(true);
     try {
       const verifier = await ensureRecaptcha();
-      const lookup = await lookupAuthIdentifier(fullPhone);
-
-      if (intent === "signup" && lookup.exists) {
-        throw new Error(
-          "This mobile number is already registered. Please sign in instead.",
-        );
-      }
-
-      if ((intent === "signin" || intent === "recover") && !lookup.exists) {
-        throw new Error(
-          "No account was found for this mobile number. Please sign up first.",
-        );
-      }
-
       const result = await sendPhoneOtp(fullPhone, verifier);
       setConfirmationResult(result);
       setStep("otp");
