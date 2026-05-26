@@ -250,6 +250,7 @@ type BackendAuthResponse = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 let backendTokenCache: string | null = null;
+const googleRedirectIntentKey = "saaszo_google_auth_intent";
 
 const signedOutState = {
   user: null,
@@ -273,6 +274,30 @@ function setStoredBackendToken(token: string) {
 
 function clearStoredBackendToken() {
   backendTokenCache = null;
+}
+
+function setGoogleRedirectIntent() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.setItem(googleRedirectIntentKey, "1");
+}
+
+function hasGoogleRedirectIntent() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.sessionStorage.getItem(googleRedirectIntentKey) === "1";
+}
+
+function clearGoogleRedirectIntent() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.removeItem(googleRedirectIntentKey);
 }
 
 async function fetchWithTimeout(
@@ -768,6 +793,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const result = await getRedirectResult(auth);
         if (result?.user && isMounted) {
           const data = await syncFirebaseUserSession(result.user);
+          clearGoogleRedirectIntent();
           navigateAfterAuth(
             router,
             resolveAuthRedirectTarget(data.redirect, data.onboarding),
@@ -864,7 +890,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setState((current) => ({ ...current, loading: true, error: "" }));
 
       try {
-        await syncFirebaseUserSession(user);
+        const data = await syncFirebaseUserSession(user);
+
+        if (hasGoogleRedirectIntent()) {
+          clearGoogleRedirectIntent();
+          navigateAfterAuth(
+            router,
+            resolveAuthRedirectTarget(data.redirect, data.onboarding),
+          );
+        }
       } catch (error) {
         if (isMounted) {
           setState({
@@ -890,6 +924,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
 
+    setGoogleRedirectIntent();
     await signInWithRedirect(auth, provider);
   }
 
