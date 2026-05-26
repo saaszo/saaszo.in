@@ -275,6 +275,28 @@ function clearStoredBackendToken() {
   backendTokenCache = null;
 }
 
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  timeoutMs = 8000,
+) {
+  const timeoutController = new AbortController();
+  const timeoutId = window.setTimeout(() => {
+    timeoutController.abort();
+  }, timeoutMs);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: init.signal
+        ? AbortSignal.any([init.signal, timeoutController.signal])
+        : timeoutController.signal,
+    });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 function toTitleCase(value: string | null | undefined, fallback: string) {
   const normalized = value?.trim();
 
@@ -549,7 +571,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     if (isMutation && !getCookieValue("XSRF-TOKEN")) {
-      await fetch(
+      await fetchWithTimeout(
         toAbsoluteApiUrl("/sanctum/csrf-cookie").replace(
           "/api/sanctum",
           "/sanctum",
@@ -558,6 +580,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           method: "GET",
           credentials: "include",
         },
+        5000,
       ).catch(() => null);
     }
 
@@ -570,7 +593,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       headers["X-XSRF-TOKEN"] = xsrfToken;
     }
 
-    return fetch(url, {
+    return fetchWithTimeout(url, {
       ...init,
       headers,
       credentials: "include",
