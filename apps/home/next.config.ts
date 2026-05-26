@@ -28,13 +28,18 @@ if (
 const nextConfig: NextConfig = {
   reactCompiler: true,
   async headers() {
+    // Firebase signInWithPopup requires window.closed polling and window.close()
+    // on the cross-origin Google OAuth popup. COOP "same-origin-allow-popups"
+    // blocks these calls (Chrome shows COOP policy warnings and popup may hang).
+    // "unsafe-none" is the browser default — it removes COOP restrictions so
+    // Firebase's popup flow works correctly on all browsers.
     return [
       {
         source: "/auth/:path*",
         headers: [
           {
             key: "Cross-Origin-Opener-Policy",
-            value: "same-origin-allow-popups",
+            value: "unsafe-none",
           },
         ],
       },
@@ -43,7 +48,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cross-Origin-Opener-Policy",
-            value: "same-origin-allow-popups",
+            value: "unsafe-none",
           },
         ],
       },
@@ -52,7 +57,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cross-Origin-Opener-Policy",
-            value: "same-origin-allow-popups",
+            value: "unsafe-none",
           },
         ],
       },
@@ -61,7 +66,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cross-Origin-Opener-Policy",
-            value: "same-origin-allow-popups",
+            value: "unsafe-none",
           },
         ],
       },
