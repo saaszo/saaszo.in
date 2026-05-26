@@ -1141,6 +1141,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         bearerToken = await auth.currentUser.getIdToken();
       }
 
+      if (tool === "task" && bearerToken) {
+        const taskBridgeUrl = new URL(
+          "https://task.saaszo.in/auth-bridge?redirect=%2Ftask-manager",
+        );
+        taskBridgeUrl.searchParams.set("access_token", bearerToken);
+        return { redirectUrl: taskBridgeUrl.toString() };
+      }
+
       const response = await fetchWithCsrf(
         `${API_BASE_URL}/auth/product-token`,
         {

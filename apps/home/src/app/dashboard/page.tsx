@@ -469,14 +469,7 @@ export default function DashboardPage() {
 
     setLaunchingTool(product.tool);
     setLaunchError("");
-    const directTaskBridgeUrl =
-      product.tool === "task"
-        ? toSafeAbsoluteUrl(TASK_BRIDGE_FALLBACK_URL, appConfig.appUrl)
-        : null;
-    const pendingWindow = window.open(
-      directTaskBridgeUrl ?? "about:blank",
-      "_blank",
-    );
+    const pendingWindow = window.open("about:blank", "_blank");
     if (pendingWindow) {
       try {
         pendingWindow.opener = null;
@@ -484,11 +477,6 @@ export default function DashboardPage() {
         // Ignore browser-specific readonly opener behavior.
       }
       pendingWindow.document.title = `${product.name} - SaaSzo`;
-    }
-
-    if (product.tool === "task" && directTaskBridgeUrl) {
-      setLaunchingTool(null);
-      return;
     }
 
     const { redirectUrl, error: handoffError } = await getHandoffToken(
