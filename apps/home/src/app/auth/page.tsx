@@ -308,6 +308,8 @@ function AuthForm() {
             {/* Mobile OTP — links to Firebase phone auth page */}
             <Link
               href="/auth/phone?intent=signin"
+              prefetch
+              scroll={false}
               className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-primary/40 bg-primary-container/30 hover:bg-primary-container/60 text-primary transition-all duration-200 font-medium group"
               title="Sign in with Mobile OTP"
             >

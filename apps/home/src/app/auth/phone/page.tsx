@@ -88,12 +88,6 @@ export default function PhoneOtpAuth() {
   }, []);
 
   useEffect(() => {
-    if (step === "phone" && !recaptchaVerifier) {
-      void ensureRecaptcha();
-    }
-  }, [step, recaptchaVerifier, setupRecaptcha]);
-
-  useEffect(() => {
     if (resendTimer <= 0 && verifyLockSeconds <= 0) {
       return;
     }
@@ -158,7 +152,8 @@ export default function PhoneOtpAuth() {
       },
       onExpired: () => {
         setRecaptchaSolved(false);
-        setError("reCAPTCHA expired. Please complete it again.");
+        setNotice("");
+        setError("Security check expired. Tap Send OTP again.");
       },
     });
 
@@ -172,11 +167,6 @@ export default function PhoneOtpAuth() {
     setNotice("");
     if (phone.trim().length < 6) {
       setError("Please enter a valid phone number.");
-      return false;
-    }
-
-    if (!recaptchaSolved) {
-      setError("Please complete the reCAPTCHA before sending OTP.");
       return false;
     }
 
@@ -516,7 +506,7 @@ export default function PhoneOtpAuth() {
                   type="submit"
                   disabled={isLoading}
                   className={`mt-2 relative w-full py-4 rounded-xl bg-primary text-on-primary font-semibold text-lg overflow-hidden group transition-all duration-300 ${
-                    isLoading || !recaptchaSolved
+                    isLoading
                       ? "opacity-80 cursor-not-allowed"
                       : "shadow-lg shadow-primary/20 hover:shadow-primary/40"
                   }`}
@@ -539,6 +529,11 @@ export default function PhoneOtpAuth() {
                   </span>
                 </button>
               </form>
+
+              <p className="mt-4 text-center text-xs text-outline lg:text-left">
+                Protected by invisible reCAPTCHA. The security check runs when
+                you send the OTP.
+              </p>
 
               <div className="mt-8 flex items-center justify-center gap-4">
                 <div className="flex-1 h-px bg-outline-variant" />

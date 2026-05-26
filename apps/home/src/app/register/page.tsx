@@ -633,6 +633,8 @@ function RegisterForm() {
             </button>
             <Link
               href="/auth/phone?intent=signup"
+              prefetch
+              scroll={false}
               className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary/30 bg-primary-container/30 hover:bg-primary-container/60 transition-colors font-medium text-primary"
             >
               <span className="material-symbols-outlined text-xl">

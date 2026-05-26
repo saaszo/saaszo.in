@@ -974,19 +974,6 @@ export function OnboardingWorkspace() {
   }, [verificationModal]);
 
   useEffect(() => {
-    if (
-      currentStep !== 2 ||
-      phoneVerified ||
-      verificationModal !== "phone" ||
-      phoneVerifier
-    ) {
-      return;
-    }
-
-    void ensurePhoneVerifier().catch(() => null);
-  }, [currentStep, phoneVerified, phoneVerifier, verificationModal]);
-
-  useEffect(() => {
     if (verificationModal === "phone") {
       return;
     }
