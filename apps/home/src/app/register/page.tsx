@@ -1,11 +1,11 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthSession } from "@/components/AuthProvider";
 import { API_BASE_URL } from "@/lib/app-config";
-import { toAbsoluteApiUrl } from "@/lib/config";
-import { getCookieValue } from "@/lib/utils";
+import { appConfig, toAbsoluteApiUrl } from "@/lib/config";
+import { getCookieValue, toSafeAppPath } from "@/lib/utils";
 
 function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
@@ -72,8 +72,10 @@ async function fetchWithCsrf(path: string, init: RequestInit = {}) {
 }
 
 function RegisterForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const { signInWithGoogle, signUpWithEmail } = useAuthSession();
+  const { authenticated, postAuthRedirect, signInWithGoogle, signUpWithEmail } =
+    useAuthSession();
   const [name, setName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
@@ -100,6 +102,12 @@ function RegisterForm() {
     const emailParam = searchParams.get("email");
     if (emailParam) setEmail(emailParam);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (authenticated) {
+      router.replace(toSafeAppPath(postAuthRedirect, appConfig.appUrl));
+    }
+  }, [authenticated, postAuthRedirect, router]);
 
   const hasRunningOtpTimers = otpLockSeconds > 0 || resendTimer > 0;
 
