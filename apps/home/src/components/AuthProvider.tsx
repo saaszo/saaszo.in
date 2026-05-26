@@ -868,29 +868,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
 
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const data = await syncFirebaseUserSession(result.user);
-      navigateAfterAuth(
-        router,
-        resolveAuthRedirectTarget(data.redirect, data.onboarding),
-      );
-    } catch (error: any) {
-      const code = String(error?.code ?? "");
-
-      if (
-        [
-          "auth/popup-blocked",
-          "auth/web-storage-unsupported",
-          "auth/operation-not-supported-in-this-environment",
-        ].includes(code)
-      ) {
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-
-      throw error;
-    }
+    // Prefer redirect over popup to avoid COOP/window.closed browser warnings
+    // and keep the flow stable across browsers and custom-domain auth setups.
+    await signInWithRedirect(auth, provider);
   }
 
   function setupRecaptcha(
