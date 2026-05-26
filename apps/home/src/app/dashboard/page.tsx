@@ -60,6 +60,18 @@ const PRODUCTS: Product[] = [
     ctaText: "Open App",
   },
   {
+    id: "task",
+    name: "Task Management",
+    tagline: "Projects · Tasks · Team Chat",
+    description:
+      "Plan projects, assign work, track progress, manage delivery, and collaborate with your team in one shared workspace.",
+    icon: "task_alt",
+    tool: "task",
+    status: "active",
+    color: "linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)",
+    ctaText: "Open App",
+  },
+  {
     id: "pos",
     name: "POS for Restaurants",
     tagline: "Restaurant Billing · KOT · Tables",
@@ -102,6 +114,8 @@ const PRODUCTS: Product[] = [
 
 const INVOICE_BRIDGE_FALLBACK_URL =
   "https://invoice.saaszo.in/auth-bridge?redirect=%2Fdashboard";
+const TASK_BRIDGE_FALLBACK_URL =
+  "https://task.saaszo.in/auth-bridge?redirect=%2Ftask-manager";
 
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -469,7 +483,11 @@ export default function DashboardPage() {
       product.tool,
     );
     const fallbackRedirectUrl =
-      product.tool === "invoice" ? INVOICE_BRIDGE_FALLBACK_URL : undefined;
+      product.tool === "invoice"
+        ? INVOICE_BRIDGE_FALLBACK_URL
+        : product.tool === "task"
+          ? TASK_BRIDGE_FALLBACK_URL
+          : undefined;
     const safeRedirectUrl = toSafeAbsoluteUrl(redirectUrl, appConfig.appUrl);
     const safeFallbackRedirectUrl = toSafeAbsoluteUrl(
       fallbackRedirectUrl,
@@ -1817,7 +1835,7 @@ function StaffModal({
     tool_access: staff?.tool_access || [],
   });
 
-  const tools = ["invoice", "pos", "crm", "hrms", "accounting"];
+  const tools = ["invoice", "task", "pos", "crm", "hrms", "accounting"];
 
   const toggleTool = (tool: string) => {
     setValues((c) => {
@@ -2098,6 +2116,8 @@ function PermissionModal({
                     <span className="material-symbols-outlined text-xl">
                       {tool === "invoice"
                         ? "receipt_long"
+                        : tool === "task"
+                          ? "task_alt"
                         : tool === "pos"
                           ? "restaurant"
                           : tool === "crm"
