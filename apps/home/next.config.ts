@@ -74,6 +74,16 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Canonical redirect: www.saaszo.in → saaszo.in
+      // Without this, NEXT_PUBLIC_APP_URL (saaszo.in) mismatches the browser
+      // origin (www.saaszo.in), breaking auth redirect validation and
+      // causing signInWithGoogle to loop or land on the wrong domain.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.saaszo.in" }],
+        destination: "https://saaszo.in/:path*",
+        permanent: true,
+      },
       {
         source: "/signup",
         destination: "/register",
