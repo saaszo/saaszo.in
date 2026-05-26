@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE_URL } from "./app-config";
+import { toAbsoluteApiUrl } from "./config";
 import { getCookieValue } from "./utils";
 
 export const PHONE_SESSION_STORAGE_KEY = "saaszo.phone_session_token";
@@ -88,10 +89,16 @@ export function parseAuthIdentifier(
 
 export async function lookupAuthIdentifier(identifier: string) {
   if (!getCookieValue("XSRF-TOKEN")) {
-    await fetch(`${API_BASE_URL.replace("/api", "")}/sanctum/csrf-cookie`, {
-      method: "GET",
-      credentials: "include",
-    }).catch(() => null);
+    await fetch(
+      toAbsoluteApiUrl("/sanctum/csrf-cookie").replace(
+        "/api/sanctum",
+        "/sanctum",
+      ),
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    ).catch(() => null);
   }
 
   const headers: Record<string, string> = {

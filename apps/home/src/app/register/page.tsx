@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuthSession } from "@/components/AuthProvider";
 import { API_BASE_URL } from "@/lib/app-config";
+import { toAbsoluteApiUrl } from "@/lib/config";
 import { getCookieValue } from "@/lib/utils";
 
 function normalizeEmail(value: string) {
@@ -29,10 +30,16 @@ async function fetchWithCsrf(path: string, init: RequestInit = {}) {
   const isMutation = !["GET", "HEAD", "OPTIONS"].includes(method);
 
   if (isMutation && !getCookieValue("XSRF-TOKEN")) {
-    await fetch(`${API_BASE_URL.replace("/api", "")}/sanctum/csrf-cookie`, {
-      method: "GET",
-      credentials: "include",
-    }).catch(() => null);
+    await fetch(
+      toAbsoluteApiUrl("/sanctum/csrf-cookie").replace(
+        "/api/sanctum",
+        "/sanctum",
+      ),
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    ).catch(() => null);
   }
 
   const headers: Record<string, string> = {
