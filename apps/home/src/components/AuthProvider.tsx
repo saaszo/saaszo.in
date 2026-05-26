@@ -739,7 +739,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const result = await getRedirectResult(auth);
         if (result?.user && isMounted) {
-          await syncFirebaseUserSession(result.user);
+          const data = await syncFirebaseUserSession(result.user);
+          navigateAfterAuth(
+            router,
+            resolveAuthRedirectTarget(data.redirect, data.onboarding),
+          );
         }
       } catch (error) {
         if (isMounted) {
