@@ -868,9 +868,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
 
-    // Prefer redirect over popup to avoid COOP/window.closed browser warnings
-    // and keep the flow stable across browsers and custom-domain auth setups.
-    await signInWithRedirect(auth, provider);
+    try {
+      // Popup is more reliable across modern browsers (avoids cross-origin
+      // cookie issues in Safari, Brave, and strict-mode Chrome that break
+      // the signInWithRedirect flow).
+      const result = await signInWithPopup(auth, provider);
+      if (result?.user) {
+        const data = await syncFirebaseUserSession(result.user);
+        navigateAfterAuth(
+          router,
+          resolveAuthRedirectTarget(data.redirect, data.onboarding),
+        );
+      }
+    } catch (popupError: any) {
+      // auth/popup-blocked  → browser blocked the popup window
+      // auth/popup-closed-by-user → user dismissed before completing
+      // auth/cancelled-popup-request → another popup was already open
+      if (
+        popupError?.code === "auth/popup-blocked" ||
+        popupError?.code === "auth/cancelled-popup-request"
+      ) {
+        // Fall back to redirect when popup is blocked
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
+      // User closed the popup — treat as cancellation, not an error
+      if (popupError?.code === "auth/popup-closed-by-user") {
+        return;
+      }
+
+      throw popupError;
+    }
   }
 
   function setupRecaptcha(
