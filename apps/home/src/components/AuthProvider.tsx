@@ -282,6 +282,13 @@ function setStoredBackendToken(token: string) {
 
   if (typeof window !== "undefined") {
     window.sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+
+    // Set the session marker cookie so the server-side middleware on
+    // /dashboard/* allows the request through without redirecting to /auth.
+    const secureFlag =
+      window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `saaszo_session=1; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
+    document.cookie = `saaszo_session=1; Path=/; Domain=.saaszo.in; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
   }
 }
 
@@ -290,6 +297,12 @@ function clearStoredBackendToken() {
 
   if (typeof window !== "undefined") {
     window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+
+    // Remove the session marker cookie.
+    document.cookie =
+      "saaszo_session=; Path=/; Max-Age=0; SameSite=Lax";
+    document.cookie =
+      "saaszo_session=; Path=/; Domain=.saaszo.in; Max-Age=0; SameSite=Lax";
   }
 }
 
