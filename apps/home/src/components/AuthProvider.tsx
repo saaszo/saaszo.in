@@ -251,6 +251,7 @@ type BackendAuthResponse = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 let backendTokenCache: string | null = null;
 const googleRedirectIntentKey = "saaszo_google_auth_intent";
+const TOKEN_STORAGE_KEY = "saaszo_backend_token";
 
 const signedOutState = {
   user: null,
@@ -265,15 +266,31 @@ const signedOutState = {
 };
 
 function getStoredBackendToken() {
-  return backendTokenCache;
+  if (backendTokenCache) {
+    return backendTokenCache;
+  }
+
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return window.sessionStorage.getItem(TOKEN_STORAGE_KEY);
 }
 
 function setStoredBackendToken(token: string) {
   backendTokenCache = token;
+
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+  }
 }
 
 function clearStoredBackendToken() {
   backendTokenCache = null;
+
+  if (typeof window !== "undefined") {
+    window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+  }
 }
 
 function setGoogleRedirectIntent() {
@@ -495,12 +512,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function syncFirebaseUserSession(firebaseUser: FirebaseUser) {
     const token = await firebaseUser.getIdToken();
+
+    // Pass the ?redirect= URL param to the backend so it can return the
+    // correct redirect target (e.g. /dashboard/settings) instead of always
+    // defaulting to /dashboard.
+    const urlRedirectParam =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("redirect")
+        : null;
+
     const response = await fetchWithCsrf(`${API_BASE_URL}/auth/sync`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+      body: JSON.stringify(
+        urlRedirectParam ? { redirect: urlRedirectParam } : {},
+      ),
     });
 
     if (!response.ok) {
@@ -783,6 +812,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    // Guard: prevent double-sync when both getRedirectResult and
+    // onIdTokenChanged fire for the same Google redirect user.
+    let syncedFromRedirect = false;
 
     async function hydrateRedirectResult() {
       if (!auth) {
@@ -792,6 +824,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const result = await getRedirectResult(auth);
         if (result?.user && isMounted) {
+          syncedFromRedirect = true;
           const data = await syncFirebaseUserSession(result.user);
           clearGoogleRedirectIntent();
           navigateAfterAuth(
@@ -891,6 +924,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!user) {
         await hydrateStoredBackendToken();
+        return;
+      }
+
+      // Skip if already synced from getRedirectResult to avoid duplicate
+      // POST /auth/sync calls and race conditions.
+      if (syncedFromRedirect) {
         return;
       }
 
@@ -1183,13 +1222,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         bearerToken = await auth.currentUser.getIdToken();
       }
 
-      if (tool === "task" && bearerToken) {
-        const taskBridgeUrl = new URL(
-          "https://task.saaszo.in/auth-bridge?redirect=%2Ftask-manager",
-        );
-        taskBridgeUrl.searchParams.set("access_token", bearerToken);
-        return { redirectUrl: taskBridgeUrl.toString() };
-      }
+      // Task app now uses the same secure handoff-token flow as invoice.
+      // Previously, bearer tokens were passed in the URL query string which
+      // is insecure (logged in browser history, server logs, Referer header).
 
       const response = await fetchWithCsrf(
         `${API_BASE_URL}/auth/product-token`,
