@@ -9,8 +9,13 @@ import { toSafeAppPath } from "@/lib/utils";
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { authenticated, signInWithGoogle, signInWithEmail, postAuthRedirect } =
-    useAuthSession();
+  const {
+    authenticated,
+    loading: sessionLoading,
+    signInWithGoogle,
+    signInWithEmail,
+    postAuthRedirect,
+  } = useAuthSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isHovered, setIsHovered] = useState(false);
@@ -28,10 +33,10 @@ function AuthForm() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (authenticated) {
+    if (!sessionLoading && authenticated) {
       router.replace(toSafeAppPath(postAuthRedirect, appConfig.appUrl));
     }
-  }, [authenticated, postAuthRedirect, router]);
+  }, [authenticated, postAuthRedirect, router, sessionLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

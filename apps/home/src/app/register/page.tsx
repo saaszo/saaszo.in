@@ -74,8 +74,13 @@ async function fetchWithCsrf(path: string, init: RequestInit = {}) {
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { authenticated, postAuthRedirect, signInWithGoogle, signUpWithEmail } =
-    useAuthSession();
+  const {
+    authenticated,
+    loading: sessionLoading,
+    postAuthRedirect,
+    signInWithGoogle,
+    signUpWithEmail,
+  } = useAuthSession();
   const [name, setName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
@@ -104,10 +109,10 @@ function RegisterForm() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (authenticated) {
+    if (!sessionLoading && authenticated) {
       router.replace(toSafeAppPath(postAuthRedirect, appConfig.appUrl));
     }
-  }, [authenticated, postAuthRedirect, router]);
+  }, [authenticated, postAuthRedirect, router, sessionLoading]);
 
   const hasRunningOtpTimers = otpLockSeconds > 0 || resendTimer > 0;
 
