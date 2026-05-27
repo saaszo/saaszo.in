@@ -824,6 +824,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const canonicalOrigin = (() => {
+        try {
+          return new URL(appConfig.appUrl).origin;
+        } catch {
+          return "https://www.saaszo.in";
+        }
+      })();
+
+      if (
+        window.location.hostname === "saaszo.in" &&
+        window.location.origin !== canonicalOrigin
+      ) {
+        window.location.replace(
+          `${canonicalOrigin}${window.location.pathname}${window.location.search}${window.location.hash}`,
+        );
+        return;
+      }
+    }
+
     let isMounted = true;
     // Guard: prevent double-sync when both getRedirectResult and
     // onIdTokenChanged fire for the same Google redirect user.
