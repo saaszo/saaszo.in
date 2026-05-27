@@ -816,6 +816,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedToken = getStoredBackendToken();
 
       if (!storedToken) {
+        if (hasGoogleRedirectIntent()) {
+          if (isMounted) {
+            setState((current) => ({ ...current, loading: true, error: "" }));
+          }
+          return;
+        }
+
         if (!hasSharedSessionCookie()) {
           if (isMounted) {
             setBackendToken(null);
