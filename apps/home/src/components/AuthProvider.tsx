@@ -835,10 +835,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
+        await auth.authStateReady();
         const result = await getRedirectResult(auth);
         if (result?.user && isMounted) {
           syncedFromRedirect = true;
           const data = await syncFirebaseUserSession(result.user);
+          clearGoogleRedirectIntent();
+          navigateAfterAuth(
+            router,
+            resolveAuthRedirectTarget(data.redirect, data.onboarding),
+          );
+          return;
+        }
+
+        if (auth.currentUser && hasGoogleRedirectIntent() && isMounted) {
+          syncedFromRedirect = true;
+          const data = await syncFirebaseUserSession(auth.currentUser);
           clearGoogleRedirectIntent();
           navigateAfterAuth(
             router,
