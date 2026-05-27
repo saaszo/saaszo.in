@@ -1,5 +1,5 @@
 const fallbackApiBaseUrl = "https://api.saaszo.in/api";
-const fallbackAppUrl = "https://saaszo.in";
+const fallbackAppUrl = "https://www.saaszo.in";
 
 export type FirebasePublicConfig = {
   apiKey: string;

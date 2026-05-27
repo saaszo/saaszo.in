@@ -75,6 +75,17 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "saaszo.in",
+          },
+        ],
+        destination: "https://www.saaszo.in/:path*",
+        permanent: true,
+      },
+      {
         source: "/signup",
         destination: "/register",
         permanent: false,
