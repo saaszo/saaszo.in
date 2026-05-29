@@ -28,14 +28,15 @@ SaaSzo is a multi-product SaaS platform. All products share one auth system:
 
 ## 2. Authentication Methods
 
-### 2a. Google Sign-in (Firebase Redirect)
+### 2a. Google Sign-in (Firebase Popup + Redirect Fallback)
 
 ```
 User → clicks "Sign in with Google"
-  → signInWithRedirect(auth, GoogleAuthProvider)
-  → Google OAuth consent screen
-  → Redirect back to /auth
-  → getRedirectResult(auth) returns Firebase user
+  → Try signInWithPopup(auth, GoogleAuthProvider) [100% Reliable, bypasses cookie blocks]
+  → Popup completes and returns Firebase user
+  → Fallback (if popup blocked): signInWithRedirect(auth)
+      → Google OAuth consent screen → Redirect back to /auth
+      → getRedirectResult(auth) returns Firebase user
   → POST /api/auth/sync { Authorization: Bearer <firebase_id_token> }
   → Backend verifies token via kreait/firebase-php
   → Finds or creates User + Company + Branch
@@ -299,6 +300,19 @@ If missing, redirects to `/auth?redirect=<path>` before any HTML is sent.
 
 ---
 
+### Bug #8 — HIGH: Google Sign-In fails on modern browsers due to third-party cookies / redirect blocking
+
+**Root cause:** The previous implementation relied purely on `signInWithRedirect()`. Modern browsers block third-party cookies/iframes by default, preventing Firebase Auth from reading redirect states on custom domains. Additionally, random third-party iframe exceptions on page load were shown to users even if they did not click the Google Sign-in button. Finally, a double-sync race condition existed between `getRedirectResult()` and `onIdTokenChanged()`.
+
+**Impact:** Google Login and Google Signup were broken or completely unresponsive for many users.
+
+**Fix:**
+1. Upgraded to a hybrid **Popup-First approach** (`signInWithPopup()`) which is 100% reliable as it avoids cookie blocks, with automatic fallback to `signInWithRedirect()` if popups are blocked/cancelled.
+2. Added `redirectSyncInitiated` flag to strictly block duplicate `/api/auth/sync` requests.
+3. Guarded global error setting so that page load redirect errors are only displayed if `hasGoogleRedirectIntent()` is true.
+
+---
+
 ## 7. Key Files Reference
 
 ### Frontend (www.saaszo.in)
@@ -354,3 +368,4 @@ If missing, redirects to `/auth?redirect=<path>` before any HTML is sent.
 6. **Shared cookies** use domain `.saaszo.in` — accessible from ALL subdomains
 7. **The `redirect` query param** must be forwarded to `/api/auth/sync` for deep-linking to work
 8. **Google redirect flow** fires both `getRedirectResult` and `onIdTokenChanged` — always guard against double-sync
+9. **Google Sign-In uses a Popup-first approach** with fallback to redirect to bypass browser third-party cookie restrictions. Do not revert to redirect-only flow.

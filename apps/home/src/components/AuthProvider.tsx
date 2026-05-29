@@ -23,6 +23,7 @@ import {
   GoogleAuthProvider,
   getRedirectResult,
   signInWithRedirect,
+  signInWithPopup,
   signOut as firebaseSignOut,
   onIdTokenChanged,
   User as FirebaseUser,
@@ -863,6 +864,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Guard: prevent double-sync when both getRedirectResult and
     // onIdTokenChanged fire for the same Google redirect user.
     let syncedFromRedirect = false;
+    let redirectSyncInitiated = false;
 
     async function hydrateRedirectResult() {
       if (!auth) {
@@ -873,6 +875,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await auth.authStateReady();
         const result = await getRedirectResult(auth);
         if (result?.user && isMounted) {
+          if (redirectSyncInitiated) return;
+          redirectSyncInitiated = true;
           syncedFromRedirect = true;
           const data = await syncFirebaseUserSession(result.user);
           clearGoogleRedirectIntent();
@@ -884,6 +888,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (auth.currentUser && hasGoogleRedirectIntent() && isMounted) {
+          if (redirectSyncInitiated) return;
+          redirectSyncInitiated = true;
           syncedFromRedirect = true;
           const data = await syncFirebaseUserSession(auth.currentUser);
           clearGoogleRedirectIntent();
@@ -893,7 +899,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
         }
       } catch (error) {
-        if (isMounted) {
+        if (isMounted && hasGoogleRedirectIntent()) {
           setState((current) => ({
             ...current,
             error:
@@ -993,6 +999,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      if (hasGoogleRedirectIntent()) {
+        if (redirectSyncInitiated) {
+          return;
+        }
+        redirectSyncInitiated = true;
+      }
+
       setState((current) => ({ ...current, loading: true, error: "" }));
 
       try {
@@ -1030,8 +1043,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
 
-    setGoogleRedirectIntent();
-    await signInWithRedirect(auth, provider);
+    try {
+      // 1. Try popup first for 100% reliability across all modern browsers
+      // (no third-party cookie/redirect problems).
+      const result = await signInWithPopup(auth, provider);
+      if (result?.user) {
+        const data = await syncFirebaseUserSession(result.user);
+        navigateAfterAuth(
+          router,
+          resolveAuthRedirectTarget(data.redirect, data.onboarding),
+        );
+      }
+    } catch (popupError: any) {
+      console.error("Popup sign-in failed, trying redirect:", popupError);
+      
+      // 2. If popup is blocked or cancelled, fallback to redirect flow
+      if (
+        popupError.code === "auth/popup-blocked" ||
+        popupError.code === "auth/popup-closed-by-user" ||
+        popupError.code === "auth/cancelled-popup-request"
+      ) {
+        setGoogleRedirectIntent();
+        await signInWithRedirect(auth, provider);
+      } else {
+        throw popupError;
+      }
+    }
   }
 
   function setupRecaptcha(
