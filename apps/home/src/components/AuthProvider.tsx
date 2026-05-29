@@ -252,6 +252,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 let backendTokenCache: string | null = null;
 const googleRedirectIntentKey = "saaszo_google_auth_intent";
 const TOKEN_STORAGE_KEY = "saaszo_backend_token";
+const sharedCookieDomain = ".saaszo.in";
 
 const signedOutState = {
   user: null,
@@ -288,7 +289,7 @@ function setStoredBackendToken(token: string) {
     const secureFlag =
       window.location.protocol === "https:" ? "; Secure" : "";
     document.cookie = `saaszo_session=1; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
-    document.cookie = `saaszo_session=1; Path=/; Domain=.saaszo.in; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
+    document.cookie = `saaszo_session=1; Path=/; Domain=${sharedCookieDomain}; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
   }
 }
 
@@ -301,9 +302,18 @@ function clearStoredBackendToken() {
     // Remove the session marker cookie.
     document.cookie =
       "saaszo_session=; Path=/; Max-Age=0; SameSite=Lax";
-    document.cookie =
-      "saaszo_session=; Path=/; Domain=.saaszo.in; Max-Age=0; SameSite=Lax";
+    document.cookie = `saaszo_session=; Path=/; Domain=${sharedCookieDomain}; Max-Age=0; SameSite=Lax`;
   }
+}
+
+function setSharedBooleanCookie(name: string, value: "1" | "0", maxAge = 600) {
+  if (typeof document === "undefined" || typeof window === "undefined") {
+    return;
+  }
+
+  const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${name}=${value}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secureFlag}`;
+  document.cookie = `${name}=${value}; Path=/; Domain=${sharedCookieDomain}; Max-Age=${maxAge}; SameSite=Lax${secureFlag}`;
 }
 
 function setGoogleRedirectIntent() {
@@ -312,6 +322,7 @@ function setGoogleRedirectIntent() {
   }
 
   window.sessionStorage.setItem(googleRedirectIntentKey, "1");
+  setSharedBooleanCookie(googleRedirectIntentKey, "1");
 }
 
 function hasGoogleRedirectIntent() {
@@ -319,7 +330,10 @@ function hasGoogleRedirectIntent() {
     return false;
   }
 
-  return window.sessionStorage.getItem(googleRedirectIntentKey) === "1";
+  return (
+    window.sessionStorage.getItem(googleRedirectIntentKey) === "1" ||
+    getCookieValue(googleRedirectIntentKey) === "1"
+  );
 }
 
 function clearGoogleRedirectIntent() {
@@ -328,6 +342,7 @@ function clearGoogleRedirectIntent() {
   }
 
   window.sessionStorage.removeItem(googleRedirectIntentKey);
+  setSharedBooleanCookie(googleRedirectIntentKey, "0", 0);
 }
 
 async function fetchWithTimeout(
