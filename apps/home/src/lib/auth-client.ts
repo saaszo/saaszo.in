@@ -220,7 +220,20 @@ export function navigateTo(url?: string) {
     return;
   }
 
-  window.location.href = resolveRedirect(url);
+  const resolved = resolveRedirect(url);
+
+  // If resolveRedirect returned a bare path (e.g. "/dashboard"), always
+  // navigate to the canonical www origin so middleware runs on the right host.
+  // Without this, a browser sitting on saaszo.in (apex) would navigate to
+  // saaszo.in/dashboard — middleware would then redirect to /auth before the
+  // next.config.ts canonical redirect fires, causing a broken auth loop.
+  if (resolved.startsWith("/")) {
+    const canonicalBase = appConfig.appUrl.replace(/\/$/, ""); // https://www.saaszo.in
+    window.location.href = `${canonicalBase}${resolved}`;
+    return;
+  }
+
+  window.location.href = resolved;
 }
 
 export function normalizeErrorMessage(
