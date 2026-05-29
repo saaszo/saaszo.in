@@ -9,14 +9,14 @@
   /* Fonts */
   --font-sans: "Inter", system-ui, sans-serif;
 
-  /* Primary (Indigo) */
-  --color-primary: #4648d4;
+  /* Primary (Electric Cyan — matches saaszo.in auth) */
+  --color-primary: #06b6d4;
   --color-on-primary: #ffffff;
-  --color-primary-container: #e1e0ff;
-  --color-on-primary-container: #07006c;
-  --color-primary-fixed-dim: #c0c1ff;
-  --color-on-primary-fixed: #07006c;
-  --color-inverse-primary: #c0c1ff;
+  --color-primary-container: #cff8ff;
+  --color-on-primary-container: #00363d;
+  --color-primary-fixed-dim: #82d9e8;
+  --color-on-primary-fixed: #00363d;
+  --color-inverse-primary: #82d9e8;
 
   /* Secondary */
   --color-secondary: #565e74;
@@ -74,10 +74,10 @@
     --color-on-surface: #e2e2e9;
     --color-on-surface-variant: #c5c4d6;
     --color-on-background: #e2e2e9;
-    --color-primary: #c0c1ff;
-    --color-on-primary: #06006e;
-    --color-primary-container: #2c2ec7;
-    --color-on-primary-container: #e1e0ff;
+    --color-primary: #82d9e8;
+    --color-on-primary: #00363d;
+    --color-primary-container: #004e5a;
+    --color-on-primary-container: #cff8ff;
     --color-secondary: #c2caed;
     --color-on-secondary: #2c3347;
     --color-secondary-container: #434b61;

@@ -39,9 +39,10 @@ type Product = {
   tagline: string;
   description: string;
   icon: string;
-  tool: string; // matches backend "tool" slug
+  tool: string;
   status: ProductStatus;
-  color: string; // CSS gradient
+  color: string;        // CSS gradient for icon/button bg
+  accentColor: string;  // solid color for tagline/accents
   badge?: string;
   ctaText?: string;
 };
@@ -56,7 +57,8 @@ const PRODUCTS: Product[] = [
     icon: "receipt_long",
     tool: "invoice",
     status: "active",
-    color: "linear-gradient(135deg, #4648d4 0%, #7c3aed 100%)",
+    color: "linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)",
+    accentColor: "#3b82f6",
     ctaText: "Open App",
   },
   {
@@ -68,7 +70,8 @@ const PRODUCTS: Product[] = [
     icon: "task_alt",
     tool: "task",
     status: "active",
-    color: "linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)",
+    color: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+    accentColor: "#6b38d4",
     ctaText: "Open App",
   },
   {
@@ -82,6 +85,7 @@ const PRODUCTS: Product[] = [
     status: "coming_soon",
     badge: "Coming Soon",
     color: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+    accentColor: "#f97316",
     ctaText: "Notify Me",
   },
   {
@@ -95,6 +99,7 @@ const PRODUCTS: Product[] = [
     status: "coming_soon",
     badge: "Coming Soon",
     color: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    accentColor: "#f59e0b",
     ctaText: "Join Waitlist",
   },
   {
@@ -108,6 +113,7 @@ const PRODUCTS: Product[] = [
     status: "coming_soon",
     badge: "Coming Soon",
     color: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    accentColor: "#10b981",
     ctaText: "Join Waitlist",
   },
 ];
@@ -603,7 +609,7 @@ export default function DashboardPage() {
               }}
               className="px-6 py-4 rounded-2xl text-white font-bold text-sm transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
               style={{
-                background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
+                background: "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
               }}
             >
               Sign Out
@@ -2360,7 +2366,7 @@ function ProductCard({
       <h3 className="text-2xl font-black text-on-surface tracking-tight">
         {product.name}
       </h3>
-      <p className="mt-1 text-xs font-black text-primary tracking-[0.1em] uppercase">
+      <p className="mt-1 text-xs font-black tracking-[0.1em] uppercase" style={{ color: product.accentColor }}>
         {product.tagline}
       </p>
       <p className="mt-4 text-sm text-on-surface-variant font-medium leading-relaxed flex-1">
