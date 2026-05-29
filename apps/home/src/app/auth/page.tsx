@@ -6,26 +6,25 @@ import { appConfig } from "@/lib/config";
 import { useAuthSession } from "@/components/AuthProvider";
 import { toSafeAppPath } from "@/lib/utils";
 
-/* ─── Design tokens ─── */
+/* ─── Design tokens — Black + Cyan ─── */
 const C = {
-  black:   "#09090b",
-  darkBg:  "#111113",
-  card:    "#18181b",
-  border:  "rgba(255,255,255,0.07)",
-  gold:    "#f59e0b",
-  goldDim: "#d97706",
-  goldGlow:"rgba(245,158,11,0.25)",
-  goldSoft:"rgba(245,158,11,0.1)",
-  goldBrd: "rgba(245,158,11,0.22)",
-  white:   "#ffffff",
-  muted:   "rgba(255,255,255,0.45)",
-  subtle:  "rgba(255,255,255,0.12)",
-  // right panel (light)
-  rBg:    "#f7f7f5",
-  rCard:  "#ffffff",
-  rText:  "#0a0a0b",
-  rMuted: "#6b7280",
-  rBorder:"rgba(9,9,11,0.1)",
+  // Hero (dark side)
+  black:    "#08090a",
+  gridLine: "rgba(255,255,255,0.028)",
+  cyan:     "#06b6d4",
+  cyanMid:  "#0891b2",
+  cyanGlow: "rgba(6,182,212,0.22)",
+  cyanSoft: "rgba(6,182,212,0.1)",
+  cyanBrd:  "rgba(6,182,212,0.2)",
+  white:    "#ffffff",
+  muted:    "rgba(255,255,255,0.48)",
+  subtle:   "rgba(255,255,255,0.08)",
+  // Right panel (light side)
+  rBg:     "#f6f8fa",
+  rCard:   "#ffffff",
+  rText:   "#09090b",
+  rMuted:  "#64748b",
+  rBorder: "rgba(9,9,11,0.09)",
 };
 
 /* ─── Icons ─── */
@@ -59,13 +58,13 @@ function AuthForm() {
   const searchParams = useSearchParams();
   const { authenticated, loading: sessionLoading, signInWithGoogle, signInWithEmail, postAuthRedirect } = useAuthSession();
 
-  const [activeTab, setActiveTab]     = useState<AuthTab>("email");
-  const [email, setEmail]             = useState("");
-  const [password, setPassword]       = useState("");
-  const [showPass, setShowPass]       = useState(false);
-  const [isLoading, setIsLoading]     = useState(false);
-  const [error, setError]             = useState("");
-  const [successMsg, setSuccessMsg]   = useState("");
+  const [activeTab, setActiveTab]       = useState<AuthTab>("email");
+  const [email, setEmail]               = useState("");
+  const [password, setPassword]         = useState("");
+  const [showPass, setShowPass]         = useState(false);
+  const [isLoading, setIsLoading]       = useState(false);
+  const [error, setError]               = useState("");
+  const [successMsg, setSuccessMsg]     = useState("");
   const [tabAnimating, setTabAnimating] = useState(false);
 
   useEffect(() => {
@@ -98,40 +97,52 @@ function AuthForm() {
     finally { setIsLoading(false); }
   };
 
-  /* ── Hero features ── */
   const FEATURES = [
     {
-      icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+      icon: (
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.cyan} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      ),
       title: "All-in-one Toolkit",
-      desc:  "Invoice, tasks, CRM, HRMS — one workspace.",
+      desc: "Invoice, tasks, CRM, HRMS — one workspace.",
     },
     {
-      icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,
+      icon: (
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.cyan} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+      ),
       title: "Enterprise Security",
-      desc:  "End-to-end encryption, MFA, SOC2-ready.",
+      desc: "End-to-end encryption, MFA, SOC2-ready.",
     },
     {
-      icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+      icon: (
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.cyan} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      ),
       title: "AI-powered Analytics",
-      desc:  "Real-time insights from your business data.",
+      desc: "Real-time insights from your business data.",
     },
   ];
 
-  /* ── Input + button styles ── */
+  /* shared styles */
   const inputBase: React.CSSProperties = {
-    width: "100%", padding: "9px 12px 9px 35px",
+    width: "100%", padding: "9px 12px 9px 34px",
     borderRadius: "9px", border: `1px solid ${C.rBorder}`,
-    background: "#fafafa", fontSize: "0.88rem", color: C.rText,
+    background: "#f9fafb", fontSize: "0.88rem", color: C.rText,
     outline: "none", boxSizing: "border-box",
     transition: "border-color 0.15s, box-shadow 0.15s",
   };
-  const goldBtn: React.CSSProperties = {
+  const cyanBtn: React.CSSProperties = {
     width: "100%", padding: "11px", borderRadius: "10px", border: "none",
-    background: `linear-gradient(135deg, ${C.gold} 0%, #e08b00 100%)`,
-    color: C.black, fontSize: "0.9rem", fontWeight: 800,
+    background: `linear-gradient(135deg, ${C.cyan} 0%, ${C.cyanMid} 100%)`,
+    color: C.white, fontSize: "0.9rem", fontWeight: 700,
     cursor: isLoading ? "not-allowed" : "pointer",
     opacity: isLoading ? 0.72 : 1,
-    boxShadow: `0 2px 10px ${C.goldGlow}`,
+    boxShadow: `0 2px 12px ${C.cyanGlow}`,
     transition: "all 0.2s ease",
     display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
     letterSpacing: "0.01em",
@@ -140,44 +151,38 @@ function AuthForm() {
   return (
     <div style={{ height:"100vh", width:"100%", display:"flex", fontFamily:"'Inter',system-ui,sans-serif", overflow:"hidden" }}>
 
-      {/* ═══════════════════════════════════════════════════════
-          LEFT HERO — black + gold
-      ═══════════════════════════════════════════════════════ */}
+      {/* ═══ LEFT HERO — black + cyan ═══════════════════════════════ */}
       <div className="saaszo-auth-hero" style={{ width:"50%", flexShrink:0, display:"flex", flexDirection:"column", position:"relative", overflow:"hidden", background: C.black }}>
 
-        {/* Subtle noise texture */}
-        <div style={{ position:"absolute",inset:0,backgroundImage:"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E\")",opacity:0.6,pointerEvents:"none" }}/>
+        {/* Cyan glow orbs */}
+        <div style={{ position:"absolute",top:"-80px",left:"20%",width:"340px",height:"340px",borderRadius:"50%",background:`radial-gradient(circle,rgba(6,182,212,0.18) 0%,transparent 65%)`,pointerEvents:"none" }}/>
+        <div style={{ position:"absolute",bottom:"-100px",right:"-60px",width:"380px",height:"380px",borderRadius:"50%",background:`radial-gradient(circle,rgba(6,182,212,0.1) 0%,transparent 65%)`,pointerEvents:"none" }}/>
+        <div style={{ position:"absolute",top:"55%",left:"-40px",width:"200px",height:"200px",borderRadius:"50%",background:`radial-gradient(circle,rgba(6,182,212,0.07) 0%,transparent 70%)`,pointerEvents:"none" }}/>
 
-        {/* Gold glow spots */}
-        <div style={{ position:"absolute",top:"-60px",left:"30%",width:"280px",height:"280px",borderRadius:"50%",background:`radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%)`,pointerEvents:"none" }}/>
-        <div style={{ position:"absolute",bottom:"-80px",right:"-40px",width:"320px",height:"320px",borderRadius:"50%",background:`radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 70%)`,pointerEvents:"none" }}/>
+        {/* Dot-grid background */}
+        <div style={{ position:"absolute",inset:0,backgroundImage:"radial-gradient(rgba(6,182,212,0.18) 1px,transparent 1px)",backgroundSize:"28px 28px",pointerEvents:"none",opacity:0.6 }}/>
 
-        {/* Thin grid */}
-        <div style={{ position:"absolute",inset:0,backgroundImage:`linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px)`,backgroundSize:"48px 48px",pointerEvents:"none" }}/>
-
-        {/* Gold accent bar — top */}
-        <div style={{ position:"absolute",top:0,left:0,right:0,height:"2px",background:`linear-gradient(90deg, transparent 0%, ${C.gold} 40%, ${C.gold} 60%, transparent 100%)`,opacity:0.7 }}/>
+        {/* Cyan top accent line */}
+        <div style={{ position:"absolute",top:0,left:0,right:0,height:"1.5px",background:`linear-gradient(90deg,transparent,${C.cyan},transparent)`,opacity:0.8 }}/>
 
         <div style={{ position:"relative",zIndex:10,display:"flex",flexDirection:"column",height:"100%",padding:"32px 44px" }}>
 
           {/* Logo */}
           <div style={{ display:"flex",alignItems:"center",gap:"10px",marginBottom:"auto" }}>
-            <div style={{ width:"34px",height:"34px",borderRadius:"9px",background:`linear-gradient(135deg,${C.gold},#e08b00)`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:"15px",color:C.black,boxShadow:`0 0 16px ${C.goldGlow}` }}>S</div>
+            <div style={{ width:"34px",height:"34px",borderRadius:"9px",background:`linear-gradient(135deg,${C.cyan},${C.cyanMid})`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:"15px",color:C.black,boxShadow:`0 0 18px ${C.cyanGlow}` }}>S</div>
             <span style={{ fontSize:"1.2rem",fontWeight:800,color:C.white,letterSpacing:"-0.02em" }}>SaaSzo</span>
-            <span style={{ marginLeft:"2px",fontSize:"0.62rem",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.gold,border:`1px solid ${C.goldBrd}`,borderRadius:"5px",padding:"2px 5px" }}>PRO</span>
+            <span style={{ marginLeft:"2px",fontSize:"0.6rem",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.cyan,border:`1px solid ${C.cyanBrd}`,borderRadius:"4px",padding:"2px 5px" }}>CENTRAL</span>
           </div>
 
-          {/* Hero copy */}
+          {/* Copy */}
           <div style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:"22px" }}>
             <div>
-              <p style={{ margin:"0 0 10px",fontSize:"0.67rem",fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:C.gold }}>
-                Central Command · SaaSzo
+              <p style={{ margin:"0 0 10px",fontSize:"0.67rem",fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:C.cyan }}>
+                Command Portal · SaaSzo
               </p>
-              <h1 style={{ margin:"0 0 12px",fontSize:"clamp(1.8rem,2.8vw,2.6rem)",fontWeight:900,color:C.white,lineHeight:1.12,letterSpacing:"-0.03em",maxWidth:"14ch" }}>
-                The operating<br/>
-                <span style={{ background:`linear-gradient(90deg,${C.gold},#fcd34d)`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>
-                  system
-                </span>{" "}
+              <h1 style={{ margin:"0 0 12px",fontSize:"clamp(1.8rem,2.8vw,2.55rem)",fontWeight:900,color:C.white,lineHeight:1.12,letterSpacing:"-0.03em",maxWidth:"15ch" }}>
+                The operating{" "}
+                <span style={{ color:C.cyan }}>system</span>{" "}
                 for modern business.
               </h1>
               <p style={{ margin:0,fontSize:"0.87rem",color:C.muted,lineHeight:1.65,maxWidth:"32ch" }}>
@@ -185,11 +190,11 @@ function AuthForm() {
               </p>
             </div>
 
-            {/* Features */}
+            {/* Feature cards */}
             <div style={{ display:"flex",flexDirection:"column",gap:"9px" }}>
               {FEATURES.map((f) => (
-                <div key={f.title} style={{ display:"flex",alignItems:"center",gap:"12px",background:`rgba(245,158,11,0.05)`,border:`1px solid rgba(245,158,11,0.12)`,borderRadius:"11px",padding:"11px 14px" }}>
-                  <div style={{ width:"32px",height:"32px",borderRadius:"8px",background:`rgba(245,158,11,0.1)`,border:`1px solid rgba(245,158,11,0.18)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>{f.icon}</div>
+                <div key={f.title} style={{ display:"flex",alignItems:"center",gap:"12px",background:`rgba(6,182,212,0.06)`,border:`1px solid rgba(6,182,212,0.15)`,borderRadius:"11px",padding:"11px 14px" }}>
+                  <div style={{ width:"32px",height:"32px",borderRadius:"8px",background:`rgba(6,182,212,0.1)`,border:`1px solid rgba(6,182,212,0.2)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>{f.icon}</div>
                   <div>
                     <p style={{ margin:"0 0 1px",fontSize:"0.82rem",fontWeight:700,color:C.white }}>{f.title}</p>
                     <p style={{ margin:0,fontSize:"0.72rem",color:C.muted,lineHeight:1.4 }}>{f.desc}</p>
@@ -198,42 +203,40 @@ function AuthForm() {
               ))}
             </div>
 
-            {/* Stat strip */}
-            <div style={{ display:"flex",gap:"24px",paddingTop:"4px" }}>
+            {/* Stats */}
+            <div style={{ display:"flex",gap:"24px" }}>
               {[["10K+","Businesses"],["99.9%","Uptime"],["<50ms","Response"]].map(([val,lbl]) => (
                 <div key={lbl}>
-                  <p style={{ margin:"0 0 1px",fontSize:"1.1rem",fontWeight:800,color:C.gold,letterSpacing:"-0.02em" }}>{val}</p>
-                  <p style={{ margin:0,fontSize:"0.68rem",color:C.muted,fontWeight:500 }}>{lbl}</p>
+                  <p style={{ margin:"0 0 1px",fontSize:"1.1rem",fontWeight:800,color:C.cyan,letterSpacing:"-0.02em" }}>{val}</p>
+                  <p style={{ margin:0,fontSize:"0.67rem",color:C.muted,fontWeight:500 }}>{lbl}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Footer */}
-          <div style={{ marginTop:"auto",paddingTop:"16px",borderTop:`1px solid ${C.subtle}` }}>
-            <span style={{ fontSize:"0.67rem",color:"rgba(255,255,255,0.22)",fontWeight:500 }}>© 2025 SaaSzo Inc. All rights reserved.</span>
+          <div style={{ marginTop:"auto",paddingTop:"14px",borderTop:`1px solid ${C.subtle}` }}>
+            <span style={{ fontSize:"0.66rem",color:"rgba(255,255,255,0.2)",fontWeight:500 }}>© 2025 SaaSzo Inc. All rights reserved.</span>
           </div>
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════
-          RIGHT FORM PANEL
-      ═══════════════════════════════════════════════════════ */}
+      {/* ═══ RIGHT FORM PANEL ═══════════════════════════════════════ */}
       <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 28px",background:C.rBg,overflow:"hidden",minWidth:0 }}>
 
         {/* Mobile logo */}
         <div className="saaszo-auth-mobile-logo" style={{ display:"flex",alignItems:"center",gap:"8px",marginBottom:"14px" }}>
-          <div style={{ width:"30px",height:"30px",borderRadius:"8px",background:`linear-gradient(135deg,${C.gold},#e08b00)`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:C.black,fontSize:"13px" }}>S</div>
+          <div style={{ width:"30px",height:"30px",borderRadius:"8px",background:`linear-gradient(135deg,${C.cyan},${C.cyanMid})`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:C.black,fontSize:"13px" }}>S</div>
           <span style={{ fontSize:"1rem",fontWeight:800,color:C.black,letterSpacing:"-0.02em" }}>SaaSzo</span>
         </div>
 
         {/* Card */}
-        <div style={{ width:"100%",maxWidth:"418px",background:C.rCard,borderRadius:"18px",boxShadow:"0 4px 24px rgba(0,0,0,0.08),0 1px 3px rgba(0,0,0,0.05)",border:"1px solid rgba(0,0,0,0.07)",padding:"24px 26px 20px" }}>
+        <div style={{ width:"100%",maxWidth:"418px",background:C.rCard,borderRadius:"18px",boxShadow:"0 4px 24px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04)",border:"1px solid rgba(0,0,0,0.06)",padding:"24px 26px 20px" }}>
 
           {/* Header */}
           <div style={{ marginBottom:"16px" }}>
-            <div style={{ display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px" }}>
-              <div style={{ width:"6px",height:"6px",borderRadius:"50%",background:C.gold }}/>
+            <div style={{ display:"flex",alignItems:"center",gap:"7px",marginBottom:"6px" }}>
+              <div style={{ width:"7px",height:"7px",borderRadius:"50%",background:C.cyan,boxShadow:`0 0 6px ${C.cyanGlow}` }}/>
               <p style={{ margin:0,fontSize:"0.67rem",fontWeight:700,letterSpacing:"0.13em",textTransform:"uppercase",color:C.rMuted }}>Sign In</p>
             </div>
             <h2 style={{ margin:"0 0 4px",fontSize:"1.5rem",fontWeight:800,color:C.rText,letterSpacing:"-0.025em",lineHeight:1.18 }}>Welcome back</h2>
@@ -254,21 +257,21 @@ function AuthForm() {
             </div>
           )}
 
-          {/* ── Tabs ── */}
-          <div style={{ display:"flex",background:"#f3f4f6",borderRadius:"10px",padding:"3px",marginBottom:"16px",gap:"2px" }}>
+          {/* Tabs */}
+          <div style={{ display:"flex",background:"#f1f5f9",borderRadius:"10px",padding:"3px",marginBottom:"16px",gap:"2px" }}>
             {(["email","google","phone"] as AuthTab[]).map((t) => (
               <button key={t} onClick={() => switchTab(t)}
                 style={{ flex:1,padding:"7px 4px",borderRadius:"8px",border:"none",fontSize:"0.77rem",fontWeight:activeTab===t?700:500,cursor:"pointer",whiteSpace:"nowrap",transition:"all 0.18s ease",
                   background: activeTab===t ? C.rCard : "transparent",
-                  color:       activeTab===t ? C.black : C.rMuted,
-                  boxShadow:   activeTab===t ? "0 1px 4px rgba(0,0,0,0.1),0 0 0 1px rgba(0,0,0,0.05)" : "none",
+                  color:       activeTab===t ? C.rText : C.rMuted,
+                  boxShadow:   activeTab===t ? "0 1px 4px rgba(0,0,0,0.08),0 0 0 1px rgba(0,0,0,0.04)" : "none",
                 }}>
                 {t === "email" ? "Email" : t === "google" ? "Google" : "Mobile OTP"}
               </button>
             ))}
           </div>
 
-          {/* ── Tab body ── */}
+          {/* Tab content */}
           <div style={{ opacity:tabAnimating?0:1,transform:tabAnimating?"translateY(5px)":"translateY(0)",transition:"opacity 0.15s,transform 0.15s" }}>
 
             {/* EMAIL */}
@@ -277,32 +280,32 @@ function AuthForm() {
                 <div style={{ display:"flex",flexDirection:"column",gap:"4px" }}>
                   <label style={{ fontSize:"0.71rem",fontWeight:700,color:"#374151",textTransform:"uppercase",letterSpacing:"0.07em" }}>Email</label>
                   <div style={{ position:"relative" }}>
-                    <svg style={{ position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#9ca3af",pointerEvents:"none" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    <svg style={{ position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#94a3b8",pointerEvents:"none" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     <input type="email" placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputBase}
-                      onFocus={(e) => { e.target.style.borderColor=C.gold; e.target.style.boxShadow=`0 0 0 3px ${C.goldSoft}`; e.target.style.background="#fff"; }}
-                      onBlur={(e)  => { e.target.style.borderColor=C.rBorder; e.target.style.boxShadow="none"; e.target.style.background="#fafafa"; }} />
+                      onFocus={(e) => { e.target.style.borderColor=C.cyan; e.target.style.boxShadow=`0 0 0 3px ${C.cyanSoft}`; e.target.style.background="#fff"; }}
+                      onBlur={(e)  => { e.target.style.borderColor=C.rBorder; e.target.style.boxShadow="none"; e.target.style.background="#f9fafb"; }} />
                   </div>
                 </div>
 
                 <div style={{ display:"flex",flexDirection:"column",gap:"4px" }}>
                   <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
                     <label style={{ fontSize:"0.71rem",fontWeight:700,color:"#374151",textTransform:"uppercase",letterSpacing:"0.07em" }}>Password</label>
-                    <Link href="/auth/forgot-password" style={{ fontSize:"0.73rem",fontWeight:700,color:C.goldDim,textDecoration:"none" }}>Forgot?</Link>
+                    <Link href="/auth/forgot-password" style={{ fontSize:"0.73rem",fontWeight:700,color:C.cyanMid,textDecoration:"none" }}>Forgot?</Link>
                   </div>
                   <div style={{ position:"relative" }}>
-                    <svg style={{ position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#9ca3af",pointerEvents:"none" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    <svg style={{ position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#94a3b8",pointerEvents:"none" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                     <input type={showPass?"text":"password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ ...inputBase, paddingRight:"34px" }}
-                      onFocus={(e) => { e.target.style.borderColor=C.gold; e.target.style.boxShadow=`0 0 0 3px ${C.goldSoft}`; e.target.style.background="#fff"; }}
-                      onBlur={(e)  => { e.target.style.borderColor=C.rBorder; e.target.style.boxShadow="none"; e.target.style.background="#fafafa"; }} />
-                    <button type="button" onClick={() => setShowPass(!showPass)} style={{ position:"absolute",right:"9px",top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center",color:"#9ca3af" }}><EyeIcon show={showPass} /></button>
+                      onFocus={(e) => { e.target.style.borderColor=C.cyan; e.target.style.boxShadow=`0 0 0 3px ${C.cyanSoft}`; e.target.style.background="#fff"; }}
+                      onBlur={(e)  => { e.target.style.borderColor=C.rBorder; e.target.style.boxShadow="none"; e.target.style.background="#f9fafb"; }} />
+                    <button type="button" onClick={() => setShowPass(!showPass)} style={{ position:"absolute",right:"9px",top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center",color:"#94a3b8" }}><EyeIcon show={showPass} /></button>
                   </div>
                 </div>
 
-                <button type="submit" disabled={isLoading} style={{ ...goldBtn, marginTop:"4px" }}
-                  onMouseEnter={(e) => { if(!isLoading) { (e.currentTarget as HTMLElement).style.boxShadow=`0 6px 20px ${C.goldGlow}`; (e.currentTarget as HTMLElement).style.transform="translateY(-1px)"; } }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow=`0 2px 10px ${C.goldGlow}`; (e.currentTarget as HTMLElement).style.transform="translateY(0)"; }}>
+                <button type="submit" disabled={isLoading} style={{ ...cyanBtn, marginTop:"4px" }}
+                  onMouseEnter={(e) => { if(!isLoading){ (e.currentTarget as HTMLElement).style.boxShadow=`0 6px 22px ${C.cyanGlow}`; (e.currentTarget as HTMLElement).style.transform="translateY(-1px)"; } }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow=`0 2px 12px ${C.cyanGlow}`; (e.currentTarget as HTMLElement).style.transform="translateY(0)"; }}>
                   {isLoading ? (
-                    <><span style={{ width:"16px",height:"16px",border:"2px solid rgba(0,0,0,0.2)",borderTopColor:C.black,borderRadius:"50%",animation:"spin-gold 0.7s linear infinite" }}/> Signing in…</>
+                    <><span style={{ width:"16px",height:"16px",border:"2px solid rgba(255,255,255,0.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"saaszo-spin 0.7s linear infinite" }}/> Signing in…</>
                   ) : "Sign In with Email"}
                 </button>
               </form>
@@ -312,16 +315,16 @@ function AuthForm() {
             {activeTab === "google" && (
               <div style={{ display:"flex",flexDirection:"column",gap:"12px",padding:"4px 0" }}>
                 <div style={{ textAlign:"center",padding:"4px 0" }}>
-                  <div style={{ width:"46px",height:"46px",borderRadius:"12px",background:"#f8f9fa",border:"1px solid #e5e7eb",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 9px" }}><GoogleIcon /></div>
+                  <div style={{ width:"46px",height:"46px",borderRadius:"12px",background:"#f8f9fa",border:"1px solid #e2e8f0",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 9px" }}><GoogleIcon /></div>
                   <p style={{ margin:0,fontSize:"0.81rem",color:C.rMuted,lineHeight:1.5 }}>Sign in using your Google account — no password needed.</p>
                 </div>
                 <button type="button" onClick={handleGoogleSignIn} disabled={isLoading}
-                  style={{ width:"100%",padding:"11px 14px",borderRadius:"10px",border:"1px solid rgba(0,0,0,0.1)",background:"#fff",color:"#374151",fontSize:"0.9rem",fontWeight:700,cursor:isLoading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",boxShadow:"0 1px 3px rgba(0,0,0,0.06)",transition:"all 0.2s ease" }}
+                  style={{ width:"100%",padding:"11px 14px",borderRadius:"10px",border:"1px solid #e2e8f0",background:"#fff",color:"#374151",fontSize:"0.9rem",fontWeight:700,cursor:isLoading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",boxShadow:"0 1px 3px rgba(0,0,0,0.06)",transition:"all 0.2s ease" }}
                   onMouseEnter={(e) => { const b=e.currentTarget; b.style.boxShadow="0 3px 10px rgba(0,0,0,0.1)"; b.style.transform="translateY(-1px)"; }}
                   onMouseLeave={(e) => { const b=e.currentTarget; b.style.boxShadow="0 1px 3px rgba(0,0,0,0.06)"; b.style.transform="translateY(0)"; }}>
                   <GoogleIcon />{isLoading ? "Signing in…" : "Continue with Google"}
                 </button>
-                <p style={{ margin:0,textAlign:"center",fontSize:"0.72rem",color:"#9ca3af" }}>You'll be redirected to Google to complete sign-in.</p>
+                <p style={{ margin:0,textAlign:"center",fontSize:"0.72rem",color:"#94a3b8" }}>You'll be redirected to Google to complete sign-in.</p>
               </div>
             )}
 
@@ -329,30 +332,30 @@ function AuthForm() {
             {activeTab === "phone" && (
               <div style={{ display:"flex",flexDirection:"column",gap:"12px",padding:"4px 0" }}>
                 <div style={{ textAlign:"center",padding:"4px 0" }}>
-                  <div style={{ width:"46px",height:"46px",borderRadius:"12px",background:`${C.goldSoft}`,border:`1px solid ${C.goldBrd}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 9px" }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  <div style={{ width:"46px",height:"46px",borderRadius:"12px",background:C.cyanSoft,border:`1px solid ${C.cyanBrd}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 9px" }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={C.cyan} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                   </div>
                   <p style={{ margin:0,fontSize:"0.81rem",color:C.rMuted,lineHeight:1.5 }}>Sign in with your mobile number using a one-time OTP.</p>
                 </div>
                 <Link href="/auth/phone?intent=signin"
-                  style={{ width:"100%",padding:"11px",borderRadius:"10px",border:"none",background:`linear-gradient(135deg,${C.gold},#e08b00)`,color:C.black,fontSize:"0.9rem",fontWeight:800,textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:"7px",boxShadow:`0 2px 10px ${C.goldGlow}`,textDecoration:"none",boxSizing:"border-box",transition:"all 0.2s ease" }}
-                  onMouseEnter={(e) => { const a=e.currentTarget; a.style.boxShadow=`0 6px 20px ${C.goldGlow}`; a.style.transform="translateY(-1px)"; }}
-                  onMouseLeave={(e) => { const a=e.currentTarget; a.style.boxShadow=`0 2px 10px ${C.goldGlow}`; a.style.transform="translateY(0)"; }}>
+                  style={{ width:"100%",padding:"11px",borderRadius:"10px",border:"none",background:`linear-gradient(135deg,${C.cyan},${C.cyanMid})`,color:"#fff",fontSize:"0.9rem",fontWeight:700,textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:"7px",boxShadow:`0 2px 12px ${C.cyanGlow}`,textDecoration:"none",boxSizing:"border-box",transition:"all 0.2s ease" }}
+                  onMouseEnter={(e) => { const a=e.currentTarget; a.style.boxShadow=`0 6px 22px ${C.cyanGlow}`; a.style.transform="translateY(-1px)"; }}
+                  onMouseLeave={(e) => { const a=e.currentTarget; a.style.boxShadow=`0 2px 12px ${C.cyanGlow}`; a.style.transform="translateY(0)"; }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                   Send OTP to Mobile
                 </Link>
-                <p style={{ margin:0,textAlign:"center",fontSize:"0.72rem",color:"#9ca3af" }}>6-digit OTP sent to your mobile number.</p>
+                <p style={{ margin:0,textAlign:"center",fontSize:"0.72rem",color:"#94a3b8" }}>6-digit OTP sent to your mobile number.</p>
               </div>
             )}
           </div>
 
           {/* Footer row */}
-          <div style={{ marginTop:"16px",paddingTop:"14px",borderTop:"1px solid rgba(0,0,0,0.06)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"8px" }}>
+          <div style={{ marginTop:"16px",paddingTop:"14px",borderTop:"1px solid rgba(0,0,0,0.05)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"8px" }}>
             <p style={{ margin:0,fontSize:"0.78rem",color:C.rMuted }}>No account yet?</p>
             <Link href="/register"
-              style={{ display:"inline-flex",alignItems:"center",gap:"5px",padding:"7px 13px",borderRadius:"8px",border:`1px solid rgba(245,158,11,0.3)`,background:`rgba(245,158,11,0.07)`,color:C.goldDim,fontSize:"0.8rem",fontWeight:700,textDecoration:"none",transition:"all 0.18s ease" }}
-              onMouseEnter={(e) => { const a=e.currentTarget; a.style.background=`rgba(245,158,11,0.14)`; a.style.borderColor=`rgba(245,158,11,0.5)`; }}
-              onMouseLeave={(e) => { const a=e.currentTarget; a.style.background=`rgba(245,158,11,0.07)`; a.style.borderColor=`rgba(245,158,11,0.3)`; }}>
+              style={{ display:"inline-flex",alignItems:"center",gap:"5px",padding:"7px 13px",borderRadius:"8px",border:`1px solid ${C.cyanBrd}`,background:C.cyanSoft,color:C.cyanMid,fontSize:"0.8rem",fontWeight:700,textDecoration:"none",transition:"all 0.18s ease" }}
+              onMouseEnter={(e) => { const a=e.currentTarget; a.style.background=`rgba(6,182,212,0.15)`; a.style.borderColor=`rgba(6,182,212,0.35)`; }}
+              onMouseLeave={(e) => { const a=e.currentTarget; a.style.background=C.cyanSoft; a.style.borderColor=C.cyanBrd; }}>
               Create free account
             </Link>
           </div>
@@ -361,23 +364,22 @@ function AuthForm() {
         {/* Trust badges */}
         <div style={{ marginTop:"13px",display:"flex",alignItems:"center",gap:"14px",flexWrap:"wrap",justifyContent:"center" }}>
           {["SSL Secured","GDPR Ready","SOC2 Ready"].map((b) => (
-            <div key={b} style={{ display:"flex",alignItems:"center",gap:"4px",fontSize:"0.67rem",fontWeight:700,color:"#9ca3af" }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={C.goldDim} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <div key={b} style={{ display:"flex",alignItems:"center",gap:"4px",fontSize:"0.67rem",fontWeight:700,color:"#94a3b8" }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={C.cyan} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               {b}
             </div>
           ))}
         </div>
 
-        {/* Legal */}
-        <p style={{ margin:"9px 0 0",textAlign:"center",fontSize:"0.67rem",color:"#b8bec8",lineHeight:1.5 }}>
+        <p style={{ margin:"9px 0 0",textAlign:"center",fontSize:"0.67rem",color:"#b0bec8",lineHeight:1.5 }}>
           By continuing, you agree to our{" "}
-          <Link href="/terms" style={{ color:"#9ca3af",textDecoration:"underline" }}>Terms</Link>{" "}and{" "}
-          <Link href="/privacy" style={{ color:"#9ca3af",textDecoration:"underline" }}>Privacy Policy</Link>.
+          <Link href="/terms" style={{ color:"#94a3b8",textDecoration:"underline" }}>Terms</Link>{" "}and{" "}
+          <Link href="/privacy" style={{ color:"#94a3b8",textDecoration:"underline" }}>Privacy Policy</Link>.
         </p>
       </div>
 
       <style>{`
-        @keyframes spin-gold { to { transform: rotate(360deg); } }
+        @keyframes saaszo-spin { to { transform: rotate(360deg); } }
         @media (max-width: 1024px) {
           .saaszo-auth-hero { display: none !important; }
           .saaszo-auth-mobile-logo { display: flex !important; }

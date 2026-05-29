@@ -75,21 +75,21 @@ function SmsIcon({ size = 28 }: { size?: number }) {
 }
 
 /* ─── Design tokens (matches auth/page.tsx) ─── */
-const GOLD    = "#f59e0b";
-const GOLDLOW = "rgba(245,158,11,0.1)";
-const GOLDBRD = "rgba(245,158,11,0.18)";
-const MUTED   = "rgba(255,255,255,0.45)";
+const CYAN = "#06b6d4";
+const CYANLOW = "rgba(6,182,212,0.08)";
+const CYANBRD = "rgba(6,182,212,0.2)";
+const MUTED = "rgba(255,255,255,0.48)";
 
 /* ─── Left hero panel — black + gold ──────────────────────────── */
 const FEATURES = [
   {
-    icon: <PhoneIcon size={17} color={GOLD} />,
+    icon: <PhoneIcon size={17} color={CYAN} />,
     title: "Passwordless & Secure",
     desc: "No password to remember — just your phone.",
   },
   {
     icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={CYAN} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
       </svg>
     ),
@@ -98,7 +98,7 @@ const FEATURES = [
   },
   {
     icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={CYAN} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
       </svg>
     ),
@@ -111,35 +111,35 @@ function HeroPanel() {
   return (
     <div style={{ width:"50%",flexShrink:0,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden",background:"#09090b" }}>
       {/* Gold glow orbs */}
-      <div style={{ position:"absolute",top:"-60px",left:"30%",width:"260px",height:"260px",borderRadius:"50%",background:"radial-gradient(circle,rgba(245,158,11,0.14) 0%,transparent 70%)",pointerEvents:"none" }}/>
-      <div style={{ position:"absolute",bottom:"-80px",right:"-40px",width:"300px",height:"300px",borderRadius:"50%",background:"radial-gradient(circle,rgba(245,158,11,0.09) 0%,transparent 70%)",pointerEvents:"none" }}/>
+      <div style={{ position:"absolute",top:"-60px",left:"30%",width:"260px",height:"260px",borderRadius:"50%",background:"radial-gradient(circle,rgba(6,182,212,0.14) 0%,transparent 70%)",pointerEvents:"none" }}/>
+      <div style={{ position:"absolute",bottom:"-80px",right:"-40px",width:"300px",height:"300px",borderRadius:"50%",background:"radial-gradient(circle,rgba(6,182,212,0.09) 0%,transparent 70%)",pointerEvents:"none" }}/>
       {/* Grid */}
-      <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px)",backgroundSize:"48px 48px",pointerEvents:"none" }}/>
+      <div style={{ position:"absolute",inset:0,backgroundImage:"radial-gradient(rgba(6,182,212,0.15) 1px,transparent 1px)",backgroundSize:"28px 28px",opacity:0.6,pointerEvents:"none" }}/>
       {/* Gold top bar */}
-      <div style={{ position:"absolute",top:0,left:0,right:0,height:"2px",background:"linear-gradient(90deg,transparent 0%,#f59e0b 40%,#f59e0b 60%,transparent 100%)",opacity:0.7 }}/>
+      <div style={{ position:"absolute",top:0,left:0,right:0,height:"2px",background:"linear-gradient(90deg,transparent,#06b6d4,transparent)",opacity:0.8 }}/>
 
       <div style={{ position:"relative",zIndex:10,display:"flex",flexDirection:"column",height:"100%",padding:"32px 40px" }}>
         {/* Logo */}
         <div style={{ display:"flex",alignItems:"center",gap:"10px",marginBottom:"auto" }}>
-          <div style={{ width:"34px",height:"34px",borderRadius:"9px",background:"linear-gradient(135deg,#f59e0b,#e08b00)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:"15px",color:"#09090b",boxShadow:"0 0 14px rgba(245,158,11,0.3)" }}>S</div>
+          <div style={{ width:"34px",height:"34px",borderRadius:"9px",background:"linear-gradient(135deg,#06b6d4,#0891b2)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:"15px",color:"#fff",boxShadow:"0 0 14px rgba(6,182,212,0.22)" }}>S</div>
           <span style={{ fontSize:"1.2rem",fontWeight:800,color:"#fff",letterSpacing:"-0.02em" }}>SaaSzo</span>
         </div>
 
         {/* Copy */}
         <div style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:"20px" }}>
           <div>
-            <p style={{ margin:"0 0 10px",fontSize:"0.67rem",fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:GOLD }}>Mobile OTP · SaaSzo</p>
+            <p style={{ margin:"0 0 10px",fontSize:"0.67rem",fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:CYAN }}>Mobile OTP · SaaSzo</p>
             <h1 style={{ margin:"0 0 10px",fontSize:"clamp(1.7rem,2.6vw,2.5rem)",fontWeight:900,color:"#fff",lineHeight:1.12,letterSpacing:"-0.03em",maxWidth:"12ch" }}>
               One tap.<br />
-              <span style={{ background:"linear-gradient(90deg,#f59e0b,#fcd34d)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>Full access.</span>
+              <span style={{ background:"linear-gradient(90deg,#06b6d4,#22d3ee)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>Full access.</span>
             </h1>
             <p style={{ margin:0,fontSize:"0.87rem",color:MUTED,lineHeight:1.6,maxWidth:"30ch" }}>Verify your identity in seconds with a one-time password sent to your mobile.</p>
           </div>
 
           <div style={{ display:"flex",flexDirection:"column",gap:"9px" }}>
             {FEATURES.map((f) => (
-              <div key={f.title} style={{ display:"flex",alignItems:"center",gap:"12px",background:GOLDLOW,border:`1px solid ${GOLDBRD}`,borderRadius:"11px",padding:"11px 14px" }}>
-                <div style={{ width:"32px",height:"32px",borderRadius:"8px",background:"rgba(245,158,11,0.12)",border:"1px solid rgba(245,158,11,0.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>{f.icon}</div>
+              <div key={f.title} style={{ display:"flex",alignItems:"center",gap:"12px",background:CYANLOW,border:`1px solid ${CYANBRD}`,borderRadius:"11px",padding:"11px 14px" }}>
+                <div style={{ width:"32px",height:"32px",borderRadius:"8px",background:"rgba(6,182,212,0.12)",border:"1px solid rgba(6,182,212,0.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>{f.icon}</div>
                 <div>
                   <p style={{ margin:"0 0 1px",fontSize:"0.82rem",fontWeight:700,color:"#fff" }}>{f.title}</p>
                   <p style={{ margin:0,fontSize:"0.72rem",color:MUTED,lineHeight:1.4 }}>{f.desc}</p>
@@ -168,7 +168,7 @@ function ErrorAlert({ message }: { message: string }) {
 }
 function NoticeAlert({ message }: { message: string }) {
   return (
-    <div style={{ marginBottom:"18px",padding:"12px 14px",borderRadius:"10px",background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)",display:"flex",alignItems:"center",gap:"8px",fontSize:"0.85rem",color:"#d97706",fontWeight:500 }}>
+    <div style={{ marginBottom:"18px",padding:"12px 14px",borderRadius:"10px",background:"rgba(6,182,212,0.08)",border:"1px solid rgba(6,182,212,0.2)",display:"flex",alignItems:"center",gap:"8px",fontSize:"0.85rem",color:"#0891b2",fontWeight:500 }}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       {message}
     </div>
@@ -338,7 +338,7 @@ export default function PhoneOtpAuth() {
   /* shared button style */
   const primaryBtn: React.CSSProperties = {
     width: "100%", padding: "13px", borderRadius: "12px", border: "none",
-    background: "linear-gradient(135deg,#f59e0b 0%,#e08b00 100%)",
+    background: "linear-gradient(135deg,#06b6d4 0%,#0891b2 100%)",
     color: "#fff", fontSize: "0.95rem", fontWeight: 700,
     cursor: isLoading ? "not-allowed" : "pointer",
     opacity: isLoading ? 0.75 : 1,
@@ -360,7 +360,7 @@ export default function PhoneOtpAuth() {
 
         {/* Mobile logo */}
         <div className="phone-auth-mobile-logo" style={{ display:"flex",alignItems:"center",gap:"8px",marginBottom:"16px" }}>
-          <div style={{ width:"32px",height:"32px",borderRadius:"9px",background:"linear-gradient(135deg,#f59e0b,#e08b00)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#09090b",fontSize:"14px" }}>S</div>
+          <div style={{ width:"32px",height:"32px",borderRadius:"9px",background:"linear-gradient(135deg,#06b6d4,#0891b2)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#09090b",fontSize:"14px" }}>S</div>
           <span style={{ fontSize:"1.1rem",fontWeight:800,color:"#1a0533",letterSpacing:"-0.02em" }}>SaaSzo</span>
         </div>
 
@@ -394,7 +394,7 @@ export default function PhoneOtpAuth() {
                         onChange={(e) => setCountryCode(e.target.value)}
                         aria-label="Country code"
                         style={{ height:"100%",padding:"11px 32px 11px 12px",borderRadius:"10px",border:"1px solid rgba(13,15,26,0.15)",background:"#fafafa",fontSize:"0.88rem",fontWeight:600,color:"#0d0f1a",outline:"none",appearance:"none",cursor:"pointer",transition:"border-color 0.15s,box-shadow 0.15s" }}
-                        onFocus={(e) => { e.target.style.borderColor="#f59e0b"; e.target.style.boxShadow="0 0 0 3px rgba(245,158,11,0.12)"; }}
+                        onFocus={(e) => { e.target.style.borderColor="#06b6d4"; e.target.style.boxShadow="0 0 0 3px rgba(6,182,212,0.12)"; }}
                         onBlur={(e)  => { e.target.style.borderColor="rgba(13,15,26,0.15)"; e.target.style.boxShadow="none"; }}
                       >
                         {AUTH_COUNTRY_OPTIONS.map((c) => (
@@ -416,7 +416,7 @@ export default function PhoneOtpAuth() {
                         value={phone} onChange={(e) => setPhone(e.target.value)}
                         required inputMode="tel"
                         style={{ width:"100%",padding:"11px 12px 11px 38px",borderRadius:"10px",border:"1px solid rgba(13,15,26,0.15)",background:"#fafafa",fontSize:"0.93rem",color:"#0d0f1a",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s,box-shadow 0.15s" }}
-                        onFocus={(e) => { e.target.style.borderColor="#f59e0b"; e.target.style.boxShadow="0 0 0 3px rgba(245,158,11,0.12)"; e.target.style.background="#fff"; }}
+                        onFocus={(e) => { e.target.style.borderColor="#06b6d4"; e.target.style.boxShadow="0 0 0 3px rgba(6,182,212,0.12)"; e.target.style.background="#fff"; }}
                         onBlur={(e)  => { e.target.style.borderColor="rgba(13,15,26,0.15)"; e.target.style.boxShadow="none"; e.target.style.background="#fafafa"; }}
                       />
                     </div>
@@ -457,7 +457,7 @@ export default function PhoneOtpAuth() {
               <div style={{ textAlign:"center" }}>
                 <Link
                   href={isSignupIntent ? "/register" : "/auth"}
-                  style={{ display:"inline-flex",alignItems:"center",gap:"6px",fontSize:"0.88rem",fontWeight:700,color:"#d97706",textDecoration:"none" }}
+                  style={{ display:"inline-flex",alignItems:"center",gap:"6px",fontSize:"0.88rem",fontWeight:700,color:"#0891b2",textDecoration:"none" }}
                 >
                   <MailIcon />
                   {isSignupIntent ? "Sign up with Email instead" : "Sign in with Email instead"}
@@ -478,7 +478,7 @@ export default function PhoneOtpAuth() {
             <>
               {/* Icon + header */}
               <div style={{ textAlign:"center",marginBottom:"28px" }}>
-                <div style={{ width:"60px",height:"60px",borderRadius:"16px",background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.18)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",color:"#d97706" }}>
+                <div style={{ width:"60px",height:"60px",borderRadius:"16px",background:"rgba(6,182,212,0.1)",border:"1px solid rgba(6,182,212,0.18)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",color:"#0891b2" }}>
                   <SmsIcon size={26} />
                 </div>
                 <p style={{ margin:"0 0 6px",fontSize:"0.72rem",fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"#6b7280" }}>Verification</p>
@@ -506,13 +506,13 @@ export default function PhoneOtpAuth() {
                       style={{
                         width:"46px", height:"56px", textAlign:"center",
                         fontSize:"1.35rem", fontWeight:800, borderRadius:"12px",
-                        border: digit ? "2px solid #f59e0b" : "2px solid rgba(13,15,26,0.15)",
+                        border: digit ? "2px solid #06b6d4" : "2px solid rgba(13,15,26,0.15)",
                         background: digit ? "#fff" : "#fafafa",
                         color:"#0d0f1a", outline:"none",
-                        boxShadow: digit ? "0 0 0 3px rgba(245,158,11,0.12)" : "none",
+                        boxShadow: digit ? "0 0 0 3px rgba(6,182,212,0.12)" : "none",
                         transition:"all 0.15s ease",
                       }}
-                      onFocus={(e) => { e.target.style.borderColor="#f59e0b"; e.target.style.boxShadow="0 0 0 3px rgba(245,158,11,0.12)"; e.target.style.background="#fff"; }}
+                      onFocus={(e) => { e.target.style.borderColor="#06b6d4"; e.target.style.boxShadow="0 0 0 3px rgba(6,182,212,0.12)"; e.target.style.background="#fff"; }}
                       onBlur={(e)  => { if (!e.target.value) { e.target.style.borderColor="rgba(13,15,26,0.15)"; e.target.style.boxShadow="none"; e.target.style.background="#fafafa"; } }}
                     />
                   ))}
@@ -546,10 +546,10 @@ export default function PhoneOtpAuth() {
                   {resendTimer > 0 ? (
                     <span style={{ color:"#9ca3af" }}>
                       Resend in{" "}
-                      <span style={{ fontWeight:700,color:"#d97706",fontVariantNumeric:"tabular-nums" }}>{resendTimer}s</span>
+                      <span style={{ fontWeight:700,color:"#0891b2",fontVariantNumeric:"tabular-nums" }}>{resendTimer}s</span>
                     </span>
                   ) : (
-                    <button onClick={handleResend} style={{ background:"none",border:"none",padding:0,cursor:"pointer",fontWeight:700,color:"#d97706",fontSize:"0.85rem" }}>
+                    <button onClick={handleResend} style={{ background:"none",border:"none",padding:0,cursor:"pointer",fontWeight:700,color:"#0891b2",fontSize:"0.85rem" }}>
                       Resend OTP
                     </button>
                   )}
@@ -567,7 +567,7 @@ export default function PhoneOtpAuth() {
           {/* ═══ STEP 3 — Success ═══ */}
           {step === "success" && (
             <div style={{ textAlign:"center",padding:"16px 0" }}>
-              <div style={{ width:"68px",height:"68px",borderRadius:"20px",background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.2)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",color:"#d97706" }}>
+              <div style={{ width:"68px",height:"68px",borderRadius:"20px",background:"rgba(6,182,212,0.1)",border:"1px solid rgba(6,182,212,0.2)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",color:"#0891b2" }}>
                 <CheckIcon size={32} />
               </div>
               <p style={{ margin:"0 0 6px",fontSize:"0.72rem",fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"#6b7280" }}>Success</p>
@@ -580,7 +580,7 @@ export default function PhoneOtpAuth() {
                   : "Welcome to SaaSzo. Redirecting to your workspace…"}
               </p>
               <div style={{ display:"flex",justifyContent:"center" }}>
-                <span style={{ width:"24px",height:"24px",border:"2.5px solid rgba(245,158,11,0.2)",borderTopColor:"#f59e0b",borderRadius:"50%",animation:"phone-spin 0.8s linear infinite",display:"inline-block" }} />
+                <span style={{ width:"24px",height:"24px",border:"2.5px solid rgba(6,182,212,0.2)",borderTopColor:"#06b6d4",borderRadius:"50%",animation:"phone-spin 0.8s linear infinite",display:"inline-block" }} />
               </div>
             </div>
           )}
