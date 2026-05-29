@@ -359,13 +359,100 @@ If missing, redirects to `/auth?redirect=<path>` before any HTML is sent.
 2. **`NEXT_PUBLIC_APP_URL` MUST be `https://www.saaszo.in`** on Vercel — mismatches cause full-page reloads
 3. **All cross-domain product launches MUST use handoff-token flow** — never put bearer tokens in URLs
 4. **Token changes in `AuthProvider.tsx`** must update both `backendTokenCache` AND `sessionStorage`
-5. **Adding a new product app** requires:
-   - Add its domain to `SANCTUM_STATEFUL_DOMAINS` in `.env`
-   - Add its origin to `config/cors.php` default origins
-   - Add its URL to `config/saaszo.php` products array
-   - Add `{tool}_saaszo_session` cookie in `ProductHandoffController::consumeHandoffToken()`
-   - Implement `/auth-bridge` page that calls `POST /api/auth/consume-handoff`
+5. **Adding a new product app** requires following the 5-step integration guide in Section 9.
 6. **Shared cookies** use domain `.saaszo.in` — accessible from ALL subdomains
 7. **The `redirect` query param** must be forwarded to `/api/auth/sync` for deep-linking to work
 8. **Google redirect flow** fires both `getRedirectResult` and `onIdTokenChanged` — always guard against double-sync
 9. **Google Sign-In uses a Popup-first approach** with fallback to redirect to bypass browser third-party cookie restrictions. Do not revert to redirect-only flow.
+
+---
+
+## 9. Comprehensive Step-by-Step Guide: How to Add a New App to SaaSzo Auth (in 5 Minutes)
+
+When adding a new SaaSzo sub-product (e.g., `pos.saaszo.in`, `crm.saaszo.in`, `hrms.saaszo.in`):
+
+### 🏢 PART A: Backend Configuration (api.saaszo.in_backend)
+
+#### Step 1: Authorize the App Domain
+In your backend `.env` file (and in the host manager environment settings e.g. Hostinger), add the new app's subdomain to `SANCTUM_STATEFUL_DOMAINS` so that Sanctum applies session tracking and stateful cookies.
+```env
+SANCTUM_STATEFUL_DOMAINS=saaszo.in,www.saaszo.in,invoice.saaszo.in,task.saaszo.in,pos.saaszo.in,localhost:3000
+```
+
+#### Step 2: Allow CORS Requests
+Open `config/cors.php` and append the new app's URL to the `allowed_origins` or patterns list to authorize cross-domain headers:
+```php
+'allowed_origins' => [
+    'https://www.saaszo.in',
+    'https://invoice.saaszo.in',
+    'https://task.saaszo.in',
+    'https://pos.saaszo.in', // <-- ADDED
+],
+```
+
+#### Step 3: Register the Product Path
+Open `config/saaszo.php` and define the new tool's base URL:
+```php
+'products' => [
+    'invoice_base_url' => env('SAASZO_INVOICE_URL', 'https://invoice.saaszo.in'),
+    'task_base_url' => env('SAASZO_TASK_URL', 'https://task.saaszo.in'),
+    'pos_base_url' => env('SAASZO_POS_URL', 'https://pos.saaszo.in'), // <-- ADDED
+],
+```
+
+#### Step 4: Issue Stateful Cookies
+Open `app/Http/Controllers/ProductHandoffController.php`. Under `consumeHandoffToken` (around line 172), expand the cookie assignment list to drop the `{tool}_saaszo_session` cookie on `.saaszo.in`:
+```php
+if (in_array($tool, ['invoice', 'task', 'pos'], true)) { // <-- Added 'pos'
+    $response->cookie(
+        $tool . '_saaszo_session',
+        '1',
+        self::SHARED_COOKIE_TTL_MINUTES,
+        '/',
+        (string) config('saaszo.shared_cookie_domain', '.saaszo.in'),
+        true,
+        true,
+        false,
+        'Lax'
+    );
+}
+```
+
+---
+
+### 💻 PART B: Frontend Integration (Your New Next.js / React App)
+
+#### Step 5: Implement Auth Client & Bridge Page
+1. **Cookie & Storage Keys (`lib/auth-client.ts`):** Define the local storage and session cookie keys unique to this app:
+   ```typescript
+   export const authStorageKey = "pos_saaszo_token";
+   export const authCookieKey = "pos_saaszo_session";
+   ```
+2. **Implement Bridge Consumer (`app/auth-bridge/page.tsx`):**
+   Create a page that consumes the single-use `handoff_token` issued by the portal and requests a real Sanctum token:
+   ```typescript
+   // Calls POST api.saaszo.in/api/auth/consume-handoff
+   const result = await requestJson("/api/auth/consume-handoff", {
+     method: "POST",
+     body: JSON.stringify({ handoff_token: token, tool: "pos" }),
+   });
+   if (result.ok && result.data.success) {
+     persistAccessToken(result.data.access_token);
+     navigateTo("/dashboard");
+   }
+   ```
+3. **Build Standalone Login Page (`app/login/page.tsx`):**
+   Create a direct email/password login page containing a standard Next.js form:
+   ```typescript
+   // Calls POST api.saaszo.in/api/auth/login
+   const result = await requestJson("/api/auth/login", {
+     method: "POST",
+     body: JSON.stringify({ email, password, remember: true }),
+   });
+   if (result.ok && result.data.success) {
+     persistAccessToken(result.data.access_token);
+     navigateTo("/dashboard");
+   }
+   ```
+   *This standalone pattern matches both `invoice.saaszo.in` and `task.saaszo.in`, ensuring users can log in directly on the sub-app or delegate to the portal.*
+
