@@ -118,41 +118,41 @@ function HeroPanel() {
       {/* Grid */}
       <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)",backgroundSize:"40px 40px",pointerEvents:"none" }} />
 
-      <div style={{ position:"relative",zIndex:10,display:"flex",flexDirection:"column",height:"100%",padding:"48px 52px 52px" }}>
+      <div style={{ position:"relative",zIndex:10,display:"flex",flexDirection:"column",height:"100%",padding:"32px 44px 32px" }}>
         {/* Logo */}
-        <div style={{ display:"flex",alignItems:"center",gap:"12px",marginBottom:"60px" }}>
-          <div style={{ width:"38px",height:"38px",borderRadius:"10px",background:"rgba(255,255,255,0.15)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,0.25)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:"18px",color:"#fff" }}>S</div>
+        <div style={{ display:"flex",alignItems:"center",gap:"10px",marginBottom:"auto" }}>
+          <div style={{ width:"34px",height:"34px",borderRadius:"9px",background:"rgba(255,255,255,0.15)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,0.25)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:"16px",color:"#fff" }}>S</div>
           <span style={{ fontSize:"1.35rem",fontWeight:800,color:"#fff",letterSpacing:"-0.02em" }}>SaaSzo</span>
         </div>
 
         {/* Copy */}
-        <div style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center" }}>
-          <p style={{ margin:"0 0 16px",fontSize:"0.72rem",fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(255,255,255,0.6)" }}>
+        <div style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:"20px" }}>
+          <p style={{ margin:"0 0 10px",fontSize:"0.68rem",fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(255,255,255,0.55)" }}>
             MOBILE OTP · SAASZO
           </p>
-          <h1 style={{ margin:"0 0 18px",fontSize:"clamp(1.9rem,3.2vw,2.9rem)",fontWeight:800,color:"#fff",lineHeight:1.15,letterSpacing:"-0.03em",maxWidth:"12ch" }}>
+          <h1 style={{ margin:"0 0 10px",fontSize:"clamp(1.7rem,2.6vw,2.5rem)",fontWeight:800,color:"#fff",lineHeight:1.15,letterSpacing:"-0.03em",maxWidth:"12ch" }}>
             One tap.<br />Full access.
           </h1>
-          <p style={{ margin:"0 0 44px",fontSize:"0.95rem",color:"rgba(255,255,255,0.7)",lineHeight:1.65,maxWidth:"32ch" }}>
+          <p style={{ margin:0,fontSize:"0.88rem",color:"rgba(255,255,255,0.65)",lineHeight:1.55,maxWidth:"32ch" }}>
             Verify your identity in seconds with a one-time password sent directly to your mobile.
           </p>
 
-          <div style={{ display:"flex",flexDirection:"column",gap:"14px" }}>
+          <div style={{ display:"flex",flexDirection:"column",gap:"10px" }}>
             {FEATURES.map((f) => (
-              <div key={f.title} style={{ display:"flex",alignItems:"flex-start",gap:"14px",background:"rgba(255,255,255,0.08)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:"14px",padding:"14px 18px" }}>
-                <div style={{ width:"38px",height:"38px",borderRadius:"10px",background:"rgba(255,255,255,0.13)",border:"1px solid rgba(255,255,255,0.18)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+              <div key={f.title} style={{ display:"flex",alignItems:"center",gap:"12px",background:"rgba(255,255,255,0.08)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"12px",padding:"11px 14px" }}>
+                <div style={{ width:"34px",height:"34px",borderRadius:"9px",background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.15)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                   {f.icon}
                 </div>
                 <div>
-                  <p style={{ margin:"0 0 3px",fontSize:"0.88rem",fontWeight:700,color:"#fff" }}>{f.title}</p>
-                  <p style={{ margin:0,fontSize:"0.78rem",color:"rgba(255,255,255,0.62)",lineHeight:1.5 }}>{f.desc}</p>
+                  <p style={{ margin:"0 0 2px",fontSize:"0.82rem",fontWeight:700,color:"#fff" }}>{f.title}</p>
+                  <p style={{ margin:0,fontSize:"0.73rem",color:"rgba(255,255,255,0.58)",lineHeight:1.4 }}>{f.desc}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ marginTop:"40px" }}>
+        <div style={{ marginTop:"auto",paddingTop:"16px" }}>
           <span style={{ fontSize:"0.72rem",color:"rgba(255,255,255,0.38)",fontWeight:600 }}>Part of the SaaSzo platform</span>
         </div>
       </div>
@@ -351,7 +351,7 @@ export default function PhoneOtpAuth() {
   };
 
   return (
-    <div style={{ minHeight:"100vh",width:"100%",display:"flex",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden" }}>
+    <div style={{ height:"100vh",width:"100%",display:"flex",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden" }}>
 
       {/* ── LEFT HERO — desktop only ─────────────────────────── */}
       <div className="phone-auth-hero">
@@ -359,16 +359,16 @@ export default function PhoneOtpAuth() {
       </div>
 
       {/* ── RIGHT FORM PANEL ─────────────────────────────────── */}
-      <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 32px",overflowY:"auto",background:"#f5f6fa",minWidth:0 }}>
+      <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 28px",overflow:"hidden",background:"#f5f6fa",minWidth:0 }}>
 
         {/* Mobile logo */}
-        <div className="phone-auth-mobile-logo" style={{ display:"flex",alignItems:"center",gap:"10px",marginBottom:"28px" }}>
-          <div style={{ width:"36px",height:"36px",borderRadius:"10px",background:"linear-gradient(135deg,#4648d4,#6b38d4)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#fff",fontSize:"16px" }}>S</div>
+        <div className="phone-auth-mobile-logo" style={{ display:"flex",alignItems:"center",gap:"8px",marginBottom:"16px" }}>
+          <div style={{ width:"32px",height:"32px",borderRadius:"9px",background:"linear-gradient(135deg,#4648d4,#6b38d4)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#fff",fontSize:"14px" }}>S</div>
           <span style={{ fontSize:"1.1rem",fontWeight:800,color:"#1a0533",letterSpacing:"-0.02em" }}>SaaSzo</span>
         </div>
 
         {/* Card */}
-        <div style={{ width:"100%",maxWidth:"440px",background:"#fff",borderRadius:"20px",boxShadow:"0 4px 28px rgba(70,72,212,0.1),0 1px 4px rgba(13,15,26,0.06)",border:"1px solid rgba(70,72,212,0.1)",padding:"36px 36px 32px" }}>
+        <div style={{ width:"100%",maxWidth:"420px",background:"#fff",borderRadius:"18px",boxShadow:"0 4px 24px rgba(70,72,212,0.09),0 1px 4px rgba(13,15,26,0.05)",border:"1px solid rgba(70,72,212,0.09)",padding:"22px 26px 20px" }}>
 
           {/* ═══ STEP 1 — Phone entry ═══ */}
           {step === "phone" && (
