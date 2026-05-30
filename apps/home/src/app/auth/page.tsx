@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { appConfig } from "@/lib/config";
 import { useAuthSession } from "@/components/AuthProvider";
-import { toSafeAppPath } from "@/lib/utils";
+import { toSafeAppPath, resolveSafeRedirectTarget } from "@/lib/utils";
 import type { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
 
 /* ─── Design tokens — Black + Cyan ─── */
@@ -135,7 +135,10 @@ function AuthForm() {
 
   useEffect(() => {
     if (!sessionLoading && authenticated)
-      router.replace(toSafeAppPath(postAuthRedirect, appConfig.appUrl));
+      // Use resolveSafeRedirectTarget (not toSafeAppPath) so cross-origin
+      // saaszo.in redirects (e.g. task.saaszo.in/auth-bridge?...) are honoured
+      // after a portal login that was initiated from a product app.
+      router.replace(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl));
   }, [authenticated, postAuthRedirect, router, sessionLoading]);
 
   /* ── Resend countdown ── */
