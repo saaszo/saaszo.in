@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { appConfig } from "@/lib/config";
 import { useAuthSession } from "@/components/AuthProvider";
-import { toSafeAppPath, resolveSafeRedirectTarget } from "@/lib/utils";
+import { resolveSafeRedirectTarget } from "@/lib/utils";
 import type { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
 
 /* ─── Design tokens — Black + Cyan ─── */
@@ -92,6 +92,7 @@ function AuthForm() {
   const [email, setEmail]         = useState("");
   const [password, setPassword]   = useState("");
   const [showPass, setShowPass]   = useState(false);
+  const [emailErrors, setEmailErrors] = useState<Record<string, string>>({});
 
   /* ── Phone OTP state ── */
   const [phoneStep, setPhoneStep]                   = useState<PhoneStep>("enter");
@@ -165,8 +166,21 @@ function AuthForm() {
   /* ── Email submit ── */
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); if (isLoading) return;
+    const nextErrors: Record<string, string> = {};
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) nextErrors.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) nextErrors.email = "Enter a valid email address.";
+    if (!password) nextErrors.password = "Password is required.";
+    setEmailErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     setIsLoading(true); setError("");
-    try { await signInWithEmail(email, password); }
+    try {
+      await signInWithEmail(cleanEmail, password, {
+        redirect: searchParams.get("redirect"),
+        remember: true,
+      });
+    }
     catch (err: any) { setError(err?.message || "Authentication failed. Try again."); }
     finally { setIsLoading(false); }
   };
@@ -344,8 +358,6 @@ function AuthForm() {
               </button>
             )}
           </div>
-          {/* Hidden recaptcha */}
-          <div id="phone-recaptcha-inline" style={{ display:"none" }}/>
         </div>
       );
     }
@@ -394,8 +406,6 @@ function AuthForm() {
           )}
         </button>
         <p style={{ margin:0,textAlign:"center",fontSize:"0.72rem",color:"#94a3b8" }}>Protected by invisible reCAPTCHA</p>
-        {/* Hidden recaptcha container */}
-        <div id="phone-recaptcha-inline" style={{ display:"none" }}/>
       </div>
     );
   };
@@ -526,10 +536,11 @@ function AuthForm() {
                   <label style={{ fontSize:"0.71rem",fontWeight:700,color:"#374151",textTransform:"uppercase",letterSpacing:"0.07em" }}>Email</label>
                   <div style={{ position:"relative" }}>
                     <svg style={{ position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#94a3b8",pointerEvents:"none" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                    <input type="email" placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputBase}
+                    <input type="email" placeholder="name@company.com" value={email} onChange={(e) => { setEmail(e.target.value); setEmailErrors((current) => ({ ...current, email: "" })); }} style={inputBase}
                       onFocus={(e) => { e.target.style.borderColor=C.cyan; e.target.style.boxShadow=`0 0 0 3px ${C.cyanSoft}`; e.target.style.background="#fff"; }}
                       onBlur={(e)  => { e.target.style.borderColor=C.rBorder; e.target.style.boxShadow="none"; e.target.style.background="#f9fafb"; }} />
                   </div>
+                  {emailErrors.email && <p style={{ margin:0,fontSize:"0.73rem",fontWeight:700,color:"#dc2626" }}>{emailErrors.email}</p>}
                 </div>
                 <div style={{ display:"flex",flexDirection:"column",gap:"4px" }}>
                   <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
@@ -538,11 +549,12 @@ function AuthForm() {
                   </div>
                   <div style={{ position:"relative" }}>
                     <svg style={{ position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#94a3b8",pointerEvents:"none" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                    <input type={showPass?"text":"password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ ...inputBase, paddingRight:"34px" }}
+                    <input type={showPass?"text":"password"} placeholder="••••••••" value={password} onChange={(e) => { setPassword(e.target.value); setEmailErrors((current) => ({ ...current, password: "" })); }} style={{ ...inputBase, paddingRight:"34px" }}
                       onFocus={(e) => { e.target.style.borderColor=C.cyan; e.target.style.boxShadow=`0 0 0 3px ${C.cyanSoft}`; e.target.style.background="#fff"; }}
                       onBlur={(e)  => { e.target.style.borderColor=C.rBorder; e.target.style.boxShadow="none"; e.target.style.background="#f9fafb"; }} />
                     <button type="button" onClick={() => setShowPass(!showPass)} style={{ position:"absolute",right:"9px",top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center",color:"#94a3b8" }}><EyeIcon show={showPass}/></button>
                   </div>
+                  {emailErrors.password && <p style={{ margin:0,fontSize:"0.73rem",fontWeight:700,color:"#dc2626" }}>{emailErrors.password}</p>}
                 </div>
                 <button type="submit" disabled={isLoading} style={{ ...cyanBtn, marginTop:"4px" }}
                   onMouseEnter={(e) => { if(!isLoading){(e.currentTarget as HTMLElement).style.boxShadow=`0 6px 22px ${C.cyanGlow}`;(e.currentTarget as HTMLElement).style.transform="translateY(-1px)";} }}
@@ -573,6 +585,11 @@ function AuthForm() {
 
             {/* PHONE — inline flow */}
             {activeTab === "phone" && renderPhoneTab()}
+            <div
+              id="phone-recaptcha-inline"
+              aria-hidden="true"
+              style={{ position:"absolute",width:"1px",height:"1px",overflow:"hidden",opacity:0,pointerEvents:"none" }}
+            />
           </div>
 
           {/* Footer row — hide during otp/success */}

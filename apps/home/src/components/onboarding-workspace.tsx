@@ -32,7 +32,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
-import { cn } from "@/lib/utils";
+import { cn, resolveSafeRedirectTarget } from "@/lib/utils";
 import { SearchableSelect } from "./ui/searchable-select";
 import { useLocations } from "@/lib/shared-masters";
 import { useAuthSession } from "./AuthProvider";
@@ -44,6 +44,8 @@ import {
   stepHelp,
   stepLabels,
 } from "./onboarding-workspace-shared";
+
+const postSetupRedirectStorageKey = "saaszo_post_setup_redirect";
 
 type OnboardingProfile = {
   owner_name?: string;
@@ -252,6 +254,23 @@ function normalizeIndianPhone(value: string | null | undefined) {
   return sanitizeIndianPhone(raw);
 }
 
+function isGeneratedOnboardingPlaceholder(value: unknown) {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  return (
+    normalized === "saaszo user" ||
+    normalized === "saaszo workspace" ||
+    normalized === "saaszo user workspace" ||
+    normalized.endsWith("@phone.saaszo.local")
+  );
+}
+
+function visibleOnboardingValue(value: unknown) {
+  return isGeneratedOnboardingPlaceholder(value) ? "" : String(value || "");
+}
+
 function sanitizeAlphaNumeric(value: string, maxLength = 80) {
   return value
     .toUpperCase()
@@ -364,6 +383,17 @@ export function OnboardingWorkspace() {
     "cursor-pointer border-primary/20 bg-primary/10 text-primary hover:bg-primary/15";
   const ghostButtonClass =
     "cursor-pointer text-primary hover:bg-primary/10 hover:text-primary";
+
+  function consumePostSetupRedirect(fallback: string) {
+    if (typeof window === "undefined") {
+      return fallback;
+    }
+
+    const storedRedirect = window.sessionStorage.getItem(postSetupRedirectStorageKey);
+    window.sessionStorage.removeItem(postSetupRedirectStorageKey);
+
+    return resolveSafeRedirectTarget(storedRedirect, undefined, fallback);
+  }
 
   const stateOptions = useMemo(
     () => states.map((s) => ({ label: s.label, value: s.state_name })),
@@ -598,7 +628,9 @@ export function OnboardingWorkspace() {
       setForm({
         ...defaultProfileForm,
         ...safeProfile,
-        email: sanitizeEmail(String(profile.email || defaultProfileForm.email || "")),
+        owner_name: visibleOnboardingValue(profile.owner_name),
+        business_name: visibleOnboardingValue(profile.business_name),
+        email: sanitizeEmail(visibleOnboardingValue(profile.email || defaultProfileForm.email || "")),
         phone: normalizeIndianPhone(profile.phone || defaultProfileForm.phone || ""),
         required_reports: profile.required_reports || [],
         payment_methods: profile.payment_methods || [],
@@ -649,7 +681,7 @@ export function OnboardingWorkspace() {
     setForm((current) => ({
       ...current,
       email: sanitizeEmail(
-        current.email || auth?.email || profile?.email || "",
+        current.email || visibleOnboardingValue(auth?.email || profile?.email || ""),
       ),
       phone: normalizeIndianPhone(
         current.phone || auth?.phone || profile?.phone || "",
@@ -1812,7 +1844,7 @@ export function OnboardingWorkspace() {
       // Dashboard bootstrap can still recover from backend state on next load.
     });
 
-    navigateTo("/dashboard?tab=settings");
+    navigateTo(consumePostSetupRedirect("/dashboard?tab=settings"));
   }
 
   async function handleSkip() {
@@ -1845,7 +1877,7 @@ export function OnboardingWorkspace() {
       // Dashboard bootstrap can still recover from backend state on next load.
     });
 
-    navigateTo("/dashboard");
+    navigateTo(consumePostSetupRedirect("/dashboard"));
   }
 
   async function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {

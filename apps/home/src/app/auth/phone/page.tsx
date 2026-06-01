@@ -200,7 +200,17 @@ export default function PhoneOtpAuth() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const ri = params.get("intent");
-    if (ri === "signin" || ri === "signup" || ri === "recover") setIntent(ri);
+    const nextIntent = ri === "signin" || ri === "signup" || ri === "recover" ? ri : "signin";
+    setIntent(nextIntent);
+
+    if (nextIntent === "signup") {
+      setCountryCode("+91");
+      setPhone("");
+      setOtp(["", "", "", "", "", ""]);
+      setConfirmationResult(null);
+      return;
+    }
+
     const rc = params.get("countryCode"); if (rc) setCountryCode(rc);
     const rp = params.get("phone"); if (rp) setPhone(rp);
   }, []);
@@ -424,7 +434,22 @@ export default function PhoneOtpAuth() {
                 </div>
 
                 {/* Hidden reCAPTCHA container */}
-                <div id="phone-otp-recaptcha-container" style={{ position:"absolute",left:"-9999px",top:0,height:0,width:0,overflow:"hidden",opacity:0,pointerEvents:"none" }} />
+                <div
+                  id="phone-otp-recaptcha-container"
+                  aria-hidden="true"
+                  style={{
+                    position:"fixed",
+                    width:"1px",
+                    height:"1px",
+                    right:0,
+                    bottom:0,
+                    overflow:"hidden",
+                    opacity:0,
+                    pointerEvents:"none",
+                    clipPath:"inset(50%)",
+                    zIndex:-1,
+                  }}
+                />
 
                 <button
                   id="send-phone-otp-button" type="submit" disabled={isLoading}
@@ -590,6 +615,11 @@ export default function PhoneOtpAuth() {
       {/* Responsive + spinner keyframe */}
       <style>{`
         @keyframes phone-spin { to { transform: rotate(360deg); } }
+        .grecaptcha-badge {
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
         @media (max-width: 1024px) {
           .phone-auth-hero { display: none !important; }
           .phone-auth-mobile-logo { display: flex !important; }

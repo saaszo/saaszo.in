@@ -75,6 +75,19 @@ const PRODUCTS: Product[] = [
     ctaText: "Open App",
   },
   {
+    id: "connect",
+    name: "Connect",
+    tagline: "WhatsApp CRM · Shared Inbox · Pipelines",
+    description:
+      "Manage WhatsApp conversations, contacts, broadcasts, sales pipelines, and follow-ups from one connected team inbox.",
+    icon: "forum",
+    tool: "connect",
+    status: "active",
+    color: "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
+    accentColor: "#0891b2",
+    ctaText: "Open App",
+  },
+  {
     id: "pos",
     name: "POS for Restaurants",
     tagline: "Restaurant Billing · KOT · Tables",
@@ -122,6 +135,8 @@ const INVOICE_BRIDGE_FALLBACK_URL =
   "https://invoice.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 const TASK_BRIDGE_FALLBACK_URL =
   "https://task.saaszo.in/auth-bridge?redirect=%2Ftask-manager";
+const CONNECT_BRIDGE_FALLBACK_URL =
+  "https://connect.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -493,7 +508,9 @@ export default function DashboardPage() {
         ? INVOICE_BRIDGE_FALLBACK_URL
         : product.tool === "task"
           ? TASK_BRIDGE_FALLBACK_URL
-          : undefined;
+          : product.tool === "connect"
+            ? CONNECT_BRIDGE_FALLBACK_URL
+            : undefined;
     const safeRedirectUrl = toSafeAbsoluteUrl(redirectUrl, appConfig.appUrl);
     const safeFallbackRedirectUrl = toSafeAbsoluteUrl(
       fallbackRedirectUrl,

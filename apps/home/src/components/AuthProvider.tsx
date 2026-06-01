@@ -162,12 +162,17 @@ type AuthContextValue = {
     phoneNumber: string,
     appVerifier: RecaptchaVerifier,
   ) => Promise<ConfirmationResult>;
-  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signInWithEmail: (
+    email: string,
+    password: string,
+    options?: { redirect?: string | null; remember?: boolean },
+  ) => Promise<void>;
   signUpWithEmail: (
     email: string,
     password: string,
     name?: string,
     companyName?: string,
+    options?: { redirect?: string | null },
   ) => Promise<void>;
   updateProfile: (
     values: Partial<ProfilePayload>,
@@ -1060,11 +1065,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 2. If popup is blocked or cancelled, fallback to redirect flow
       if (
         popupError.code === "auth/popup-blocked" ||
-        popupError.code === "auth/popup-closed-by-user" ||
         popupError.code === "auth/cancelled-popup-request"
       ) {
         setGoogleRedirectIntent();
         await signInWithRedirect(auth, provider);
+      } else if (popupError.code === "auth/popup-closed-by-user") {
+        throw new Error("Google sign-in was cancelled.");
       } else {
         throw popupError;
       }
@@ -1105,12 +1111,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
   }
 
-  async function signInWithEmail(email: string, password: string) {
+  async function signInWithEmail(
+    email: string,
+    password: string,
+    options?: { redirect?: string | null; remember?: boolean },
+  ) {
     const payload = await fetchBackendJson("/auth/login", {
       method: "POST",
       body: JSON.stringify({
         email,
         password,
+        remember: options?.remember ?? true,
+        ...(options?.redirect ? { redirect: options.redirect } : {}),
       }),
     });
 
@@ -1122,6 +1134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         )
       ) {
         navigateAfterAuth(router, payload.redirect);
+        return;
       }
 
       throw new Error(payload.message || "Login failed.");
@@ -1133,8 +1146,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const redirectUrl = loginData.redirect ?? payload.redirect;
 
     if (accessToken) {
-      setStoredBackendToken(accessToken);
       await hydrateBackendSession(accessToken);
+      setStoredBackendToken(accessToken);
     } else {
       await hydrateCookieSession();
     }
@@ -1146,6 +1159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     name?: string,
     companyName?: string,
+    options?: { redirect?: string | null },
   ) {
     const displayName = name?.trim() || email.split("@")[0] || "SaaSzo User";
     const normalizedCompanyName = companyName?.trim() || "SaaSzo Workspace";
@@ -1159,6 +1173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         password_confirmation: password,
         email_verified_via: "otp",
+        ...(options?.redirect ? { redirect: options.redirect } : {}),
       }),
     });
 
@@ -1169,14 +1184,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Backend wraps token inside a 'data' object: { success, message, data: { access_token } }
     const signupData = (payload as any).data ?? payload;
     const accessToken = signupData.access_token;
+    const redirectUrl = signupData.redirect ?? payload.redirect ?? "/dashboard/setup";
 
     if (accessToken) {
-      setStoredBackendToken(accessToken);
       await hydrateBackendSession(accessToken);
+      setStoredBackendToken(accessToken);
     } else {
       await hydrateCookieSession();
     }
-    router.push("/dashboard/setup");
+    navigateAfterAuth(router, redirectUrl);
   }
 
   async function updateProfile(values: Partial<ProfilePayload>) {

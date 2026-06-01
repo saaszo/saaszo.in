@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthSession } from "@/components/AuthProvider";
 import { API_BASE_URL } from "@/lib/app-config";
 import { appConfig, toAbsoluteApiUrl } from "@/lib/config";
-import { getCookieValue, toSafeAppPath } from "@/lib/utils";
+import { getCookieValue, resolveSafeRedirectTarget } from "@/lib/utils";
 
 /* ─── Design tokens — identical to auth/page.tsx ─── */
 const C = {
@@ -182,6 +182,19 @@ function RegisterForm() {
 
   const verifyRequestInFlight = useRef(false);
   const normalizedEmail = useMemo(() => normalizeEmail(email), [email]);
+  const pendingSetupRedirect = searchParams.get("redirect");
+
+  function rememberPostSetupRedirect() {
+    const safeRedirect = resolveSafeRedirectTarget(
+      pendingSetupRedirect,
+      appConfig.appUrl,
+      "",
+    );
+
+    if (safeRedirect && typeof window !== "undefined") {
+      window.sessionStorage.setItem("saaszo_post_setup_redirect", safeRedirect);
+    }
+  }
 
   useEffect(() => {
     const ep = searchParams.get("email"); if (ep) setEmail(ep);
@@ -189,7 +202,7 @@ function RegisterForm() {
 
   useEffect(() => {
     if (!sessionLoading && authenticated)
-      router.replace(toSafeAppPath(postAuthRedirect, appConfig.appUrl));
+      router.replace(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl));
   }, [authenticated, postAuthRedirect, router, sessionLoading]);
 
   /* countdown timer */
@@ -267,7 +280,10 @@ function RegisterForm() {
       if (!acceptedLegal) throw new Error("Accept the Terms of Service and Privacy Policy to continue.");
       if (!emailVerified) throw new Error("Verify your email address before creating your account.");
       if (!passwordMeetsRequirements(password)) throw new Error("Password must be 8+ chars with uppercase, lowercase, number, and symbol.");
-      await signUpWithEmail(normalizedEmail, password, name, companyName);
+      rememberPostSetupRedirect();
+      await signUpWithEmail(normalizedEmail, password, name, companyName, {
+        redirect: pendingSetupRedirect,
+      });
     } catch (err: any) {
       setError(err?.message || "The registration server is currently unreachable.");
     } finally { setIsLoading(false); }
@@ -275,7 +291,10 @@ function RegisterForm() {
 
   const handleGoogleSignIn = async () => {
     if (isLoading) return; setIsLoading(true); setError("");
-    try { await signInWithGoogle(); }
+    try {
+      rememberPostSetupRedirect();
+      await signInWithGoogle();
+    }
     catch (err: any) { setError(err.message || "Google sign-up is not available right now."); }
     finally { setIsLoading(false); }
   };
