@@ -373,6 +373,20 @@ async function fetchWithTimeout(
   }
 }
 
+async function refreshCsrfCookie() {
+  await fetchWithTimeout(
+    toAbsoluteApiUrl("/sanctum/csrf-cookie").replace(
+      "/api/sanctum",
+      "/sanctum",
+    ),
+    {
+      method: "GET",
+      credentials: "include",
+    },
+    5000,
+  ).catch(() => null);
+}
+
 function toTitleCase(value: string | null | undefined, fallback: string) {
   const normalized = value?.trim();
 
@@ -674,33 +688,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     if (isMutation && !getCookieValue("XSRF-TOKEN")) {
-      await fetchWithTimeout(
-        toAbsoluteApiUrl("/sanctum/csrf-cookie").replace(
-          "/api/sanctum",
-          "/sanctum",
-        ),
-        {
-          method: "GET",
-          credentials: "include",
-        },
-        5000,
-      ).catch(() => null);
+      await refreshCsrfCookie();
     }
 
-    const headers: Record<string, string> = {
-      ...((init.headers as Record<string, string>) ?? {}),
+    const buildHeaders = () => {
+      const headers: Record<string, string> = {
+        ...((init.headers as Record<string, string>) ?? {}),
+      };
+
+      const xsrfToken = getCookieValue("XSRF-TOKEN");
+      if (xsrfToken && isMutation) {
+        headers["X-XSRF-TOKEN"] = xsrfToken;
+      }
+
+      return headers;
     };
 
-    const xsrfToken = getCookieValue("XSRF-TOKEN");
-    if (xsrfToken && isMutation) {
-      headers["X-XSRF-TOKEN"] = xsrfToken;
+    const sendRequest = () =>
+      fetchWithTimeout(url, {
+        ...init,
+        headers: buildHeaders(),
+        credentials: "include",
+      });
+
+    let response = await sendRequest();
+
+    // Safari/Chrome occasionally keep a stale XSRF cookie around while the
+    // backend session has already rotated. Refresh once and retry silently
+    // before surfacing "CSRF token mismatch" to the user.
+    if (isMutation && response.status === 419) {
+      await refreshCsrfCookie();
+      response = await sendRequest();
     }
 
-    return fetchWithTimeout(url, {
-      ...init,
-      headers,
-      credentials: "include",
-    });
+    return response;
   }
 
   async function fetchBackendJson(
