@@ -261,14 +261,6 @@ export default function DashboardPage() {
   const isDataLoading = isBranchesLoading || isStaffLoading;
 
   useEffect(() => {
-    if (!loading && !authenticated) {
-      startTransition(() => {
-        router.replace("/auth");
-      });
-    }
-  }, [authenticated, loading, router]);
-
-  useEffect(() => {
     if (
       !loading &&
       authenticated &&
