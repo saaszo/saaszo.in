@@ -473,11 +473,17 @@ function navigateAfterAuth(
 ) {
   const safePath = toSafeAppPath(target, appConfig.appUrl);
   const safeAbsoluteUrl = toSafeAbsoluteUrl(target, appConfig.appUrl);
+  const appOrigin = (() => {
+    try {
+      return new URL(appConfig.appUrl).origin;
+    } catch {
+      return "https://www.saaszo.in";
+    }
+  })();
 
   if (safeAbsoluteUrl) {
     try {
       const url = new URL(safeAbsoluteUrl);
-      const appOrigin = new URL(appConfig.appUrl).origin;
 
       if (url.origin !== appOrigin) {
         window.location.assign(safeAbsoluteUrl);
@@ -487,6 +493,15 @@ function navigateAfterAuth(
       router.push("/dashboard");
       return;
     }
+  }
+
+  if (
+    typeof window !== "undefined" &&
+    window.location.origin !== appOrigin &&
+    safePath.startsWith("/")
+  ) {
+    window.location.assign(`${appOrigin}${safePath}`);
+    return;
   }
 
   router.push(safePath);

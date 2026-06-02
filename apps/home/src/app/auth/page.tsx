@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { appConfig } from "@/lib/config";
+import { navigateTo } from "@/lib/auth-client";
 import { useAuthSession } from "@/components/AuthProvider";
 import { resolveSafeRedirectTarget } from "@/lib/utils";
 import type { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
@@ -135,11 +136,12 @@ function AuthForm() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!sessionLoading && authenticated)
-      // Use resolveSafeRedirectTarget (not toSafeAppPath) so cross-origin
-      // saaszo.in redirects (e.g. task.saaszo.in/auth-bridge?...) are honoured
-      // after a portal login that was initiated from a product app.
-      router.replace(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl));
+    if (!sessionLoading && authenticated) {
+      // Always leave auth pages through the canonical redirect helper so
+      // apex-domain sessions land on www.saaszo.in/dashboard instead of
+      // getting stuck on saaszo.in/dashboard with mismatched middleware.
+      navigateTo(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl));
+    }
   }, [authenticated, postAuthRedirect, router, sessionLoading]);
 
   /* ── Resend countdown ── */
