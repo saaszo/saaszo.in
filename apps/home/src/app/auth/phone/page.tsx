@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { appConfig } from "@/lib/config";
-import { AUTH_COUNTRY_OPTIONS } from "@/lib/auth-utils";
+import { AUTH_COUNTRY_OPTIONS, lookupAuthIdentifier } from "@/lib/auth-utils";
 import { useAuthSession } from "@/components/AuthProvider";
 import { toSafeAppPath } from "@/lib/utils";
 import { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
@@ -175,6 +175,44 @@ function NoticeAlert({ message }: { message: string }) {
   );
 }
 
+function InlineFieldError({ message }: { message: string }) {
+  return (
+    <p style={{ margin:"6px 0 0",fontSize:"0.73rem",fontWeight:700,color:"#dc2626",lineHeight:1.35 }}>
+      {message}
+    </p>
+  );
+}
+
+function FloatingToast({
+  message,
+  tone = "error",
+}: {
+  message: string;
+  tone?: "error" | "success";
+}) {
+  return (
+    <div
+      style={{
+        position:"fixed",
+        top:"18px",
+        right:"18px",
+        zIndex:9999,
+        maxWidth:"360px",
+        padding:"12px 14px",
+        borderRadius:"12px",
+        background: tone === "error" ? "rgba(127,29,29,0.96)" : "rgba(20,83,45,0.96)",
+        color:"#fff",
+        boxShadow:"0 12px 30px rgba(0,0,0,0.22)",
+        fontSize:"0.84rem",
+        fontWeight:700,
+        lineHeight:1.45,
+      }}
+    >
+      {message}
+    </div>
+  );
+}
+
 /* ─── Main component ─────────────────────────────────────────── */
 export default function PhoneOtpAuth() {
   const router = useRouter();
@@ -188,6 +226,8 @@ export default function PhoneOtpAuth() {
   const [isLoading, setIsLoading]                 = useState(false);
   const [error, setError]                         = useState("");
   const [notice, setNotice]                       = useState("");
+  const [phoneFieldError, setPhoneFieldError]     = useState("");
+  const [toastMessage, setToastMessage]           = useState("");
   const [resendTimer, setResendTimer]             = useState(0);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
@@ -195,6 +235,16 @@ export default function PhoneOtpAuth() {
   const [verifyAttempts, setVerifyAttempts]       = useState(0);
   const [verifyLockSeconds, setVerifyLockSeconds] = useState(0);
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const toastTimerRef = useRef<number | null>(null);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => {
+      setToastMessage("");
+      toastTimerRef.current = null;
+    }, 4500);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -234,6 +284,7 @@ export default function PhoneOtpAuth() {
   useEffect(() => {
     return () => {
       if (recaptchaVerifier) { try { recaptchaVerifier.clear(); } catch { /* destroyed */ } }
+      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
     };
   }, [recaptchaVerifier]);
 
@@ -257,11 +308,21 @@ export default function PhoneOtpAuth() {
   };
 
   const requestPhoneOtp = async () => {
-    setError(""); setNotice("");
-    if (phone.trim().length < 6) { setError("Please enter a valid phone number."); return false; }
+    setError(""); setNotice(""); setPhoneFieldError("");
+    if (phone.trim().length < 6) { setError("Please enter a valid phone number."); setPhoneFieldError("Please enter a valid mobile number."); return false; }
     const fullPhone = `${countryCode}${phone.replace(/\D/g, "")}`;
     setIsLoading(true);
     try {
+      if (intent === "signup") {
+        const lookup = await lookupAuthIdentifier(fullPhone);
+        if (lookup.exists) {
+          const message = "This mobile number is already registered with another account. Please sign in instead.";
+          setPhoneFieldError(message);
+          setError(message);
+          showToast(message);
+          return false;
+        }
+      }
       const verifier = await ensureRecaptcha();
       const result = await sendPhoneOtp(fullPhone, verifier);
       setConfirmationResult(result);
@@ -273,6 +334,7 @@ export default function PhoneOtpAuth() {
       return true;
     } catch (err: any) {
       setError(mapFirebasePhoneError(err));
+      setPhoneFieldError(intent === "signup" ? mapFirebasePhoneError(err) : "");
       try { recaptchaVerifier?.clear(); } catch { /* destroyed */ }
       setRecaptchaVerifier(null); setRecaptchaSolved(false);
       return false;
@@ -359,6 +421,7 @@ export default function PhoneOtpAuth() {
 
   return (
     <div style={{ height:"100vh",width:"100%",display:"flex",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden" }}>
+      {toastMessage && <FloatingToast message={toastMessage} />}
 
       {/* ── LEFT HERO — desktop only ─────────────────────────── */}
       <div className="phone-auth-hero">
@@ -423,14 +486,15 @@ export default function PhoneOtpAuth() {
                       </span>
                       <input
                         type="tel" placeholder="98765 43210"
-                        value={phone} onChange={(e) => setPhone(e.target.value)}
+                        value={phone} onChange={(e) => { setPhone(e.target.value); setPhoneFieldError(""); }}
                         required inputMode="tel"
-                        style={{ width:"100%",padding:"11px 12px 11px 38px",borderRadius:"10px",border:"1px solid rgba(13,15,26,0.15)",background:"#fafafa",fontSize:"0.93rem",color:"#0d0f1a",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s,box-shadow 0.15s" }}
+                        style={{ width:"100%",padding:"11px 12px 11px 38px",borderRadius:"10px",border:`1px solid ${phoneFieldError ? "#dc2626" : "rgba(13,15,26,0.15)"}`,background:"#fafafa",fontSize:"0.93rem",color:"#0d0f1a",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s,box-shadow 0.15s" }}
                         onFocus={(e) => { e.target.style.borderColor="#06b6d4"; e.target.style.boxShadow="0 0 0 3px rgba(6,182,212,0.12)"; e.target.style.background="#fff"; }}
                         onBlur={(e)  => { e.target.style.borderColor="rgba(13,15,26,0.15)"; e.target.style.boxShadow="none"; e.target.style.background="#fafafa"; }}
                       />
                     </div>
                   </div>
+                  {phoneFieldError && <InlineFieldError message={phoneFieldError} />}
                 </div>
 
                 {/* Hidden reCAPTCHA container */}

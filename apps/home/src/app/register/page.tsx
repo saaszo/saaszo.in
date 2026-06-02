@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthSession } from "@/components/AuthProvider";
 import { API_BASE_URL } from "@/lib/app-config";
 import { appConfig, toAbsoluteApiUrl } from "@/lib/config";
+import { lookupAuthIdentifier } from "@/lib/auth-utils";
 import { getCookieValue, resolveSafeRedirectTarget } from "@/lib/utils";
 
 /* ─── Design tokens — identical to auth/page.tsx ─── */
@@ -149,6 +150,44 @@ function onBlur(e: React.FocusEvent<HTMLInputElement>) {
   e.target.style.background  = "#f9fafb";
 }
 
+function InlineFieldError({ message }: { message: string }) {
+  return (
+    <p style={{ margin:"6px 0 0",fontSize:"0.73rem",fontWeight:700,color:"#dc2626",lineHeight:1.35 }}>
+      {message}
+    </p>
+  );
+}
+
+function FloatingToast({
+  message,
+  tone = "error",
+}: {
+  message: string;
+  tone?: "error" | "success";
+}) {
+  return (
+    <div
+      style={{
+        position:"fixed",
+        top:"18px",
+        right:"18px",
+        zIndex:9999,
+        maxWidth:"360px",
+        padding:"12px 14px",
+        borderRadius:"12px",
+        background: tone === "error" ? "rgba(127,29,29,0.96)" : "rgba(20,83,45,0.96)",
+        color:"#fff",
+        boxShadow:"0 12px 30px rgba(0,0,0,0.22)",
+        fontSize:"0.84rem",
+        fontWeight:700,
+        lineHeight:1.45,
+      }}
+    >
+      {message}
+    </div>
+  );
+}
+
 /* ═══ Main form ══════════════════════════════════════════════════════════ */
 function RegisterForm() {
   const router = useRouter();
@@ -179,10 +218,22 @@ function RegisterForm() {
   const [error,     setError]     = useState("");
   const [otpError,  setOtpError]  = useState("");
   const [otpNotice, setOtpNotice] = useState("");
+  const [emailFieldError, setEmailFieldError] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
 
   const verifyRequestInFlight = useRef(false);
+  const toastTimerRef = useRef<number | null>(null);
   const normalizedEmail = useMemo(() => normalizeEmail(email), [email]);
   const pendingSetupRedirect = searchParams.get("redirect");
+
+  function showToast(message: string) {
+    setToastMessage(message);
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => {
+      setToastMessage("");
+      toastTimerRef.current = null;
+    }, 4500);
+  }
 
   function rememberPostSetupRedirect() {
     const safeRedirect = resolveSafeRedirectTarget(
@@ -220,10 +271,17 @@ function RegisterForm() {
     if (otpLockSeconds === 0 && isTooManyAttemptsMessage(otpError)) setOtpError("");
   }, [otpError, otpLockSeconds]);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
   /* reset OTP when email changes */
   useEffect(() => {
     setOtp(""); setOtpSent(false); setEmailVerified(false);
     setOtpError(""); setOtpNotice(""); setOtpLockSeconds(0); setResendTimer(0);
+    setEmailFieldError("");
   }, [normalizedEmail]);
 
   /* ── handlers ── */
@@ -232,10 +290,18 @@ function RegisterForm() {
     setOtpLoading(true); setOtpError(""); setOtpNotice("");
     try {
       if (!normalizedEmail) throw new Error("Enter your email address first.");
+      const lookup = await lookupAuthIdentifier(normalizedEmail);
+      if (lookup.exists) {
+        const message = "This email is already registered with another account. Please sign in instead.";
+        setEmailFieldError(message);
+        showToast(message);
+        throw new Error(message);
+      }
       const result = await fetchWithCsrf("/auth/signup/send-otp", {
         method: "POST", body: JSON.stringify({ email: normalizedEmail }),
       });
       if (!result?.success) throw new Error(result?.message || "We could not send the verification code.");
+      setEmailFieldError("");
       setOtpSent(true); setEmailVerified(false); setOtp(""); setOtpLockSeconds(0); setResendTimer(60);
       setOtpNotice(otpSent
         ? `New code sent to ${normalizedEmail}. Use the latest OTP — older codes are invalid.`
@@ -275,7 +341,7 @@ function RegisterForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); if (isLoading) return;
-    setIsLoading(true); setError("");
+    setIsLoading(true); setError(""); setEmailFieldError("");
     try {
       if (!acceptedLegal) throw new Error("Accept the Terms of Service and Privacy Policy to continue.");
       if (!emailVerified) throw new Error("Verify your email address before creating your account.");
@@ -285,7 +351,13 @@ function RegisterForm() {
         redirect: pendingSetupRedirect,
       });
     } catch (err: any) {
-      setError(err?.message || "The registration server is currently unreachable.");
+      const duplicateField = err?.payload?.duplicate_field;
+      const duplicateMessage = err?.message || "The registration server is currently unreachable.";
+      if (duplicateField === "email") {
+        setEmailFieldError("This email is already registered with another account.");
+        showToast(duplicateMessage);
+      }
+      setError(duplicateMessage);
     } finally { setIsLoading(false); }
   };
 
@@ -319,6 +391,7 @@ function RegisterForm() {
 
   return (
     <div style={{ height:"100vh", width:"100%", display:"flex", fontFamily:"'Inter',system-ui,sans-serif", overflow:"hidden" }}>
+      {toastMessage && <FloatingToast message={toastMessage} />}
 
       {/* ═══ LEFT HERO — Black + Cyan ═══════════════════════════════════════ */}
       <div className="saaszo-reg-hero" style={{ width:"50%",flexShrink:0,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden",background:C.black }}>
@@ -452,9 +525,10 @@ function RegisterForm() {
               {/* Email input */}
               <div style={{ position:"relative" }}>
                 <svg style={{ position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#94a3b8",pointerEvents:"none" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                <input type="email" placeholder="name@company.com" value={email} onChange={e => setEmail(e.target.value)} required
-                  style={inputBase} onFocus={onFocus} onBlur={onBlur} />
+                <input type="email" placeholder="name@company.com" value={email} onChange={e => { setEmail(e.target.value); setEmailFieldError(""); }} required
+                  style={{ ...inputBase, borderColor: emailFieldError ? "#dc2626" : C.rBorder }} onFocus={onFocus} onBlur={onBlur} />
               </div>
+              {emailFieldError && <InlineFieldError message={emailFieldError} />}
 
               {/* Send OTP + status */}
               <div style={{ display:"flex",gap:"7px",alignItems:"stretch" }}>

@@ -3460,16 +3460,16 @@ export function OnboardingWorkspace() {
                     className="h-11 bg-white"
                     value={emailOtp}
                     placeholder="Enter 6-digit OTP"
-                    maxLength={4}
+                    maxLength={6}
                     inputMode="numeric"
                     onChange={(e) =>
-                      setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 4))
+                      setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
                     }
                     onKeyDown={(event) =>
                       handleVerificationEnter(
                         event,
                         verifyEmailVerificationOtp,
-                        !emailOtpVerifying && emailOtp.length === 4,
+                        !emailOtpVerifying && emailOtp.length === 6,
                       )
                     }
                   />

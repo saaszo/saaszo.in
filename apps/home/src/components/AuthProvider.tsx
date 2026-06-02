@@ -1214,7 +1214,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!payload.success) {
-      throw new Error(payload.message || "Could not create your account.");
+      throw Object.assign(
+        new Error(payload.message || "Could not create your account."),
+        {
+          type: payload.type,
+          payload,
+        },
+      );
     }
 
     // Backend wraps token inside a 'data' object: { success, message, data: { access_token } }
