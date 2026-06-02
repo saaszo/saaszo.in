@@ -12,6 +12,9 @@ import type { NextRequest } from "next/server";
  * Rules:
  * 1. Request on apex saaszo.in (no www)   → pass through (canonical redirect in next.config.ts handles it)
  * 2. Logged-in user visiting /auth or /register → redirect to /dashboard  ✅
+ *    BUT if /auth has an explicit ?redirect=... query, let the page render
+ *    so the client can re-hydrate a stale/partial session instead of
+ *    bouncing between /auth and /dashboard forever.
  * 3. Guest visiting /dashboard/**               → redirect to /auth        ✅
  *
  * IMPORTANT: Always redirect to https://www.saaszo.in/... to stay on the
@@ -62,6 +65,12 @@ export function middleware(request: NextRequest) {
   // ── 3. Auth pages (/auth, /register) ─────────────────────────────────────
   // Already logged in → skip login, go straight to dashboard
   if (AUTH_ROUTES.some((p) => pathname.startsWith(p))) {
+    const hasExplicitRedirectTarget = request.nextUrl.searchParams.has("redirect");
+
+    if (hasExplicitRedirectTarget) {
+      return NextResponse.next();
+    }
+
     if (isLoggedIn) {
       return NextResponse.redirect(new URL(DASHBOARD_PATH, WWW_ORIGIN));
     }
