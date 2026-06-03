@@ -1,81 +1,159 @@
-const testimonials = [
+const TESTIMONIALS = [
   {
+    name: "Priya Sharma",
+    role: "Founder, TechVenture India",
+    avatar: "PS",
+    avatarColor: "#06b6d4",
+    rating: 5,
     quote:
-      "SaaSzo replaced four different tools for us. The UI is cleaner, the data actually talks to each other, and the AI insights are genuinely useful, not just a gimmick.",
-    name: "Sarah J.",
-    role: "VP of Operations, TechFlow",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDx-plZVwFHUvxZW2waR7tnsc0k5QQv4oqQCIbj5xNQLUofL-G5e3BcANBl5PLKhH4Yjxb3o9PrMimT4mYJATG9f_50v7coQM6L9_N-Z03z2WGVRQDrxPTvhM-toBkYb8zmvumTYxHgtiWND4egy6AAthtWZKV_TYXr94tQPNiksLHIlQjlDW-gTkXLc43NZb-sJ5eKX9w8vpqdT9O27M51WXk64dphk6Eh1EuBOiYsSAORIzpNmrk9y9Jhc7r3gpHdPAAqVoNUzoav",
+      "We replaced 4 separate SaaS subscriptions with SaaSzo. Invoice, Tasks, HRMS — all in one place. Our team went from scattered tools to one dashboard overnight. Literally ₹0.",
+    highlight: "Replaced 4 subscriptions",
   },
   {
+    name: "Rahul Mehta",
+    role: "Operations Head, BuildFast Co.",
+    avatar: "RM",
+    avatarColor: "#8b5cf6",
+    rating: 5,
     quote:
-      "The CRM interface is the fastest I've ever used. My team actually updates their pipelines now because it doesn't feel like a chore. Highly recommended.",
-    name: "Michael R.",
-    role: "Sales Director, Zenith Corp",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDA3HIdh3iVLEXfOAuA_fckf_FMb1xAElzaZxMJ3pTNDer4EUx52edJ_fUnumLe33fGtqVh18RgY4Luca1RhTWAXQ4VKn97zzGWfs6WHqPeR2HRCCnRU9wrVbLh2D901XoapN0TFjcXwWwApBi2lVW-Y_6TmOUicVxd8pYpM9HEu9EmHd4KC0pnJuEYthIpw7HaVEAJh3h8Wm3z0s4lnsmgGv6_-XbMb9uaZlNFQCi0eZMD6d4Fg7JFPbR_6WqJxWJik15zWAsIzBBf",
+      "The SSO across all tools is the game changer. My team opens invoice from the dashboard, no separate login, no password reset tickets. That alone saves us hours a week.",
+    highlight: "One login for everything",
   },
   {
+    name: "Ananya Krishnan",
+    role: "HR Manager, GrowthStack",
+    avatar: "AK",
+    avatarColor: "#10b981",
+    rating: 5,
     quote:
-      "Onboarding new hires via the HRMS module takes minutes instead of hours. It sets an incredibly professional tone for our company from day one.",
-    name: "Elena C.",
-    role: "HR Lead, Nexus Digital",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCkIFZAqobEC5tODVJtQa8uJfi2NG2ka4wg3KdfBcxbP_XhUsIYqf7MRp4W8Wc4Wyn__PV5pNU5UJRLIDbTsgoJFZyNfrMWeu2fyE6wtY6dfnH-MinVfUMo-qcjROf_34d-sUOxxfcRaJJIHQSvLBoCQRqMKfD0NP5ReYzaR0iV2HSX5FX5njXe-nSslkY8g7aS3LLgIA8DgFg4w1IPnccbcoYRNVihKIvAQnwb0uUDi-wGR_PVnjRAceG4M-oeBKq0kH5RO3D-Nrxy",
+      "HRMS on SaaSzo is genuinely excellent — attendance, leaves, payroll all in one place and it's Indian compliance ready. I was using expensive tools for this before. Now ₹0.",
+    highlight: "Indian compliance built-in",
+  },
+  {
+    name: "Siddharth Jain",
+    role: "CEO, Nexus Digital",
+    avatar: "SJ",
+    avatarColor: "#f97316",
+    rating: 5,
+    quote:
+      "Setup took literally 2 minutes. Created company, added my team, opened CRM. The Kanban pipeline is clean and fast. Clients are already impressed by the GST invoices.",
+    highlight: "2 minutes to fully live",
+  },
+  {
+    name: "Meera Patel",
+    role: "Project Lead, Softedge Labs",
+    avatar: "MP",
+    avatarColor: "#3b82f6",
+    rating: 5,
+    quote:
+      "Projects + Task Manager together is powerful. Gantt for planning, Kanban for day-to-day — and my whole team is in the same system. No more copying updates between tools.",
+    highlight: "Gantt + Kanban combined",
+  },
+  {
+    name: "Vikram Nair",
+    role: "Sales Director, CloudPilot",
+    avatar: "VN",
+    avatarColor: "#ec4899",
+    rating: 5,
+    quote:
+      "The CRM pipeline is as good as tools costing ₹5,000/month. Lead scoring, deal forecasting, activity timeline — everything a sales team needs. And it's free. It's unreal.",
+    highlight: "As good as ₹5,000/mo tools",
   },
 ];
 
+function StarRow({ count }: { count: number }) {
+  return (
+    <div className="flex gap-0.5 mb-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="none">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      ))}
+    </div>
+  );
+}
+
 export default function Testimonials() {
   return (
-    <section className="py-28 max-w-7xl mx-auto px-6" id="testimonials">
-      <div className="text-center mb-16">
-        <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
-          Testimonials
-        </p>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">
-          Built for teams that demand excellence.
-        </h2>
-      </div>
+    <section className="py-28 relative overflow-hidden" id="testimonials">
+      {/* Right-side glow */}
+      <div
+        className="absolute right-0 top-1/4 w-[500px] h-[500px] pointer-events-none -z-10 opacity-20"
+        style={{
+          background: "radial-gradient(circle, rgba(6,182,212,0.3) 0%, transparent 70%)",
+        }}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {testimonials.map((t) => (
-          <div
-            key={t.name}
-            className="bg-surface-container-lowest rounded-2xl p-8 border border-outline-variant/20 flex flex-col hover:-translate-y-1 transition-transform duration-300"
-            style={{ boxShadow: "0 4px 12px rgba(25,28,30,0.04)" }}
-          >
-            {/* Stars */}
-            <div className="flex items-center gap-0.5 text-amber-400 mb-5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span
-                  key={i}
-                  className="material-symbols-outlined text-xl"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  star
-                </span>
-              ))}
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-14">
+          <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: "#06b6d4" }}>
+            Real Teams, Real Results
+          </p>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-on-surface tracking-tight mb-4">
+            Loved by Indian businesses.
+          </h2>
+          <p className="text-on-surface-variant text-lg max-w-xl mx-auto">
+            From freelancers to 50-person teams — see how SaaSzo is replacing expensive tool stacks across India.
+          </p>
+        </div>
+
+        {/* Aggregate stats */}
+        <div className="flex flex-wrap justify-center gap-8 mb-14">
+          {[
+            { val: "5.0", label: "Average rating", suffix: "★" },
+            { val: "100%", label: "Free forever", suffix: "" },
+            { val: "6", label: "Products included", suffix: "" },
+          ].map((s) => (
+            <div key={s.label} className="text-center">
+              <p className="text-3xl font-black text-on-surface">
+                {s.val}
+                <span style={{ color: "#f59e0b" }}>{s.suffix}</span>
+              </p>
+              <p className="text-sm text-on-surface-variant mt-1">{s.label}</p>
             </div>
+          ))}
+        </div>
 
-            <p className="text-on-surface-variant italic leading-relaxed mb-8 flex-1">
-              &ldquo;{t.quote}&rdquo;
-            </p>
+        {/* Cards grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {TESTIMONIALS.map((t) => (
+            <div
+              key={t.name}
+              className="relative rounded-2xl p-7 border border-outline-variant/20 bg-surface-container-lowest hover:-translate-y-1 transition-all duration-300 flex flex-col"
+              style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}
+            >
+              {/* Highlight badge */}
+              <div
+                className="absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full"
+                style={{
+                  background: `${t.avatarColor}18`,
+                  color: t.avatarColor,
+                }}
+              >
+                {t.highlight}
+              </div>
 
-            <div className="flex items-center gap-3 mt-auto">
-              <img
-                src={t.avatar}
-                alt={t.name}
-                className="w-10 h-10 rounded-full object-cover bg-surface-container-high"
-              />
-              <div>
-                <p className="text-sm font-semibold text-on-surface">
-                  {t.name}
-                </p>
-                <p className="text-xs text-on-surface-variant">{t.role}</p>
+              <StarRow count={t.rating} />
+
+              <blockquote className="text-on-surface text-sm leading-relaxed mb-6 flex-1">
+                &ldquo;{t.quote}&rdquo;
+              </blockquote>
+
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
+                  style={{ background: t.avatarColor }}
+                >
+                  {t.avatar}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-on-surface">{t.name}</p>
+                  <p className="text-xs text-on-surface-variant">{t.role}</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
