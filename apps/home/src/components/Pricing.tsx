@@ -3,72 +3,120 @@ import Link from "next/link";
 const plans = [
   {
     name: "Starter",
-    price: "₹1,999",
+    price: "₹0",
     period: "/mo",
-    description: "Perfect for small teams getting started",
+    badge: null,
+    badgeStyle: {},
+    description: "Perfect for freelancers & solo founders",
     features: [
-      "Up to 10 users",
-      "Basic HRMS",
-      "CRM (100 contacts)",
+      "All 6 products included",
+      "Up to 5 users",
+      "Invoice Manager (unlimited)",
+      "Task Manager & Projects",
       "5 GB storage",
       "Email support",
     ],
-    cta: "Start Free Trial",
+    cta: "Start Free →",
     href: "/register",
     highlighted: false,
   },
   {
     name: "Growth",
-    price: "₹5,999",
+    price: "₹0",
     period: "/mo",
-    description: "For growing teams who need more power",
+    badge: "Most Popular — Free in Beta",
+    badgeStyle: {
+      background: "linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)",
+    },
+    description: "For growing teams who need everything",
     features: [
+      "Everything in Starter",
       "Up to 50 users",
       "Full HRMS + Payroll",
-      "CRM (unlimited)",
-      "AI Insights (Basic)",
-      "Team Chat",
+      "CRM with unlimited contacts",
+      "Real-time team collaboration",
       "50 GB storage",
       "Priority support",
     ],
-    cta: "Get Started",
+    cta: "Get Started Free →",
     href: "/register",
     highlighted: true,
-    badge: "Most Popular",
   },
   {
     name: "Enterprise",
-    price: "Custom",
-    period: "",
+    price: "₹0",
+    period: "/mo during beta",
+    badge: null,
+    badgeStyle: {},
     description: "Tailored for large organisations",
     features: [
+      "Everything in Growth",
       "Unlimited users",
-      "Advanced AI + Automation",
+      "Admin panel access",
+      "SSO + Advanced security",
+      "Dedicated account manager",
       "Custom integrations",
-      "Dedicated CSM",
-      "SLA guarantee",
-      "SSO + Advanced Security",
       "Unlimited storage",
     ],
-    cta: "Contact Sales",
-    href: "#",
+    cta: "Contact Us →",
+    href: "/register",
     highlighted: false,
   },
 ];
 
 export default function Pricing() {
   return (
-    <section className="py-28 bg-surface-container-low/30" id="pricing">
+    <section className="py-28 relative" id="pricing">
+      {/* Background */}
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          background: "linear-gradient(to bottom, transparent, rgba(6,182,212,0.03) 50%, transparent)",
+        }}
+      />
+
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
+        <div className="text-center mb-6">
+          <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: "#06b6d4" }}>
             Pricing
           </p>
           <h2 className="text-3xl md:text-5xl font-extrabold text-on-surface tracking-tight mb-4">
-            Simple, Transparent Pricing
+            Completely Free.
+            <br />
+            <span
+              style={{
+                background: "linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              No tricks, no limits.
+            </span>
           </h2>
           <p className="text-on-surface-variant text-lg max-w-xl mx-auto">
-            No hidden fees. Pay for what you use. Scale as you grow.
+            We're in beta and every plan is ₹0. Sign up today, get full access to all products, no credit card ever.
+          </p>
+        </div>
+
+        {/* Free beta banner */}
+        <div
+          className="max-w-2xl mx-auto mb-12 rounded-2xl px-6 py-4 flex items-center gap-4 border"
+          style={{
+            background: "rgba(6,182,212,0.08)",
+            borderColor: "rgba(6,182,212,0.25)",
+          }}
+        >
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+            style={{ background: "rgba(6,182,212,0.2)", color: "#06b6d4" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
+            </svg>
+          </div>
+          <p className="text-sm font-medium" style={{ color: "#06b6d4" }}>
+            🎉 <strong>Beta launch pricing:</strong> All plans are ₹0/month. No expiry, no credit card, no catch. Prices may change in the future for new signups — but existing users stay on current pricing.
           </p>
         </div>
 
@@ -78,74 +126,65 @@ export default function Pricing() {
               key={plan.name}
               className={`relative rounded-2xl p-8 flex flex-col border transition-all duration-300 hover:-translate-y-1 ${
                 plan.highlighted
-                  ? "border-primary/50 bg-surface-container-lowest"
-                  : "border-outline-variant/20 bg-surface-container-lowest"
-              }`}
+                  ? "border-primary/40"
+                  : "border-outline-variant/20"
+              } bg-surface-container-lowest`}
               style={{
                 boxShadow: plan.highlighted
-                  ? "0 8px 48px rgba(70,72,212,0.15)"
-                  : "0 2px 12px rgba(25,28,30,0.04)",
+                  ? "0 8px 48px rgba(6,182,212,0.15)"
+                  : "0 2px 12px rgba(0,0,0,0.04)",
               }}
             >
-              {/* Popular badge */}
               {plan.badge && (
                 <div
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold text-white px-4 py-1 rounded-full"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                  }}
+                  className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold text-white px-4 py-1.5 rounded-full whitespace-nowrap"
+                  style={plan.badgeStyle}
                 >
                   {plan.badge}
                 </div>
               )}
 
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-on-surface mb-1">
-                  {plan.name}
-                </h3>
-                <p className="text-sm text-on-surface-variant mb-4">
-                  {plan.description}
-                </p>
+                <h3 className="text-lg font-bold text-on-surface mb-1">{plan.name}</h3>
+                <p className="text-sm text-on-surface-variant mb-4">{plan.description}</p>
                 <div className="flex items-end gap-1">
-                  <span className="text-4xl font-extrabold text-on-surface">
-                    {plan.price}
-                  </span>
-                  <span className="text-on-surface-variant mb-1">
-                    {plan.period}
-                  </span>
+                  <span className="text-5xl font-black text-on-surface">{plan.price}</span>
+                  <span className="text-on-surface-variant mb-1.5 text-sm">{plan.period}</span>
                 </div>
               </div>
 
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-primary text-lg shrink-0">
-                      check_circle
+                    <span
+                      className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                      style={{
+                        background: plan.highlighted ? "rgba(6,182,212,0.15)" : "rgba(139,92,246,0.15)",
+                        color: plan.highlighted ? "#06b6d4" : "#8b5cf6",
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </span>
-                    <span className="text-on-surface-variant text-sm">
-                      {feature}
-                    </span>
+                    <span className="text-on-surface-variant text-sm">{feature}</span>
                   </li>
                 ))}
               </ul>
 
               <Link
                 href={plan.href}
-                className={`w-full text-center py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:-translate-y-px active:scale-95 ${
-                  plan.highlighted
-                    ? "text-white"
-                    : "text-on-surface border border-outline-variant hover:bg-surface-container"
-                }`}
-                style={
-                  plan.highlighted
-                    ? {
-                        background:
-                          "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-                        boxShadow: "0 4px 20px rgba(70,72,212,0.3)",
-                      }
-                    : {}
-                }
+                className="w-full text-center py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:-translate-y-px active:scale-95"
+                style={plan.highlighted
+                  ? {
+                      background: "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
+                      color: "#fff",
+                      boxShadow: "0 4px 20px rgba(6,182,212,0.3)",
+                    }
+                  : {
+                      border: "1px solid var(--color-outline-variant)",
+                      color: "var(--color-on-surface)",
+                    }}
               >
                 {plan.cta}
               </Link>
