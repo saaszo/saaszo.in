@@ -13,14 +13,78 @@ import { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
 type Step = "phone" | "otp" | "success";
 type AuthIntent = "signin" | "signup" | "recover";
 
+type PhoneAuthErrorDetails = {
+  message: string;
+  fieldError?: string;
+  retryAfterSeconds?: number;
+};
+
 function mapFirebasePhoneError(error: any) {
   const code = error.code || "";
-  if (code === "auth/invalid-phone-number") return "Invalid phone number format.";
-  if (code === "auth/too-many-requests") return "Too many requests. Please try again later.";
-  if (code === "auth/captcha-check-failed") return "reCAPTCHA verification failed. Please try again.";
-  if (code === "auth/invalid-verification-code") return "Invalid OTP code. Please check and try again.";
-  if (code === "auth/code-expired") return "OTP code has expired. Please request a new one.";
-  return error.message || "Phone verification failed.";
+  const normalized = `${code} ${error?.message || ""}`.toLowerCase();
+
+  if (code === "auth/invalid-phone-number") {
+    return {
+      message: "Enter a valid 10-digit mobile number.",
+      fieldError: "Only 10-digit mobile numbers are allowed here.",
+    } satisfies PhoneAuthErrorDetails;
+  }
+
+  if (
+    code === "auth/too-many-requests" ||
+    normalized.includes("too many requests") ||
+    normalized.includes("quota")
+  ) {
+    return {
+      message:
+        "You have tried too many times. Please wait 60 seconds before requesting another OTP.",
+      retryAfterSeconds: 60,
+    } satisfies PhoneAuthErrorDetails;
+  }
+
+  if (
+    code === "auth/captcha-check-failed" ||
+    code === "auth/invalid-app-credential" ||
+    code === "auth/missing-app-credential"
+  ) {
+    return {
+      message:
+        "The security check could not be completed. Please wait 30 seconds and try again.",
+      retryAfterSeconds: 30,
+    } satisfies PhoneAuthErrorDetails;
+  }
+
+  if (code === "auth/invalid-verification-code") {
+    return { message: "The OTP you entered is incorrect." } satisfies PhoneAuthErrorDetails;
+  }
+
+  if (code === "auth/code-expired" || code === "auth/session-expired") {
+    return {
+      message: "This OTP has expired. Please request a new one.",
+    } satisfies PhoneAuthErrorDetails;
+  }
+
+  if (code === "auth/network-request-failed") {
+    return {
+      message: "We could not reach the verification service. Please check your internet connection and try again.",
+    } satisfies PhoneAuthErrorDetails;
+  }
+
+  if (
+    code === "auth/operation-not-allowed" ||
+    code === "auth/unauthorized-domain" ||
+    code === "auth/app-not-authorized"
+  ) {
+    return {
+      message:
+        "Mobile OTP login is temporarily unavailable on this page. Please try again in a moment.",
+      retryAfterSeconds: 30,
+    } satisfies PhoneAuthErrorDetails;
+  }
+
+  return {
+    message: "We could not verify your mobile number right now. Please try again.",
+  } satisfies PhoneAuthErrorDetails;
 }
 
 /* ─── Inline SVG icons ───────────────────────────────────────── */
@@ -229,6 +293,7 @@ export default function PhoneOtpAuth() {
   const [phoneFieldError, setPhoneFieldError]     = useState("");
   const [toastMessage, setToastMessage]           = useState("");
   const [resendTimer, setResendTimer]             = useState(0);
+  const [sendRetryTimer, setSendRetryTimer]       = useState(0);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
   const [recaptchaSolved, setRecaptchaSolved]     = useState(false);
@@ -266,13 +331,14 @@ export default function PhoneOtpAuth() {
   }, []);
 
   useEffect(() => {
-    if (resendTimer <= 0 && verifyLockSeconds <= 0) return;
+    if (resendTimer <= 0 && verifyLockSeconds <= 0 && sendRetryTimer <= 0) return;
     const t = window.setInterval(() => {
       setResendTimer((c) => (c > 0 ? c - 1 : c));
       setVerifyLockSeconds((c) => (c > 0 ? c - 1 : c));
+      setSendRetryTimer((c) => (c > 0 ? c - 1 : c));
     }, 1000);
     return () => window.clearInterval(t);
-  }, [resendTimer > 0, verifyLockSeconds > 0]);
+  }, [resendTimer > 0, verifyLockSeconds > 0, sendRetryTimer > 0]);
 
   useEffect(() => {
     if (verifyLockSeconds === 0 && verifyAttempts >= 5) {
@@ -309,8 +375,16 @@ export default function PhoneOtpAuth() {
 
   const requestPhoneOtp = async () => {
     setError(""); setNotice(""); setPhoneFieldError("");
-    if (phone.trim().length < 6) { setError("Please enter a valid phone number."); setPhoneFieldError("Please enter a valid mobile number."); return false; }
-    const fullPhone = `${countryCode}${phone.replace(/\D/g, "")}`;
+    if (sendRetryTimer > 0) {
+      setError(`Please wait ${sendRetryTimer} seconds before trying again.`);
+      return false;
+    }
+    if (!/^\d{10}$/.test(phone)) {
+      setError("Enter a valid 10-digit mobile number.");
+      setPhoneFieldError("Only numbers are allowed, and the mobile number must be exactly 10 digits.");
+      return false;
+    }
+    const fullPhone = `${countryCode}${phone}`;
     setIsLoading(true);
     try {
       if (intent === "signup") {
@@ -329,12 +403,19 @@ export default function PhoneOtpAuth() {
       setStep("otp");
       setOtp(["", "", "", "", "", ""]);
       setVerifyAttempts(0); setVerifyLockSeconds(0);
+      setSendRetryTimer(0);
       setResendTimer(60);
       setNotice(`OTP sent to ${fullPhone}.`);
       return true;
     } catch (err: any) {
-      setError(mapFirebasePhoneError(err));
-      setPhoneFieldError(intent === "signup" ? mapFirebasePhoneError(err) : "");
+      const mapped = mapFirebasePhoneError(err);
+      setError(mapped.message);
+      setPhoneFieldError(
+        mapped.fieldError ?? (intent === "signup" ? mapped.message : ""),
+      );
+      if (mapped.retryAfterSeconds) {
+        setSendRetryTimer(mapped.retryAfterSeconds);
+      }
       try { recaptchaVerifier?.clear(); } catch { /* destroyed */ }
       setRecaptchaVerifier(null); setRecaptchaSolved(false);
       return false;
@@ -356,7 +437,7 @@ export default function PhoneOtpAuth() {
       setStep("success");
     } catch (err: any) {
       const mapped = mapFirebasePhoneError(err);
-      if (/invalid otp code/i.test(mapped)) {
+      if (/incorrect|invalid otp/i.test(mapped.message.toLowerCase())) {
         const next = verifyAttempts + 1;
         if (next >= 5) {
           setVerifyAttempts(5); setVerifyLockSeconds(60);
@@ -366,7 +447,7 @@ export default function PhoneOtpAuth() {
           setVerifyAttempts(next);
           setError(`Incorrect OTP. ${5 - next} attempt${5 - next !== 1 ? "s" : ""} remaining.`);
         }
-      } else { setError(mapped); }
+      } else { setError(mapped.message); }
     } finally { setIsLoading(false); }
   };
 
@@ -389,7 +470,7 @@ export default function PhoneOtpAuth() {
     }
   };
   const handleResend = async () => {
-    if (resendTimer > 0) return;
+    if (resendTimer > 0 || sendRetryTimer > 0) return;
     setOtp(["", "", "", "", "", ""]); setError(""); setNotice("");
     setVerifyAttempts(0); setVerifyLockSeconds(0); setRecaptchaSolved(false);
     try { recaptchaVerifier?.clear(); } catch { /* destroyed */ }
@@ -486,14 +567,22 @@ export default function PhoneOtpAuth() {
                       </span>
                       <input
                         type="tel" placeholder="98765 43210"
-                        value={phone} onChange={(e) => { setPhone(e.target.value); setPhoneFieldError(""); }}
-                        required inputMode="tel"
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
+                          setPhoneFieldError("");
+                          if (error) setError("");
+                        }}
+                        required inputMode="numeric" maxLength={10} pattern="[0-9]{10}"
                         style={{ width:"100%",padding:"11px 12px 11px 38px",borderRadius:"10px",border:`1px solid ${phoneFieldError ? "#dc2626" : "rgba(13,15,26,0.15)"}`,background:"#fafafa",fontSize:"0.93rem",color:"#0d0f1a",outline:"none",boxSizing:"border-box",transition:"border-color 0.15s,box-shadow 0.15s" }}
                         onFocus={(e) => { e.target.style.borderColor="#06b6d4"; e.target.style.boxShadow="0 0 0 3px rgba(6,182,212,0.12)"; e.target.style.background="#fff"; }}
                         onBlur={(e)  => { e.target.style.borderColor="rgba(13,15,26,0.15)"; e.target.style.boxShadow="none"; e.target.style.background="#fafafa"; }}
                       />
                     </div>
                   </div>
+                  <p style={{ margin:0,fontSize:"0.72rem",color:"#6b7280",lineHeight:1.45 }}>
+                    Enter only your 10-digit mobile number. Do not add spaces, country code, or symbols.
+                  </p>
                   {phoneFieldError && <InlineFieldError message={phoneFieldError} />}
                 </div>
 
@@ -516,9 +605,9 @@ export default function PhoneOtpAuth() {
                 />
 
                 <button
-                  id="send-phone-otp-button" type="submit" disabled={isLoading}
-                  style={{ ...primaryBtn, marginTop:"4px" }}
-                  onMouseEnter={(e) => { if (!isLoading) (e.currentTarget as HTMLButtonElement).style.boxShadow="0 4px 12px rgba(70,72,212,0.4),0 10px 28px rgba(70,72,212,0.22)"; }}
+                  id="send-phone-otp-button" type="submit" disabled={isLoading || sendRetryTimer > 0}
+                  style={{ ...primaryBtn, marginTop:"4px", opacity: (isLoading || sendRetryTimer > 0) ? 0.75 : 1, cursor: (isLoading || sendRetryTimer > 0) ? "not-allowed" : "pointer" }}
+                  onMouseEnter={(e) => { if (!isLoading && sendRetryTimer <= 0) (e.currentTarget as HTMLButtonElement).style.boxShadow="0 4px 12px rgba(70,72,212,0.4),0 10px 28px rgba(70,72,212,0.22)"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow="0 2px 8px rgba(70,72,212,0.3),0 6px 20px rgba(245,158,11,0.15)"; }}
                 >
                   {isLoading ? (
@@ -526,14 +615,18 @@ export default function PhoneOtpAuth() {
                       <span style={{ width:"18px",height:"18px",border:"2px solid rgba(255,255,255,0.35)",borderTopColor:"#fff",borderRadius:"50%",animation:"phone-spin 0.8s linear infinite",flexShrink:0 }} />
                       Sending OTP…
                     </>
+                  ) : sendRetryTimer > 0 ? (
+                    <>Try again in {sendRetryTimer}s</>
                   ) : (
                     <><SendIcon />{submitLabel}</>
                   )}
                 </button>
               </form>
 
-              <p style={{ margin:"12px 0 0",textAlign:"center",fontSize:"0.75rem",color:"#9ca3af" }}>
-                Protected by invisible reCAPTCHA.
+              <p style={{ margin:"12px 0 0",textAlign:"center",fontSize:"0.75rem",color:sendRetryTimer > 0 ? "#dc2626" : "#9ca3af" }}>
+                {sendRetryTimer > 0
+                  ? `For your security, please wait ${sendRetryTimer} seconds before retrying OTP verification.`
+                  : "Protected by invisible reCAPTCHA."}
               </p>
 
               {/* Divider + alternate */}
@@ -632,7 +725,12 @@ export default function PhoneOtpAuth() {
               <div style={{ marginTop:"20px",display:"flex",flexDirection:"column",gap:"10px",textAlign:"center" }}>
                 <p style={{ margin:0,fontSize:"0.85rem",color:"#6b7280" }}>
                   Didn't receive the code?{" "}
-                  {resendTimer > 0 ? (
+                  {sendRetryTimer > 0 ? (
+                    <span style={{ color:"#9ca3af" }}>
+                      Retry available in{" "}
+                      <span style={{ fontWeight:700,color:"#0891b2",fontVariantNumeric:"tabular-nums" }}>{sendRetryTimer}s</span>
+                    </span>
+                  ) : resendTimer > 0 ? (
                     <span style={{ color:"#9ca3af" }}>
                       Resend in{" "}
                       <span style={{ fontWeight:700,color:"#0891b2",fontVariantNumeric:"tabular-nums" }}>{resendTimer}s</span>

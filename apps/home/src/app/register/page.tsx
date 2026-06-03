@@ -1,10 +1,11 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAuthSession } from "@/components/AuthProvider";
 import { API_BASE_URL } from "@/lib/app-config";
 import { appConfig, toAbsoluteApiUrl } from "@/lib/config";
+import { navigateTo } from "@/lib/auth-client";
 import { lookupAuthIdentifier } from "@/lib/auth-utils";
 import { getCookieValue, resolveSafeRedirectTarget } from "@/lib/utils";
 
@@ -190,7 +191,6 @@ function FloatingToast({
 
 /* ═══ Main form ══════════════════════════════════════════════════════════ */
 function RegisterForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { authenticated, loading: sessionLoading, postAuthRedirect, signInWithGoogle, signUpWithEmail } = useAuthSession();
 
@@ -253,8 +253,10 @@ function RegisterForm() {
 
   useEffect(() => {
     if (!sessionLoading && authenticated)
-      router.replace(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl));
-  }, [authenticated, postAuthRedirect, router, sessionLoading]);
+      navigateTo(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl), {
+        replace: true,
+      });
+  }, [authenticated, postAuthRedirect, sessionLoading]);
 
   /* countdown timer */
   const hasRunningTimers = otpLockSeconds > 0 || resendTimer > 0;
@@ -283,6 +285,17 @@ function RegisterForm() {
     setOtpError(""); setOtpNotice(""); setOtpLockSeconds(0); setResendTimer(0);
     setEmailFieldError("");
   }, [normalizedEmail]);
+
+  if (sessionLoading || authenticated) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: C.rBg,
+        }}
+      />
+    );
+  }
 
   /* ── handlers ── */
   const handleSendOtp = async () => {

@@ -5,6 +5,7 @@ import {
   startTransition,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -500,11 +501,11 @@ function navigateAfterAuth(
       const url = new URL(safeAbsoluteUrl);
 
       if (url.origin !== appOrigin) {
-        window.location.assign(safeAbsoluteUrl);
+        window.location.replace(safeAbsoluteUrl);
         return;
       }
     } catch {
-      router.push("/dashboard");
+      router.replace("/dashboard");
       return;
     }
   }
@@ -514,11 +515,11 @@ function navigateAfterAuth(
     window.location.origin !== appOrigin &&
     safePath.startsWith("/")
   ) {
-    window.location.assign(`${appOrigin}${safePath}`);
+    window.location.replace(`${appOrigin}${safePath}`);
     return;
   }
 
-  router.push(safePath);
+  router.replace(safePath);
 }
 
 function resolveAuthRedirectTarget(
@@ -534,6 +535,7 @@ function resolveAuthRedirectTarget(
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const signOutInProgressRef = useRef(false);
   const [state, setState] = useState<AuthSessionState>({
     ...signedOutState,
     loading: true,
@@ -1029,6 +1031,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      if (signOutInProgressRef.current) {
+        if (!user) {
+          setBackendToken(null);
+          setState(signedOutState);
+        }
+        return;
+      }
+
       if (!user) {
         await hydrateStoredBackendToken();
         return;
@@ -1308,16 +1318,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
-      const firebaseUser = auth?.currentUser;
+      const payload = await fetchBackendJson("/auth/account/set-password", {
+        method: "POST",
+        body: JSON.stringify({
+          password,
+          password_confirmation: password,
+        }),
+      });
 
-      if (!firebaseUser) {
-        return {
-          error:
-            "Use the forgot password flow for email/password accounts until the backend password settings screen is connected.",
-        };
+      if (!payload.success) {
+        throw new Error(payload.message || "Could not save password.");
       }
 
-      await firebaseUpdatePassword(firebaseUser, password);
+      const firebaseUser = auth?.currentUser;
+      if (firebaseUser) {
+        try {
+          await firebaseUpdatePassword(firebaseUser, password);
+        } catch {
+          // Backend password login is the primary requirement for SaaSzo email auth.
+          // If Firebase password sync fails here, the user can still use email/password
+          // login through the SaaSzo backend with the saved password.
+        }
+      }
+
       return { error: undefined };
     } catch (err: any) {
       return { error: err.message };
@@ -1409,29 +1432,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
+    signOutInProgressRef.current = true;
     const token = backendToken ?? getStoredBackendToken();
+
+    await fetchWithCsrf(`${API_BASE_URL}/auth/logout`, {
+        method: "POST",
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            }
+          : {
+              Accept: "application/json",
+            },
+      }).catch(() => undefined);
 
     clearStoredBackendToken();
     setBackendToken(null);
 
     if (auth?.currentUser) {
-      await firebaseSignOut(auth);
-    }
-
-    if (token) {
-      await fetchWithCsrf(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      }).catch(() => undefined);
+      await firebaseSignOut(auth).catch(() => undefined);
     }
 
     setState(signedOutState);
     startTransition(() => {
-      router.push("/auth");
+      router.replace("/auth");
     });
+    window.setTimeout(() => {
+      signOutInProgressRef.current = false;
+    }, 1000);
   }
 
   async function getBranches(): Promise<BranchInfo[]> {

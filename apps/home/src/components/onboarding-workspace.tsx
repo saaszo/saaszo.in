@@ -32,7 +32,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
-import { cn, resolveSafeRedirectTarget } from "@/lib/utils";
+import { cn, meetsPasswordRequirements, resolveSafeRedirectTarget } from "@/lib/utils";
 import { SearchableSelect } from "./ui/searchable-select";
 import { useLocations } from "@/lib/shared-masters";
 import { useAuthSession } from "./AuthProvider";
@@ -356,6 +356,11 @@ export function OnboardingWorkspace() {
   const [phoneOtpAttempts, setPhoneOtpAttempts] = useState(0);
   const [phoneOtpLockTimer, setPhoneOtpLockTimer] = useState(0);
   const [manualCityMode, setManualCityMode] = useState(false);
+  const [passwordDraft, setPasswordDraft] = useState("");
+  const [confirmPasswordDraft, setConfirmPasswordDraft] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordNotice, setPasswordNotice] = useState("");
+  const [passwordSaved, setPasswordSaved] = useState(false);
   const {
     user,
     profile,
@@ -365,6 +370,7 @@ export function OnboardingWorkspace() {
     onboarding,
     reloadUser,
     setOnboardingState,
+    updatePassword,
   } = useAuthSession();
   const setupAlreadyResolved = Boolean(
     onboarding?.setup_completed || onboarding?.setup_skipped,
@@ -702,6 +708,8 @@ export function OnboardingWorkspace() {
   const signedInWithPassword =
     auth?.primaryProvider === "Password" ||
     Boolean(auth?.providers?.includes("password"));
+  const shouldOfferPasswordSetup =
+    !signedInWithPassword && (signedInWithGoogle || signedInWithPhoneOtp);
 
   const emailVerified = useMemo(() => {
     if (emailOtpVerified) {
@@ -772,6 +780,49 @@ export function OnboardingWorkspace() {
   const phoneVerificationLabel = phoneVerified
     ? "Verified by mobile OTP sign-in"
     : "Pending verification";
+
+  async function handleSetLoginPassword() {
+    if (!shouldOfferPasswordSetup) {
+      return;
+    }
+
+    const trimmedPassword = passwordDraft.trim();
+    const trimmedConfirmPassword = confirmPasswordDraft.trim();
+
+    if (!trimmedPassword) {
+      setPasswordNotice("Enter a password to continue.");
+      return;
+    }
+
+    if (!meetsPasswordRequirements(trimmedPassword)) {
+      setPasswordNotice(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+      );
+      return;
+    }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
+      setPasswordNotice("Password and confirm password do not match.");
+      return;
+    }
+
+    setPasswordSaving(true);
+    setPasswordNotice("");
+    const result = await updatePassword(trimmedPassword);
+    setPasswordSaving(false);
+
+    if (result.error) {
+      setPasswordNotice(result.error);
+      return;
+    }
+
+    setPasswordSaved(true);
+    setPasswordDraft("");
+    setConfirmPasswordDraft("");
+    setPasswordNotice(
+      "Password saved successfully. You can now use email and password login too.",
+    );
+  }
 
   const selectedRegistrationTypes = form.registration_types || [];
   const availableShowOnInvoiceOptions = useMemo(() => {
@@ -2584,6 +2635,88 @@ export function OnboardingWorkspace() {
                       "user_type",
                     )}
                   </div>
+                  {shouldOfferPasswordSetup && (
+                    <Card className="col-span-full border-primary/15 bg-primary/5 p-5 shadow-sm">
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <div className="text-sm font-semibold text-slate-900">
+                            Create a login password
+                          </div>
+                          <p className="text-xs leading-5 text-slate-600">
+                            {signedInWithGoogle
+                              ? "You signed in with Google. Add a password now so you can also log in with email and password later."
+                              : "You signed in with mobile OTP. Add a password now so you can also log in with email and password later."}
+                          </p>
+                          <p className="text-[11px] font-medium text-slate-500">
+                            Save your basic details on this step, and this password will stay linked to your SaaSzo account.
+                          </p>
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label className="text-slate-700">
+                              Create password
+                            </Label>
+                            <Input
+                              className="h-12 bg-white"
+                              type="password"
+                              autoComplete="new-password"
+                              value={passwordDraft}
+                              placeholder="Create a strong password"
+                              maxLength={128}
+                              onChange={(e) => {
+                                setPasswordDraft(e.target.value);
+                                setPasswordNotice("");
+                                if (passwordSaved) setPasswordSaved(false);
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-slate-700">
+                              Confirm password
+                            </Label>
+                            <Input
+                              className="h-12 bg-white"
+                              type="password"
+                              autoComplete="new-password"
+                              value={confirmPasswordDraft}
+                              placeholder="Re-enter your password"
+                              maxLength={128}
+                              onChange={(e) => {
+                                setConfirmPasswordDraft(e.target.value);
+                                setPasswordNotice("");
+                                if (passwordSaved) setPasswordSaved(false);
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <p
+                            className={cn(
+                              "text-xs leading-5",
+                              passwordSaved
+                                ? "text-emerald-700"
+                                : passwordNotice
+                                  ? "text-red-600"
+                                  : "text-slate-500",
+                            )}
+                          >
+                            {passwordNotice ||
+                              "Use at least 8 characters with uppercase, lowercase, number, and special character."}
+                          </p>
+                          <Button
+                            type="button"
+                            onClick={() => void handleSetLoginPassword()}
+                            disabled={passwordSaving}
+                            className="w-full sm:w-auto"
+                          >
+                            {passwordSaving ? "Saving password..." : passwordSaved ? "Password saved" : "Save password"}
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
                 </div>
               )}
 

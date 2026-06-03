@@ -215,12 +215,27 @@ export function getRequestedRedirect() {
   return new URLSearchParams(window.location.search).get("redirect") || "";
 }
 
-export function navigateTo(url?: string) {
+function navigateWithMode(url: string, mode: "assign" | "replace") {
+  if (mode === "replace") {
+    window.location.replace(url);
+    return;
+  }
+
+  window.location.href = url;
+}
+
+export function navigateTo(
+  url?: string,
+  options?: {
+    replace?: boolean;
+  },
+) {
   if (typeof window === "undefined") {
     return;
   }
 
   const resolved = resolveRedirect(url);
+  const mode = options?.replace ? "replace" : "assign";
 
   // If resolveRedirect returned a bare path (e.g. "/dashboard"), always
   // navigate to the canonical www origin so middleware runs on the right host.
@@ -229,11 +244,11 @@ export function navigateTo(url?: string) {
   // next.config.ts canonical redirect fires, causing a broken auth loop.
   if (resolved.startsWith("/")) {
     const canonicalBase = appConfig.appUrl.replace(/\/$/, ""); // https://www.saaszo.in
-    window.location.href = `${canonicalBase}${resolved}`;
+    navigateWithMode(`${canonicalBase}${resolved}`, mode);
     return;
   }
 
-  window.location.href = resolved;
+  navigateWithMode(resolved, mode);
 }
 
 export function normalizeErrorMessage(

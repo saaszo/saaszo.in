@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { appConfig } from "@/lib/config";
 import { navigateTo } from "@/lib/auth-client";
 import { useAuthSession } from "@/components/AuthProvider";
@@ -77,7 +77,6 @@ type AuthTab   = "email" | "google" | "phone";
 type PhoneStep = "enter" | "otp" | "success";
 
 function AuthForm() {
-  const router       = useRouter();
   const searchParams = useSearchParams();
   const {
     authenticated, loading: sessionLoading,
@@ -140,9 +139,11 @@ function AuthForm() {
       // Always leave auth pages through the canonical redirect helper so
       // apex-domain sessions land on www.saaszo.in/dashboard instead of
       // getting stuck on saaszo.in/dashboard with mismatched middleware.
-      navigateTo(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl));
+      navigateTo(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl), {
+        replace: true,
+      });
     }
-  }, [authenticated, postAuthRedirect, router, sessionLoading]);
+  }, [authenticated, postAuthRedirect, sessionLoading]);
 
   /* ── Resend countdown ── */
   useEffect(() => {
@@ -286,6 +287,17 @@ function AuthForm() {
     transition: "all 0.2s ease",
     display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
   };
+
+  if (sessionLoading || authenticated) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: C.rBg,
+        }}
+      />
+    );
+  }
 
   /* ── Phone tab inner UI ── */
   const renderPhoneTab = () => {
