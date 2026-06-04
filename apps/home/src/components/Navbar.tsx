@@ -9,6 +9,7 @@ const PRODUCTS = [
   { label: "HRMS", href: "https://hrms.saaszo.in", desc: "HR, payroll & attendance", color: "#10b981" },
   { label: "CRM", href: "https://crm.saaszo.in", desc: "Leads & sales pipeline", color: "#f97316" },
   { label: "Projects", href: "https://projects.saaszo.in", desc: "Gantt timelines", color: "#3b82f6" },
+  { label: "Connect", href: "https://connect.saaszo.in", desc: "Team chat & messaging", color: "#f43f5e" },
   { label: "Admin Panel", href: "https://admin.saaszo.in", desc: "Platform management", color: "#ec4899" },
 ];
 

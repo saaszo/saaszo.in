@@ -7,6 +7,7 @@ const footerLinks = {
     { label: "HRMS", href: "https://hrms.saaszo.in" },
     { label: "CRM", href: "https://crm.saaszo.in" },
     { label: "Projects", href: "https://projects.saaszo.in" },
+    { label: "Connect", href: "https://connect.saaszo.in" },
     { label: "Admin Panel", href: "https://admin.saaszo.in" },
   ],
   Company: [
@@ -41,10 +42,10 @@ export default function Footer() {
         <div className="max-w-3xl mx-auto px-6 text-center">
           <p className="text-white/80 text-sm font-semibold uppercase tracking-widest mb-3">🎉 Limited Beta Access</p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight">
-            Get all 6 products, completely free.
+            Get all 7 products, completely free.
           </h2>
           <p className="text-white/70 text-lg mb-8">
-            No credit card. No trial period. Invoice, Tasks, HRMS, CRM, Projects — yours the moment you sign up.
+            No credit card. No trial period. Invoice, Tasks, HRMS, CRM, Projects, Connect — yours the moment you sign up.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -78,7 +79,7 @@ export default function Footer() {
               }}>SaaSzo</span>
             </Link>
             <p className="text-on-surface-variant text-sm leading-relaxed">
-              The operating system for modern Indian business. Six tools, one login, zero cost.
+              The operating system for modern Indian business. Seven tools, one login, zero cost.
             </p>
           </div>
 

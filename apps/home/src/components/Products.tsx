@@ -143,6 +143,33 @@ const products = [
     cta: "Open Projects",
     align: "left",
   },
+  {
+    id: "connect",
+    badge: "Communication",
+    badgeColor: "bg-rose-500/15 text-rose-400 border-rose-500/30",
+    accentColor: "#f43f5e",
+    gradientFrom: "#e11d48",
+    gradientTo: "#9f1239",
+    glowColor: "rgba(244,63,94,0.15)",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    ),
+    name: "Connect",
+    url: "https://connect.saaszo.in",
+    headline: "Team chat. Zero switching cost.",
+    description: "Real-time messaging, channels, direct messages, and file sharing — all connected to your SaaSzo workspace. No extra app, no extra login, no Slack bill.",
+    features: [
+      "Channels, DMs & group threads",
+      "File sharing & media previews",
+      "@mentions & smart notifications",
+      "Integrated with Tasks, Projects & HRMS",
+    ],
+    screenshot: "/product-connect.png",
+    cta: "Open Connect",
+    align: "right",
+  },
 ];
 
 export default function Products() {
