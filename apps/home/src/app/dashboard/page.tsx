@@ -123,11 +123,10 @@ const PRODUCTS: Product[] = [
       "Manage your team — mark attendance, run payroll, track leaves, and generate payslips.",
     icon: "badge",
     tool: "hrms",
-    status: "coming_soon",
-    badge: "Coming Soon",
+    status: "active",
     color: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
     accentColor: "#10b981",
-    ctaText: "Join Waitlist",
+    ctaText: "Open App",
   },
 ];
 
@@ -137,6 +136,8 @@ const TASK_BRIDGE_FALLBACK_URL =
   "https://task.saaszo.in/auth-bridge?redirect=%2Ftask-manager";
 const CONNECT_BRIDGE_FALLBACK_URL =
   "https://connect.saaszo.in/auth-bridge?redirect=%2Fdashboard";
+const HRMS_BRIDGE_FALLBACK_URL =
+  "https://hrms.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -502,6 +503,8 @@ export default function DashboardPage() {
           ? TASK_BRIDGE_FALLBACK_URL
           : product.tool === "connect"
             ? CONNECT_BRIDGE_FALLBACK_URL
+            : product.tool === "hrms"
+              ? HRMS_BRIDGE_FALLBACK_URL
             : undefined;
     const safeRedirectUrl = toSafeAbsoluteUrl(redirectUrl, appConfig.appUrl);
     const safeFallbackRedirectUrl = toSafeAbsoluteUrl(
