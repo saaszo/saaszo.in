@@ -9,10 +9,17 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SaaSzo — The Operating System for Modern Business",
+  applicationName: "SaaSzo",
+  title: {
+    default: "SaaSzo — The Operating System for Modern Business",
+    template: "%s | SaaSzo",
+  },
   description:
     "Unify your entire workflow. HRMS, CRM, advanced AI insights, and seamless internal chat—all in one powerful, beautifully designed platform.",
   keywords: ["SaaS", "HRMS", "CRM", "AI", "Business Platform", "SaaSzo"],
+  icons: {
+    icon: [{ url: "/icon" }],
+  },
 };
 
 export default function RootLayout({
