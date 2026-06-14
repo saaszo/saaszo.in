@@ -49,6 +49,10 @@ function mapFirebasePhoneError(err: any): string {
   return err?.message ?? "Something went wrong. Please try again.";
 }
 
+function sanitizePhoneNumber(value: string) {
+  return value.replace(/\D/g, "").slice(0, 10);
+}
+
 /* ─── Icons ─── */
 function GoogleIcon({ size = 18 }: { size?: number }) {
   return (
@@ -208,8 +212,8 @@ function AuthForm() {
   /* ── Phone: send OTP ── */
   const handleSendOtp = async () => {
     if (isLoading) return;
-    const digits = phoneNum.replace(/\D/g, "");
-    if (digits.length < 6) { setError("Please enter a valid phone number."); return; }
+    const digits = sanitizePhoneNumber(phoneNum);
+    if (digits.length !== 10) { setError("Please enter a valid 10-digit mobile number."); return; }
     setIsLoading(true); setError("");
     try {
       const verifier = await ensureRecaptcha();
@@ -398,8 +402,16 @@ function AuthForm() {
               <svg style={{ position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",color:"#94a3b8",pointerEvents:"none" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
               <input
                 type="tel" placeholder="98765 43210"
-                value={phoneNum} onChange={(e) => setPhoneNum(e.target.value)}
+                value={phoneNum}
+                onChange={(e) => {
+                  setPhoneNum(sanitizePhoneNumber(e.target.value));
+                  if (error) setError("");
+                }}
                 onKeyDown={(e) => e.key === "Enter" && handleSendOtp()}
+                inputMode="numeric"
+                autoComplete="tel-national"
+                maxLength={10}
+                pattern="[0-9]{10}"
                 style={{ ...inputBase, padding:"9px 12px 9px 32px" }}
                 onFocus={(e) => { e.target.style.borderColor=C.cyan; e.target.style.boxShadow=`0 0 0 3px ${C.cyanSoft}`; e.target.style.background="#fff"; }}
                 onBlur={(e)  => { e.target.style.borderColor=C.rBorder; e.target.style.boxShadow="none"; e.target.style.background="#f9fafb"; }}
