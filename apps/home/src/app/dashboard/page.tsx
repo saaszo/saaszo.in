@@ -88,18 +88,17 @@ const PRODUCTS: Product[] = [
     ctaText: "Open App",
   },
   {
-    id: "pos",
-    name: "POS for Restaurants",
-    tagline: "Restaurant Billing · KOT · Tables",
+    id: "seller",
+    name: "Seller Hub",
+    tagline: "Orders · Returns · Charges · Settlements",
     description:
-      "A restaurant-special POS with fast billing, table management, kitchen order tickets, and service-ready checkout flows.",
-    icon: "restaurant",
-    tool: "pos",
-    status: "coming_soon",
-    badge: "Coming Soon",
-    color: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+      "Track marketplace orders, reconcile settlements, review returns, manage charges, and monitor ecommerce profitability in one place.",
+    icon: "storefront",
+    tool: "seller",
+    status: "active",
+    color: "linear-gradient(135deg, #f97316 0%, #ef4444 100%)",
     accentColor: "#f97316",
-    ctaText: "Notify Me",
+    ctaText: "Open App",
   },
   {
     id: "crm",
@@ -136,6 +135,8 @@ const TASK_BRIDGE_FALLBACK_URL =
   "https://task.saaszo.in/auth-bridge?redirect=%2Ftask-manager";
 const CONNECT_BRIDGE_FALLBACK_URL =
   "https://connect.saaszo.in/auth-bridge?redirect=%2Fdashboard";
+const SELLER_BRIDGE_FALLBACK_URL =
+  "https://seller.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 const HRMS_BRIDGE_FALLBACK_URL =
   "https://hrms.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 
@@ -503,6 +504,8 @@ export default function DashboardPage() {
           ? TASK_BRIDGE_FALLBACK_URL
           : product.tool === "connect"
             ? CONNECT_BRIDGE_FALLBACK_URL
+            : product.tool === "seller"
+              ? SELLER_BRIDGE_FALLBACK_URL
             : product.tool === "hrms"
               ? HRMS_BRIDGE_FALLBACK_URL
             : undefined;
@@ -1853,7 +1856,15 @@ function StaffModal({
     tool_access: staff?.tool_access || [],
   });
 
-  const tools = ["invoice", "task", "pos", "crm", "hrms", "accounting"];
+  const tools = [
+    "invoice",
+    "task",
+    "connect",
+    "seller",
+    "crm",
+    "hrms",
+    "accounting",
+  ];
 
   const toggleTool = (tool: string) => {
     setValues((c) => {
