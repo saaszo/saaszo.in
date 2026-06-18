@@ -1,11 +1,26 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+*.db3
+*.s3db
+*.sl3
+*.db-shm
+*.db-wal
+*.sql
+*.mysql
+*.pgsql
+dump.rdb
+mongod.lock
+
 # Dependencies
 node_modules
 .pnp
 .pnp.js
 
-# Local env files
+# Environment variables
 .env
 .env.local
 .env.development.local
@@ -31,11 +46,11 @@ dist
 # Wrangler
 .wrangler/
 
-
 # Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
 # Misc
 .DS_Store
