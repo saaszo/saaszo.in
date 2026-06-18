@@ -293,10 +293,15 @@ function setStoredBackendToken(token: string) {
 
     // Set the session marker cookie so the server-side middleware on
     // /dashboard/* allows the request through without redirecting to /auth.
+    // Intentionally NO Max-Age — this makes it a browser-session cookie that
+    // expires when the browser closes. The backend token lives in sessionStorage
+    // which also dies with the tab, so their lifetimes now match. Without this,
+    // the 30-day cookie outlives the sessionStorage token and causes the
+    // middleware to admit a user whose session is actually expired.
     const secureFlag =
       window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `saaszo_session=1; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
-    document.cookie = `saaszo_session=1; Path=/; Domain=${sharedCookieDomain}; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secureFlag}`;
+    document.cookie = `saaszo_session=1; Path=/; SameSite=Lax${secureFlag}`;
+    document.cookie = `saaszo_session=1; Path=/; Domain=${sharedCookieDomain}; SameSite=Lax${secureFlag}`;
   }
 }
 
@@ -980,6 +985,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           return;
         } catch {
+          // hydrateCookieSession() threw — the backend session is also expired.
+          // CRITICAL: clear the saaszo_session cookie here so the server-side
+          // middleware stops treating this user as authenticated. Without this
+          // the middleware keeps allowing /dashboard requests → DashboardLayout
+          // sees authenticated=false → grace timer fires router.refresh() → loop.
+          clearStoredBackendToken();
           if (isMounted) {
             setBackendToken(null);
             setState(signedOutState);

@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { useAuthSession } from "@/components/AuthProvider";
@@ -33,7 +33,9 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
   // Without this, closing+reopening a tab wipes sessionStorage and
   // AuthProvider briefly sets authenticated=false before onIdTokenChanged
   // fires — causing the dashboard to redirect to /auth and creating a loop.
-  const unauthGraceExpired = useRef(false);
+  // Using state (not a ref) so that when the timer fires, React re-renders
+  // and the redirect useEffect below can detect the expired grace period.
+  const [unauthGraceExpired, setUnauthGraceExpired] = useState(false);
   const graceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isSetupPage = pathname === "/dashboard/setup";
@@ -69,7 +71,7 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
   useEffect(() => {
     if (loading || authenticated) {
       // Reset grace state whenever we're loading or successfully authenticated
-      unauthGraceExpired.current = false;
+      setUnauthGraceExpired(false);
       if (graceTimerRef.current) {
         clearTimeout(graceTimerRef.current);
         graceTimerRef.current = null;
@@ -78,14 +80,14 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
     }
 
     // Not loading, not authenticated:
-    if (unauthGraceExpired.current) {
+    if (unauthGraceExpired) {
       // Grace period already over — proceed to redirect
       return;
     }
 
     // If there's no session cookie at all, skip grace period — user is genuinely signed out
     if (!hasSessionCookie()) {
-      unauthGraceExpired.current = true;
+      setUnauthGraceExpired(true);
       return;
     }
 
@@ -93,15 +95,15 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
     // a chance to restore the session via onIdTokenChanged.
     if (!graceTimerRef.current) {
       graceTimerRef.current = setTimeout(() => {
-        unauthGraceExpired.current = true;
         graceTimerRef.current = null;
-        // Force a re-render by triggering the redirect useEffect below
-        startTransition(() => {
-          router.refresh();
-        });
+        // Setting state triggers a re-render so the redirect useEffect below
+        // can fire. Do NOT call router.refresh() here — that re-runs the
+        // middleware which sees the session cookie and bounces the user back
+        // to /dashboard, creating an infinite redirect loop.
+        setUnauthGraceExpired(true);
       }, 3000);
     }
-  }, [authenticated, loading, router]);
+  }, [authenticated, loading, unauthGraceExpired]);
 
   // Cleanup grace timer on unmount
   useEffect(() => {
@@ -118,7 +120,7 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
     }
 
     // Only redirect after the grace period has expired
-    if (!unauthGraceExpired.current) {
+    if (!unauthGraceExpired) {
       return;
     }
 
@@ -128,19 +130,15 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
       ? `${pathname}${query}`
       : "/dashboard";
 
-    startTransition(() => {
-      router.replace(`/auth?redirect=${encodeURIComponent(redirectTarget)}`);
-    });
-  }, [authenticated, loading, pathname, router]);
+    router.replace(`/auth?redirect=${encodeURIComponent(redirectTarget)}`);
+  }, [authenticated, loading, pathname, router, unauthGraceExpired]);
 
   useEffect(() => {
     if (loading || !authenticated || !requiresSetupCompletion || isSetupPage) {
       return;
     }
 
-    startTransition(() => {
-      router.replace("/dashboard/setup");
-    });
+    router.replace("/dashboard/setup");
   }, [authenticated, isSetupPage, loading, requiresSetupCompletion, router]);
 
   if (

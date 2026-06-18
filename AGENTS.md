@@ -1,9 +1,13 @@
 # AGENTS.md — SaaSzo Auth Architecture & Bug Fix Reference
 
 > **Purpose:** This file documents the complete SaaSzo authentication architecture,
-> the 7 bugs that were identified and fixed, and the reasoning behind every change.
+> the bugs that were identified and fixed, and the reasoning behind every change.
 > Written for AI coding agents (Codex, Copilot, etc.) to understand the codebase
 > and avoid introducing regressions.
+>
+> **See also:** [`/Users/pankaj/Desktop/saaszo/AGENTS.md`](../AGENTS.md) — monorepo-level
+> architecture reference including the Golden Rule for product redirects, per-product
+> auth patterns, and the step-by-step guide for adding new products.
 
 ---
 
@@ -15,9 +19,21 @@ SaaSzo is a multi-product SaaS platform. All products share one auth system:
 |-----|-----|------|
 | **Auth Portal** | `https://www.saaszo.in` | Central login/signup, dashboard, settings |
 | **API Backend** | `https://api.saaszo.in` | Laravel 11 API — Sanctum + Firebase Auth |
+| **HRMS App** | `https://hrms.saaszo.in` | Has own login page + SSO handoff |
 | **Invoice App** | `https://invoice.saaszo.in` | Has own login page + SSO handoff |
-| **Task App** | `https://task.saaszo.in` | No own login — delegates to portal |
+| **Task App** | `https://task.saaszo.in` | Has own login page + SSO handoff |
+| **Seller App** | `https://seller.saaszo.in` | Has own login page + SSO handoff |
+| **Connect App** | `https://connect.saaszo.in` | Has own login page + SSO handoff |
 | **Admin Panel** | `https://admin.saaszo.in` | Admin-only access |
+
+### ⚠️ Product Auth Redirect Rule (CRITICAL)
+
+> When a user logs out of a product, or their session expires, they MUST be redirected to
+> **that product's own `/login` page** — NEVER to `www.saaszo.in` or `www.saaszo.in/auth`.
+
+`buildPortalLoginUrl()` is ONLY for the **"Sign in via SaaSzo Portal"** opt-in link shown
+on a product's own `/login` page. It must NEVER appear in logout, session-expiry, or
+middleware redirect paths.
 
 ### Domain Canonicalization
 - Apex `saaszo.in` **always** redirects to `www.saaszo.in` (via next.config.ts redirect)
