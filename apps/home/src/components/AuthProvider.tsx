@@ -3,6 +3,7 @@
 import {
   createContext,
   startTransition,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -10,6 +11,10 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/app-config";
+import {
+  lastActivityKey,
+  updateActivityTimestamp,
+} from "@/lib/auth-client";
 import { appConfig, toAbsoluteApiUrl } from "@/lib/config";
 import { auth } from "@/lib/firebase";
 import {
@@ -260,6 +265,7 @@ let backendTokenCache: string | null = null;
 const googleRedirectIntentKey = "saaszo_google_auth_intent";
 const TOKEN_STORAGE_KEY = "saaszo_backend_token";
 const sharedCookieDomain = ".saaszo.in";
+const EIGHT_HOURS_IN_MS = 8 * 60 * 60 * 1000;
 
 const signedOutState = {
   user: null,
@@ -1442,7 +1448,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function signOut() {
+  const signOut = useCallback(async () => {
     signOutInProgressRef.current = true;
     const token = backendToken ?? getStoredBackendToken();
 
@@ -1472,7 +1478,88 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.setTimeout(() => {
       signOutInProgressRef.current = false;
     }, 1000);
-  }
+  }, [backendToken, router]);
+
+  useEffect(() => {
+    if (!state.authenticated) {
+      return;
+    }
+
+    let activityTimeout: number | null = null;
+    let logoutTriggered = false;
+
+    const scheduleActivityStamp = () => {
+      if (document.visibilityState === "hidden") {
+        return;
+      }
+
+      if (activityTimeout) {
+        window.clearTimeout(activityTimeout);
+      }
+
+      activityTimeout = window.setTimeout(() => {
+        updateActivityTimestamp();
+      }, 1000);
+    };
+
+    const logoutIfIdle = async () => {
+      if (logoutTriggered) {
+        return;
+      }
+
+      const lastActivity = Number(window.localStorage.getItem(lastActivityKey));
+      if (!Number.isFinite(lastActivity)) {
+        updateActivityTimestamp();
+        return;
+      }
+
+      if (Date.now() - lastActivity < EIGHT_HOURS_IN_MS) {
+        return;
+      }
+
+      logoutTriggered = true;
+      await signOut();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        scheduleActivityStamp();
+      }
+    };
+
+    const activityEvents = [
+      "mousemove",
+      "keydown",
+      "click",
+      "scroll",
+      "touchstart",
+    ] as const;
+
+    void logoutIfIdle();
+
+    const interval = window.setInterval(() => {
+      void logoutIfIdle();
+    }, 60 * 1000);
+
+    activityEvents.forEach((eventName) => {
+      window.addEventListener(eventName, scheduleActivityStamp, {
+        passive: true,
+      });
+    });
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (activityTimeout) {
+        window.clearTimeout(activityTimeout);
+      }
+
+      window.clearInterval(interval);
+      activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, scheduleActivityStamp);
+      });
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [signOut, state.authenticated]);
 
   async function getBranches(): Promise<BranchInfo[]> {
     try {
