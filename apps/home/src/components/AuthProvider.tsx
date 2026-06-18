@@ -296,6 +296,7 @@ function setStoredBackendToken(token: string) {
 
   if (typeof window !== "undefined") {
     window.sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+    updateActivityTimestamp();
 
     // Set the session marker cookie so the server-side middleware on
     // /dashboard/* allows the request through without redirecting to /auth.
@@ -316,6 +317,7 @@ function clearStoredBackendToken() {
 
   if (typeof window !== "undefined") {
     window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+    window.localStorage.removeItem(lastActivityKey);
 
     // Remove the session marker cookie.
     document.cookie =
