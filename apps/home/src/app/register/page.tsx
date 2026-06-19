@@ -388,7 +388,7 @@ function RegisterForm() {
   const STEPS = [
     { n:"1", title:"Verify Email", desc:"Get a 6-digit OTP — confirms your identity instantly." },
     { n:"2", title:"Create Workspace", desc:"Name your company and set a strong password." },
-    { n:"3", title:"You're in!", desc:"Access Invoice, Tasks, HR, CRM from one dashboard." },
+    { n:"3", title:"You're in!", desc:"Access Invoice, Tasks, Seller, HR, Connect, and Engage from one dashboard." },
   ];
 
   const cyanBtn: React.CSSProperties = {

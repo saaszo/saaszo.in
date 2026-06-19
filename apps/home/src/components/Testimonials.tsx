@@ -36,7 +36,7 @@ const TESTIMONIALS = [
     avatarColor: "#f97316",
     rating: 5,
     quote:
-      "Setup took literally 2 minutes. Created company, added my team, opened CRM. The Kanban pipeline is clean and fast. Clients are already impressed by the GST invoices.",
+      "Setup took literally 2 minutes. Created company, added my team, opened Engage. The campaign flow is clean and fast. Clients are already impressed by the GST invoices.",
     highlight: "2 minutes to fully live",
   },
   {
@@ -46,8 +46,8 @@ const TESTIMONIALS = [
     avatarColor: "#3b82f6",
     rating: 5,
     quote:
-      "Projects + Task Manager together is powerful. Gantt for planning, Kanban for day-to-day — and my whole team is in the same system. No more copying updates between tools.",
-    highlight: "Gantt + Kanban combined",
+      "Seller Hub + Task Manager together is powerful. Orders stay visible, follow-ups stay assigned, and my whole team is in the same system. No more copying updates between tools.",
+    highlight: "Ops + execution combined",
   },
   {
     name: "Vikram Nair",
@@ -56,7 +56,7 @@ const TESTIMONIALS = [
     avatarColor: "#ec4899",
     rating: 5,
     quote:
-      "The CRM pipeline is as good as tools costing ₹5,000/month. Lead scoring, deal forecasting, activity timeline — everything a sales team needs. And it's free. It's unreal.",
+      "The Engage automation flow is as good as tools costing ₹5,000/month. Broadcasts, follow-ups, activity timelines — everything a growth team needs. And it's free. It's unreal.",
     highlight: "As good as ₹5,000/mo tools",
   },
 ];

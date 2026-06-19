@@ -9,10 +9,10 @@ const plans = [
     badgeStyle: {},
     description: "Perfect for freelancers & solo founders",
     features: [
-      "All 7 products included",
+      "All 6 products included",
       "Up to 5 users",
       "Invoice Manager (unlimited)",
-      "Task Manager & Projects",
+      "Task Manager, Connect & Engage",
       "5 GB storage",
       "Email support",
     ],
@@ -33,7 +33,7 @@ const plans = [
       "Everything in Starter",
       "Up to 50 users",
       "Full HRMS + Payroll",
-      "CRM with unlimited contacts",
+      "Seller, Connect & Engage workspaces",
       "Real-time team collaboration",
       "50 GB storage",
       "Priority support",
@@ -95,7 +95,7 @@ export default function Pricing() {
             </span>
           </h2>
           <p className="text-on-surface-variant text-lg max-w-xl mx-auto">
-            We&apos;re in beta and every plan is ₹0. Sign up today, get full access to all 7 products, no credit card ever.
+            We&apos;re in beta and every plan is ₹0. Sign up today, get full access to all 6 products, no credit card ever.
           </p>
         </div>
 

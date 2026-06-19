@@ -25,7 +25,7 @@ const STEPS = [
       </svg>
     ),
     title: "Pick your tools",
-    desc: "Open Invoice, Tasks, HRMS, CRM, or Projects directly from your dashboard — all pre-connected to your account.",
+    desc: "Open Invoice, Tasks, Seller, HRMS, Connect, or Engage directly from your dashboard — all pre-connected to your account.",
     detail: "Single Sign-On means one click from the dashboard opens any product — no separate logins ever.",
   },
   {

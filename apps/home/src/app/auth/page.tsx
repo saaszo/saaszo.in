@@ -118,7 +118,7 @@ function AuthForm() {
     {
       icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.cyan} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
       title: "All-in-one Toolkit",
-      desc: "Invoice, tasks, CRM, HRMS — one workspace.",
+      desc: "Invoice, tasks, seller, HRMS, Connect, Engage — one workspace.",
     },
     {
       icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.cyan} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,
@@ -466,7 +466,7 @@ function AuthForm() {
                 The operating{" "}<span style={{ color:C.cyan }}>system</span>{" "}for modern business.
               </h1>
               <p style={{ margin:0,fontSize:"0.87rem",color:C.muted,lineHeight:1.65,maxWidth:"32ch" }}>
-                One login. Unified identity across every SaaSzo product — invoice, tasks, HR, CRM, and beyond.
+                One login. Unified identity across every SaaSzo product — invoice, tasks, seller, HR, Connect, Engage, and beyond.
               </p>
             </div>
             <div style={{ display:"flex",flexDirection:"column",gap:"9px" }}>

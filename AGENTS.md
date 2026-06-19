@@ -24,6 +24,7 @@ SaaSzo is a multi-product SaaS platform. All products share one auth system:
 | **Task App** | `https://task.saaszo.in` | Has own login page + SSO handoff |
 | **Seller App** | `https://seller.saaszo.in` | Has own login page + SSO handoff |
 | **Connect App** | `https://connect.saaszo.in` | Has own login page + SSO handoff |
+| **Engage App** | `https://engage.saaszo.in` | Has own login page + SSO handoff |
 | **Admin Panel** | `https://admin.saaszo.in` | Admin-only access |
 
 ### ⚠️ Product Auth Redirect Rule (CRITICAL)
@@ -131,7 +132,7 @@ sends the cookies but Laravel ignores them.
 
 ```env
 # .env (production)
-SANCTUM_STATEFUL_DOMAINS=saaszo.in,www.saaszo.in,invoice.saaszo.in,task.saaszo.in,api.saaszo.in,admin.saaszo.in,hrms.saaszo.in,crm.saaszo.in,projects.saaszo.in,localhost:3000
+SANCTUM_STATEFUL_DOMAINS=saaszo.in,www.saaszo.in,invoice.saaszo.in,task.saaszo.in,connect.saaszo.in,engage.saaszo.in,api.saaszo.in,admin.saaszo.in,hrms.saaszo.in,crm.saaszo.in,projects.saaszo.in,localhost:3000
 ```
 
 > ⚠️ `Str::is('saaszo.in', 'www.saaszo.in')` → FALSE. These are separate domains
@@ -471,4 +472,3 @@ if (in_array($tool, ['invoice', 'task', 'pos'], true)) { // <-- Added 'pos'
    }
    ```
    *This standalone pattern matches both `invoice.saaszo.in` and `task.saaszo.in`, ensuring users can log in directly on the sub-app or delegate to the portal.*
-

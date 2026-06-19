@@ -88,6 +88,19 @@ const PRODUCTS: Product[] = [
     ctaText: "Open App",
   },
   {
+    id: "engage",
+    name: "Engage",
+    tagline: "Broadcasts · Automations · Follow-ups",
+    description:
+      "Run campaigns, automate follow-ups, manage message journeys, and keep customer engagement moving from one focused workspace.",
+    icon: "campaign",
+    tool: "engage",
+    status: "active",
+    color: "linear-gradient(135deg, #ec4899 0%, #f97316 100%)",
+    accentColor: "#ec4899",
+    ctaText: "Open App",
+  },
+  {
     id: "seller",
     name: "Seller Hub",
     tagline: "Orders · Returns · Charges · Settlements",
@@ -99,20 +112,6 @@ const PRODUCTS: Product[] = [
     color: "linear-gradient(135deg, #f97316 0%, #ef4444 100%)",
     accentColor: "#f97316",
     ctaText: "Open App",
-  },
-  {
-    id: "crm",
-    name: "CRM",
-    tagline: "Leads · Pipeline · Follow-ups",
-    description:
-      "Track your sales pipeline, manage leads, automate follow-ups, and close more deals faster.",
-    icon: "contacts",
-    tool: "crm",
-    status: "coming_soon",
-    badge: "Coming Soon",
-    color: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-    accentColor: "#f59e0b",
-    ctaText: "Join Waitlist",
   },
   {
     id: "hrms",
@@ -135,6 +134,8 @@ const TASK_BRIDGE_FALLBACK_URL =
   "https://task.saaszo.in/auth-bridge?redirect=%2Ftask-manager";
 const CONNECT_BRIDGE_FALLBACK_URL =
   "https://connect.saaszo.in/auth-bridge?redirect=%2Fdashboard";
+const ENGAGE_BRIDGE_FALLBACK_URL =
+  "https://engage.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 const SELLER_BRIDGE_FALLBACK_URL =
   "https://seller.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 const HRMS_BRIDGE_FALLBACK_URL =
@@ -504,6 +505,8 @@ export default function DashboardPage() {
           ? TASK_BRIDGE_FALLBACK_URL
           : product.tool === "connect"
             ? CONNECT_BRIDGE_FALLBACK_URL
+            : product.tool === "engage"
+              ? ENGAGE_BRIDGE_FALLBACK_URL
             : product.tool === "seller"
               ? SELLER_BRIDGE_FALLBACK_URL
             : product.tool === "hrms"

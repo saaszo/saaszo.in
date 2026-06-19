@@ -14,9 +14,9 @@ const features = [
     icon: "trending_up",
     color: "bg-secondary-container text-on-secondary-container",
     accent: "text-secondary",
-    title: "Accelerate Your Sales",
-    desc: "A CRM built for speed. Track deals, manage pipelines, and automate follow-ups with intuitive precision.",
-    cta: "Explore CRM",
+    title: "Activate Your Engagement",
+    desc: "Launch broadcasts, automate follow-ups, and move conversations forward with one focused engagement workspace.",
+    cta: "Explore Engage",
     href: "#",
   },
   {
@@ -153,7 +153,7 @@ export default function Features() {
               </span>
             </h2>
             <p className="text-on-surface-variant text-lg mb-8 leading-relaxed">
-              Data shouldn't live in silos. When a deal closes in the CRM, HR is
+              Data shouldn't live in silos. When a campaign converts in Engage, HR is
               notified for capacity planning, and the AI drafts a welcome
               packet—instantly.
             </p>
@@ -197,7 +197,7 @@ export default function Features() {
               },
               {
                 icon: "trending_up",
-                label: "CRM",
+                label: "Engage",
                 bottom: "5%",
                 right: "5%",
                 color: "text-secondary",
@@ -211,7 +211,7 @@ export default function Features() {
               },
               {
                 icon: "forum",
-                label: "Chat",
+                label: "Connect",
                 bottom: "5%",
                 left: "15%",
                 color: "text-primary",

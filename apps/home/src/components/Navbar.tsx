@@ -6,19 +6,30 @@ import { useAuthSession } from "./AuthProvider";
 const PRODUCTS = [
   { label: "Invoice Manager", href: "https://invoice.saaszo.in", desc: "GST billing & payments", color: "#14b8a6" },
   { label: "Task Manager", href: "https://task.saaszo.in", desc: "Kanban & collaboration", color: "#8b5cf6" },
+  { label: "Seller Hub", href: "https://seller.saaszo.in", desc: "Orders, returns & settlements", color: "#f97316" },
   { label: "HRMS", href: "https://hrms.saaszo.in", desc: "HR, payroll & attendance", color: "#10b981" },
-  { label: "CRM", href: "https://crm.saaszo.in", desc: "Leads & sales pipeline", color: "#f97316" },
-  { label: "Projects", href: "https://projects.saaszo.in", desc: "Gantt timelines", color: "#3b82f6" },
-  { label: "Connect", href: "https://connect.saaszo.in", desc: "Team chat & messaging", color: "#f43f5e" },
-  { label: "Admin Panel", href: "https://admin.saaszo.in", desc: "Platform management", color: "#ec4899" },
+  { label: "Connect", href: "https://connect.saaszo.in", desc: "Shared inbox & pipelines", color: "#06b6d4" },
+  { label: "Engage", href: "https://engage.saaszo.in", desc: "Broadcasts & automations", color: "#ec4899" },
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
-  const { authenticated, loading, profile, signOut } = useAuthSession();
+  const { authenticated, loading, onboarding, profile } = useAuthSession();
 
   const displayName = profile?.fullName?.split(" ")[0] || "Dashboard";
+  const setupComplete =
+    onboarding?.setup_completed || onboarding?.setup_skipped;
+  const dashboardHref = !authenticated
+    ? "/auth"
+    : setupComplete
+      ? "/dashboard"
+      : "/dashboard/setup";
+  const dashboardLabel = !authenticated
+    ? "Log In"
+    : setupComplete
+      ? "Dashboard"
+      : "Continue Setup";
 
   return (
     <nav className="fixed top-0 inset-x-0 z-50 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/20 transition-all duration-200">
@@ -69,11 +80,11 @@ export default function Navbar() {
                 ))}
                 <div className="col-span-2 border-t border-outline-variant/20 mt-1 pt-2">
                   <Link
-                    href="/dashboard"
+                    href={dashboardHref}
                     className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
                     style={{ background: "linear-gradient(135deg, #06b6d4, #8b5cf6)" }}
                   >
-                    Open Dashboard →
+                    {dashboardLabel} →
                   </Link>
                 </div>
               </div>
@@ -93,16 +104,16 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-4 shrink-0">
           {authenticated ? (
             <>
-              <Link href="/dashboard" className="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors">
+              <Link href={dashboardHref} className="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors">
                 {displayName}
               </Link>
-              <button
-                onClick={() => { void signOut(); }}
+              <Link
+                href={dashboardHref}
                 className="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-all duration-200 hover:opacity-90"
                 style={{ background: "linear-gradient(135deg, #06b6d4, #0891b2)", boxShadow: "0 4px 20px rgba(6,182,212,0.3)" }}
               >
-                Dashboard
-              </button>
+                {dashboardLabel}
+              </Link>
             </>
           ) : !loading ? (
             <>
@@ -148,7 +159,7 @@ export default function Navbar() {
           <Link href="#pricing" onClick={() => setOpen(false)} className="text-sm font-medium text-on-surface-variant">Pricing</Link>
           <hr className="border-outline-variant/30" />
           {authenticated ? (
-            <Link href="/dashboard" className="text-center text-white font-semibold px-5 py-2.5 rounded-lg" style={{ background: "linear-gradient(135deg, #06b6d4, #8b5cf6)" }}>Open Dashboard</Link>
+            <Link href={dashboardHref} className="text-center text-white font-semibold px-5 py-2.5 rounded-lg" style={{ background: "linear-gradient(135deg, #06b6d4, #8b5cf6)" }}>{dashboardLabel}</Link>
           ) : !loading ? (
             <>
               <Link href="/auth" className="text-on-surface-variant font-medium text-sm">Log In</Link>

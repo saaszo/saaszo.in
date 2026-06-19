@@ -8,7 +8,7 @@ const FAQS = [
   },
   {
     q: "Do I need a separate login for each product?",
-    a: "No. That's the entire point of SaaSzo. One account, one login, instant SSO access to all six products. Open Invoice, Task Manager, HRMS, CRM, Projects, or Admin Panel from your dashboard — no extra passwords, no re-authentication.",
+    a: "No. That's the entire point of SaaSzo. One account, one login, instant SSO access to all six products. Open Invoice, Task Manager, Seller Hub, HRMS, Connect, or Engage from your dashboard — no extra passwords, no re-authentication.",
   },
   {
     q: "How many users can I add to my account?",
