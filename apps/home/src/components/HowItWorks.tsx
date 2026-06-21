@@ -25,7 +25,7 @@ const STEPS = [
       </svg>
     ),
     title: "Pick your tools",
-    desc: "Open Invoice, Tasks, Seller, HRMS, Connect, or Engage directly from your dashboard — all pre-connected to your account.",
+    desc: "Open Invoice, Tasks, Seller, HRMS, or Engage directly from your dashboard — all pre-connected to your account.",
     detail: "Single Sign-On means one click from the dashboard opens any product — no separate logins ever.",
   },
   {
@@ -40,7 +40,7 @@ const STEPS = [
     ),
     title: "Invite your team & grow",
     desc: "Add teammates, assign roles, and collaborate in real time across every product — all under one company account.",
-    detail: "Your team gets their own login. You control permissions. Everyone stays in sync across all six tools.",
+    detail: "Your team gets their own login. You control permissions. Everyone stays in sync across all five tools.",
   },
 ];
 

@@ -8,8 +8,8 @@ const WHY = [
     ),
     color: "#06b6d4",
     bg: "rgba(6,182,212,0.12)",
-    title: "6 Tools, 1 Login",
-    desc: "Invoice, Tasks, Seller, HRMS, Connect, and Engage — one account, instant SSO across all apps.",
+    title: "5 Tools, 1 Login",
+    desc: "Invoice, Tasks, Seller, HRMS, and Engage — one account, instant SSO across all apps.",
   },
   {
     icon: (

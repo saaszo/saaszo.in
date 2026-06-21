@@ -75,19 +75,6 @@ const PRODUCTS: Product[] = [
     ctaText: "Open App",
   },
   {
-    id: "connect",
-    name: "Connect",
-    tagline: "WhatsApp CRM · Shared Inbox · Pipelines",
-    description:
-      "Manage WhatsApp conversations, contacts, broadcasts, sales pipelines, and follow-ups from one connected team inbox.",
-    icon: "forum",
-    tool: "connect",
-    status: "active",
-    color: "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
-    accentColor: "#0891b2",
-    ctaText: "Open App",
-  },
-  {
     id: "engage",
     name: "Engage",
     tagline: "Broadcasts · Automations · Follow-ups",
@@ -132,8 +119,6 @@ const INVOICE_BRIDGE_FALLBACK_URL =
   "https://invoice.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 const TASK_BRIDGE_FALLBACK_URL =
   "https://task.saaszo.in/auth-bridge?redirect=%2Ftask-manager";
-const CONNECT_BRIDGE_FALLBACK_URL =
-  "https://connect.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 const ENGAGE_BRIDGE_FALLBACK_URL =
   "https://engage.saaszo.in/auth-bridge?redirect=%2Fdashboard";
 const SELLER_BRIDGE_FALLBACK_URL =
@@ -503,10 +488,8 @@ export default function DashboardPage() {
         ? INVOICE_BRIDGE_FALLBACK_URL
         : product.tool === "task"
           ? TASK_BRIDGE_FALLBACK_URL
-          : product.tool === "connect"
-            ? CONNECT_BRIDGE_FALLBACK_URL
-            : product.tool === "engage"
-              ? ENGAGE_BRIDGE_FALLBACK_URL
+          : product.tool === "engage"
+            ? ENGAGE_BRIDGE_FALLBACK_URL
             : product.tool === "seller"
               ? SELLER_BRIDGE_FALLBACK_URL
             : product.tool === "hrms"
@@ -1862,7 +1845,6 @@ function StaffModal({
   const tools = [
     "invoice",
     "task",
-    "connect",
     "seller",
     "crm",
     "hrms",

@@ -210,8 +210,8 @@ export default function Features() {
                 color: "text-tertiary",
               },
               {
-                icon: "forum",
-                label: "Connect",
+                icon: "storefront",
+                label: "Seller",
                 bottom: "5%",
                 left: "15%",
                 color: "text-primary",

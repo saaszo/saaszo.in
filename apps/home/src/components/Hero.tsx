@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const STATS = [
-  { value: "6", label: "Products" },
+  { value: "5", label: "Products" },
   { value: "1", label: "Login" },
   { value: "₹0", label: "Forever" },
   { value: "∞", label: "Users" },
@@ -62,7 +62,7 @@ export default function Hero() {
 
         {/* Sub */}
         <p className="text-lg md:text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
-          Invoice, Tasks, Seller, HRMS, Connect, and Engage — built for Indian businesses, unified under one login, completely free while we grow.
+          Invoice, Tasks, Seller, HRMS, and Engage — built for Indian businesses, unified under one login, completely free while we grow.
         </p>
 
         {/* CTAs */}

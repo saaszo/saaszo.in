@@ -142,33 +142,6 @@ const products = [
     cta: "Open Engage",
     align: "left",
   },
-  {
-    id: "connect",
-    badge: "Communication",
-    badgeColor: "bg-rose-500/15 text-rose-400 border-rose-500/30",
-    accentColor: "#f43f5e",
-    gradientFrom: "#e11d48",
-    gradientTo: "#9f1239",
-    glowColor: "rgba(244,63,94,0.15)",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-      </svg>
-    ),
-    name: "Connect",
-    url: "https://connect.saaszo.in",
-    headline: "Shared inbox. Faster team replies.",
-    description: "Handle conversations, contacts, pipelines, and team follow-ups from one shared inbox that stays connected to your SaaSzo workspace.",
-    features: [
-      "Shared inbox with assignments and statuses",
-      "Contacts, notes, and conversation history",
-      "Pipeline stages for active opportunities",
-      "Team follow-ups with one login across SaaSzo",
-    ],
-    screenshot: "/product-connect.png",
-    cta: "Open Connect",
-    align: "right",
-  },
 ];
 
 export default function Products() {
@@ -186,7 +159,7 @@ export default function Products() {
             Our Products
           </p>
           <h2 className="text-3xl md:text-5xl font-extrabold text-on-surface tracking-tight mb-4">
-            Six tools. One{" "}
+            Five tools. One{" "}
             <span style={{
               background: "linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)",
               WebkitBackgroundClip: "text",

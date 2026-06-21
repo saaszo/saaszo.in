@@ -15,8 +15,8 @@ export const metadata: Metadata = {
     template: "%s | SaaSzo",
   },
   description:
-    "Unify your workflow across invoicing, tasks, commerce, HR, shared inboxes, and engagement automations from one business platform.",
-  keywords: ["SaaS", "HRMS", "Seller", "Connect", "Engage", "Business Platform", "SaaSzo"],
+    "Unify your workflow across invoicing, tasks, commerce, HR, and engagement automations from one business platform.",
+  keywords: ["SaaS", "HRMS", "Seller", "Engage", "Business Platform", "SaaSzo"],
   icons: {
     icon: [{ url: "/icon" }],
   },

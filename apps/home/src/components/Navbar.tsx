@@ -8,7 +8,6 @@ const PRODUCTS = [
   { label: "Task Manager", href: "https://task.saaszo.in", desc: "Kanban & collaboration", color: "#8b5cf6" },
   { label: "Seller Hub", href: "https://seller.saaszo.in", desc: "Orders, returns & settlements", color: "#f97316" },
   { label: "HRMS", href: "https://hrms.saaszo.in", desc: "HR, payroll & attendance", color: "#10b981" },
-  { label: "Connect", href: "https://connect.saaszo.in", desc: "Shared inbox & pipelines", color: "#06b6d4" },
   { label: "Engage", href: "https://engage.saaszo.in", desc: "Broadcasts & automations", color: "#ec4899" },
 ];
 
