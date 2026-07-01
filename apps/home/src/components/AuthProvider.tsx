@@ -886,6 +886,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   function setOnboardingState(next: Partial<OnboardingInfo>) {
+    if (next.setup_completed) {
+      setPostAuthRedirect((currentRedirect) =>
+        !currentRedirect || currentRedirect === "/dashboard/setup"
+          ? "/dashboard?tab=settings"
+          : currentRedirect,
+      );
+    } else if (next.setup_skipped) {
+      setPostAuthRedirect((currentRedirect) =>
+        !currentRedirect || currentRedirect === "/dashboard/setup"
+          ? "/dashboard"
+          : currentRedirect,
+      );
+    }
+
     setState((current) => ({
       ...current,
       onboarding: {
@@ -1194,7 +1208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!payload.success) {
       if (
         payload.redirect &&
-        ["NOT_REGISTERED", "LOCKOUT", "ACCOUNT_RECOVERY"].includes(
+        ["LOCKOUT", "ACCOUNT_RECOVERY"].includes(
           payload.type ?? "",
         )
       ) {
@@ -1202,7 +1216,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      throw new Error(payload.message || "Login failed.");
+      throw new Error(
+        payload.type === "NOT_REGISTERED"
+          ? "Invalid email or password."
+          : payload.message || "Login failed.",
+      );
     }
 
     // Backend wraps token inside a 'data' object: { success, message, data: { access_token, redirect } }

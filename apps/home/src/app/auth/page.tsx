@@ -84,7 +84,7 @@ function AuthForm() {
   const searchParams = useSearchParams();
   const {
     authenticated, loading: sessionLoading,
-    signInWithGoogle, signInWithEmail, postAuthRedirect,
+    signInWithGoogle, signInWithEmail, postAuthRedirect, onboarding,
     setupRecaptcha, sendPhoneOtp,
   } = useAuthSession();
 
@@ -140,14 +140,21 @@ function AuthForm() {
 
   useEffect(() => {
     if (!sessionLoading && authenticated) {
+      const explicitRedirect = searchParams.get("redirect");
+      const setupResolved =
+        onboarding?.setup_completed || onboarding?.setup_skipped;
+      const target = setupResolved
+        ? explicitRedirect || postAuthRedirect
+        : postAuthRedirect || explicitRedirect;
+
       // Always leave auth pages through the canonical redirect helper so
       // apex-domain sessions land on www.saaszo.in/dashboard instead of
       // getting stuck on saaszo.in/dashboard with mismatched middleware.
-      navigateTo(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl), {
+      navigateTo(resolveSafeRedirectTarget(target, appConfig.appUrl), {
         replace: true,
       });
     }
-  }, [authenticated, postAuthRedirect, sessionLoading]);
+  }, [authenticated, onboarding?.setup_completed, onboarding?.setup_skipped, postAuthRedirect, searchParams, sessionLoading]);
 
   /* ── Resend countdown ── */
   useEffect(() => {
