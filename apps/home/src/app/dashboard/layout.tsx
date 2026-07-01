@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { useAuthSession } from "@/components/AuthProvider";
 import {
   clearSetupRedirectBypass,
   hasSetupRedirectBypass,
 } from "@/lib/auth-client";
+import { appConfig } from "@/lib/config";
 
 /** Read a browser cookie by name (client-side only). */
 function getCookie(name: string): string | null {
@@ -22,11 +23,18 @@ function hasSessionCookie() {
 }
 
 export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
-  const router = useRouter();
   const pathname = usePathname();
   const { authenticated, loading, onboarding, workspaceUser } = useAuthSession();
   const { children } = props;
   const [setupRedirectBypass, setSetupRedirectBypass] = useState(false);
+  // Canonical www origin — used to force all redirects onto www.saaszo.in
+  // regardless of whether the browser is currently on the apex (saaszo.in).
+  // router.replace() is a client-side navigation and stays on the current
+  // origin, which means apex-domain users would end up on saaszo.in/auth
+  // where the middleware's canonical redirect doesn't apply.
+  const wwwOrigin = (() => {
+    try { return new URL(appConfig.appUrl).origin; } catch { return "https://www.saaszo.in"; }
+  })();
 
   // Track whether we've seen a definitive "not authenticated" result
   // AFTER an initial grace period to let Firebase restore the session.
@@ -130,16 +138,22 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
       ? `${pathname}${query}`
       : "/dashboard";
 
-    router.replace(`/auth?redirect=${encodeURIComponent(redirectTarget)}`);
-  }, [authenticated, loading, pathname, router, unauthGraceExpired]);
+    // Always use window.location.replace with the canonical www origin.
+    // router.replace() is client-side and stays on the current domain;
+    // if the user is on saaszo.in (apex) it would produce saaszo.in/auth
+    // where the middleware's canonical redirect never fires.
+    const target = `${wwwOrigin}/auth?redirect=${encodeURIComponent(redirectTarget)}`;
+    window.location.replace(target);
+  }, [authenticated, loading, pathname, unauthGraceExpired, wwwOrigin]);
 
   useEffect(() => {
     if (loading || !authenticated || !requiresSetupCompletion || isSetupPage) {
       return;
     }
 
-    router.replace("/dashboard/setup");
-  }, [authenticated, isSetupPage, loading, requiresSetupCompletion, router]);
+    // Force absolute redirect to canonical www origin (same reason as above).
+    window.location.replace(`${wwwOrigin}/dashboard/setup`);
+  }, [authenticated, isSetupPage, loading, requiresSetupCompletion, wwwOrigin]);
 
   if (
     loading ||
