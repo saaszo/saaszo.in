@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toAbsoluteApiUrl } from "@/lib/config";
 import { apiErrorMessage, authedRequest } from "@/lib/workspace-action-client";
 import {
@@ -378,6 +378,9 @@ export function OnboardingWorkspace() {
   const setupResolvedRedirectTarget = onboarding?.setup_completed
     ? "/dashboard?tab=settings"
     : "/dashboard";
+  // Prevents the setupAlreadyResolved useEffect from double-navigating after
+  // handleSetupComplete / handleSkip have already called navigateTo() explicitly.
+  const navigatingRef = useRef(false);
   const shouldFetchLocations =
     authenticated && !sessionLoading && !setupAlreadyResolved;
   const { states, citiesByState, isLoading: locationsLoading } = useLocations(
@@ -592,7 +595,10 @@ export function OnboardingWorkspace() {
     if (sessionLoading || !authenticated || !setupAlreadyResolved) {
       return;
     }
-
+    // Skip if handleSetupComplete/handleSkip already fired an explicit navigateTo().
+    if (navigatingRef.current) {
+      return;
+    }
     navigateTo(setupResolvedRedirectTarget);
   }, [
     authenticated,
@@ -1895,6 +1901,7 @@ export function OnboardingWorkspace() {
       // Dashboard bootstrap can still recover from backend state on next load.
     });
 
+    navigatingRef.current = true;
     navigateTo(consumePostSetupRedirect("/dashboard?tab=settings"));
   }
 
@@ -1928,6 +1935,7 @@ export function OnboardingWorkspace() {
       // Dashboard bootstrap can still recover from backend state on next load.
     });
 
+    navigatingRef.current = true;
     navigateTo(consumePostSetupRedirect("/dashboard"));
   }
 

@@ -223,6 +223,9 @@ function RegisterForm() {
 
   const verifyRequestInFlight = useRef(false);
   const toastTimerRef = useRef<number | null>(null);
+  // Prevents the authenticated useEffect from double-navigating after
+  // signUpWithEmail / signInWithGoogle have already triggered navigation.
+  const navigatingRef = useRef(false);
   const normalizedEmail = useMemo(() => normalizeEmail(email), [email]);
   const pendingSetupRedirect = searchParams.get("redirect");
 
@@ -252,6 +255,11 @@ function RegisterForm() {
   }, [searchParams]);
 
   useEffect(() => {
+    // Skip if signUpWithEmail/signInWithGoogle already initiated navigation.
+    // Those functions call navigateAfterAuth internally; firing a second
+    // navigateTo() here would race against the first and could land the
+    // user on a stale postAuthRedirect target.
+    if (navigatingRef.current) return;
     if (!sessionLoading && authenticated)
       navigateTo(resolveSafeRedirectTarget(postAuthRedirect, appConfig.appUrl), {
         replace: true,
@@ -360,10 +368,12 @@ function RegisterForm() {
       if (!emailVerified) throw new Error("Verify your email address before creating your account.");
       if (!passwordMeetsRequirements(password)) throw new Error("Password must be 8+ chars with uppercase, lowercase, number, and symbol.");
       rememberPostSetupRedirect();
+      navigatingRef.current = true;
       await signUpWithEmail(normalizedEmail, password, name, companyName, {
         redirect: pendingSetupRedirect,
       });
     } catch (err: any) {
+      navigatingRef.current = false;
       const duplicateField = err?.payload?.duplicate_field;
       const duplicateMessage = err?.message || "The registration server is currently unreachable.";
       if (duplicateField === "email") {
@@ -378,9 +388,13 @@ function RegisterForm() {
     if (isLoading) return; setIsLoading(true); setError("");
     try {
       rememberPostSetupRedirect();
+      navigatingRef.current = true;
       await signInWithGoogle();
     }
-    catch (err: any) { setError(err.message || "Google sign-up is not available right now."); }
+    catch (err: any) {
+      navigatingRef.current = false;
+      setError(err.message || "Google sign-up is not available right now.");
+    }
     finally { setIsLoading(false); }
   };
 

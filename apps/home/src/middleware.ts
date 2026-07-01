@@ -11,10 +11,11 @@ import type { NextRequest } from "next/server";
  *
  * Rules:
  * 1. Request on apex saaszo.in (no www)   → pass through (canonical redirect in next.config.ts handles it)
- * 2. Logged-in user visiting /auth or /register → redirect to /dashboard  ✅
- *    BUT if /auth has an explicit ?redirect=... query, let the page render
- *    so the client can re-hydrate a stale/partial session instead of
- *    bouncing between /auth and /dashboard forever.
+ * 2. Logged-in user visiting /auth or /register
+ *    a. With a safe ?redirect=... param   → redirect directly to that target
+ *    b. Without ?redirect=               → redirect to /dashboard
+ *    NOTE: We must NOT let logged-in users stay on /auth even with ?redirect=,
+ *    because DashboardLayout can bounce them here client-side, creating a loop.
  * 3. Guest visiting /dashboard/**               → redirect to /auth        ✅
  *
  * IMPORTANT: Always redirect to https://www.saaszo.in/... to stay on the
@@ -63,15 +64,28 @@ export function middleware(request: NextRequest) {
     request.cookies.get(SESSION_COOKIE)?.value === "1";
 
   // ── 3. Auth pages (/auth, /register) ─────────────────────────────────────
-  // Already logged in → skip login, go straight to dashboard
+  // Already logged in → skip login, go straight to destination
   if (AUTH_ROUTES.some((p) => pathname.startsWith(p))) {
-    const hasExplicitRedirectTarget = request.nextUrl.searchParams.has("redirect");
-
-    if (hasExplicitRedirectTarget) {
-      return NextResponse.next();
-    }
-
     if (isLoggedIn) {
+      // If there's a ?redirect= param, send the user there directly.
+      // We must NOT pass logged-in users through to /auth even with ?redirect=
+      // because DashboardLayout can redirect client-side to /auth?redirect=...
+      // when it briefly sees unauthenticated state (e.g. after reloadUser()),
+      // and letting /auth render in that state creates an infinite loop.
+      const redirectParam = request.nextUrl.searchParams.get("redirect");
+      if (redirectParam) {
+        try {
+          // Only allow same-origin (www.saaszo.in) redirect targets.
+          const target = new URL(redirectParam, WWW_ORIGIN);
+          if (target.origin === WWW_ORIGIN && target.pathname.startsWith("/")) {
+            const res = NextResponse.redirect(target);
+            res.headers.set("Cache-Control", "no-store");
+            return res;
+          }
+        } catch {
+          // Malformed redirect param — fall through to /dashboard
+        }
+      }
       return NextResponse.redirect(new URL(DASHBOARD_PATH, WWW_ORIGIN));
     }
     return NextResponse.next();
