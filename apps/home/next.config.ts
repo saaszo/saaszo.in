@@ -9,6 +9,21 @@ const invoiceAppOrigin = (
   process.env.INVOICE_APP_ORIGIN ??
   (isVercelDeployment ? hostedInvoiceOrigin : localInvoiceOrigin)
 ).replace(/\/$/, "");
+const csp = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.googletagmanager.com https://www.google-analytics.com",
+  "script-src-elem 'self' 'unsafe-inline' blob: https://www.googletagmanager.com https://www.google-analytics.com",
+  "worker-src 'self' blob:",
+  "connect-src 'self' https://api.saaszo.in https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com wss:",
+  "form-action 'self' https://www.saaszo.in https://saaszo.in",
+  "upgrade-insecure-requests",
+].join("; ");
 
 if (isVercelDeployment && !process.env.INVOICE_APP_ORIGIN) {
   console.warn(
@@ -34,6 +49,17 @@ const nextConfig: NextConfig = {
     // "unsafe-none" is the browser default — it removes COOP restrictions so
     // Firebase's popup flow works correctly on all browsers.
     return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: csp },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
+        ],
+      },
       {
         source: "/auth/:path*",
         headers: [

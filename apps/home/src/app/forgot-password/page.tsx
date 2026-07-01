@@ -55,9 +55,11 @@ export default function ForgotPassword() {
         );
       }, 1200);
     } catch (err: any) {
+      const message = err?.message || "";
       setError(
-        err.message ||
-          "The server is currently unreachable. Please try again later.",
+        /not registered/i.test(message)
+          ? "If an account exists for this email, you'll receive reset instructions."
+          : message || "The server is currently unreachable. Please try again later.",
       );
     } finally {
       setIsLoading(false);
