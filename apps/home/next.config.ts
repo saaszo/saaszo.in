@@ -15,12 +15,16 @@ const csp = [
   "frame-ancestors 'none'",
   "object-src 'none'",
   "img-src 'self' data: blob: https:",
-  "font-src 'self' data: https://fonts.gstatic.com",
+  "font-src 'self' data: https://fonts.gstatic.com https://www.gstatic.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.googletagmanager.com https://www.google-analytics.com",
-  "script-src-elem 'self' 'unsafe-inline' blob: https://www.googletagmanager.com https://www.google-analytics.com",
+  // Firebase SDK + reCAPTCHA load scripts from apis.google.com and gstatic.com
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://apis.google.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com https://www.google-analytics.com",
+  "script-src-elem 'self' 'unsafe-inline' blob: https://apis.google.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com https://www.google-analytics.com",
   "worker-src 'self' blob:",
-  "connect-src 'self' https://api.saaszo.in https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com wss:",
+  // frame-src: Firebase Auth popup uses hidden iframes on firebaseapp.com;
+  // Google OAuth popup embeds accounts.google.com; phone OTP uses google.com reCAPTCHA
+  "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://www.google.com",
+  "connect-src 'self' https://api.saaszo.in https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://accounts.google.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com",
   "form-action 'self' https://www.saaszo.in https://saaszo.in",
   "upgrade-insecure-requests",
 ].join("; ");
