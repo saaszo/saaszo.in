@@ -2,7 +2,6 @@
 
 import {
   createContext,
-  startTransition,
   useCallback,
   useContext,
   useEffect,
@@ -1492,13 +1491,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setState(signedOutState);
-    startTransition(() => {
-      router.replace("/auth");
-    });
+
+    // Use window.location.replace with the absolute canonical www origin.
+    // router.replace("/auth") is a client-side navigation that stays on the
+    // current domain. If the user is on saaszo.in (apex domain) it would
+    // navigate to saaszo.in/auth where middleware skips apex and sessionStorage
+    // tokens are origin-scoped to www.saaszo.in — causing an auth loop.
+    const wwwOrigin = (() => {
+      try { return new URL(appConfig.appUrl).origin; } catch { return "https://www.saaszo.in"; }
+    })();
+    window.location.replace(`${wwwOrigin}/auth`);
+
     window.setTimeout(() => {
       signOutInProgressRef.current = false;
     }, 1000);
-  }, [backendToken, router]);
+  }, [backendToken]);
+
 
   useEffect(() => {
     if (!state.authenticated) {
