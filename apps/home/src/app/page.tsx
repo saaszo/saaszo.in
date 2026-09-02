@@ -6,6 +6,7 @@ import {
   getDigitalBlogs,
   getDigitalBootstrap,
   industryPages,
+  digitalAssetUrl,
   marketingContact,
   normalizeOldDigitalLink,
   servicePages,
@@ -102,8 +103,9 @@ export default async function Home() {
             <div
               className="hero-visual-image"
               style={{
-                backgroundImage:
-                  'url("https://digital.saaszo.in/assets/images/19197419.webp")',
+                backgroundImage: `url("${digitalAssetUrl(
+                  "assets/images/19197419.webp",
+                )}")`,
               }}
             />
             <span className="hero-visual-line" />

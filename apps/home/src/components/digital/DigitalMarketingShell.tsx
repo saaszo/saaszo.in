@@ -101,17 +101,11 @@ export async function DigitalMarketingShell({
       <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0c1425]/95 text-white backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link className="flex items-center gap-2" href="/">
-            <span className="grid h-9 w-9 place-items-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 text-sm font-black text-indigo-200">
-              S
-            </span>
-            <span className="leading-none">
-              <span className="block text-sm font-black tracking-wide">
-                SAASZO
-              </span>
-              <span className="block text-xs font-semibold text-indigo-300">
-                DIGITAL
-              </span>
-            </span>
+            <img
+              alt="SaaSzo Digital"
+              className="digital-brand-logo"
+              src="/digital-assets/images/Saaszo_Digital_logo.svg"
+            />
           </Link>
           <nav className="hidden items-center gap-7 text-xs font-semibold text-slate-300 lg:flex">
             {activeNavItems.map((item) => (
@@ -169,10 +163,11 @@ export async function DigitalMarketingShell({
           <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_1fr]">
             <div>
               <Link className="flex items-center gap-2" href="/">
-                <span className="grid h-9 w-9 place-items-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 text-sm font-black text-indigo-200">
-                  S
-                </span>
-                <span className="text-sm font-black">SAASZO DIGITAL</span>
+                <img
+                  alt="SaaSzo Digital"
+                  className="digital-footer-logo"
+                  src="/digital-assets/images/Saaszo_Digital_logo.svg"
+                />
               </Link>
               <p className="mt-5 max-w-xs text-sm leading-6 text-slate-400">
                 We blend creativity and strategy to help brands grow. Our ideas

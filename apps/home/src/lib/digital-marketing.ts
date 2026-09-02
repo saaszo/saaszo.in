@@ -341,6 +341,29 @@ export function digitalAssetUrl(path?: string | null) {
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (normalizedPath.startsWith("/assets/images/")) {
+    return normalizedPath.replace("/assets/images/", "/digital-assets/images/");
+  }
+
+  if (normalizedPath.startsWith("/uploads/blog-images/")) {
+    return normalizedPath.replace(
+      "/uploads/blog-images/",
+      "/digital-assets/blog-images/",
+    );
+  }
+
+  if (normalizedPath.startsWith("/uploads/sliders/")) {
+    return normalizedPath.replace(
+      "/uploads/sliders/",
+      "/digital-assets/sliders/",
+    );
+  }
+
+  if (normalizedPath.startsWith("/uploads/team/")) {
+    return normalizedPath.replace("/uploads/team/", "/digital-assets/team/");
+  }
+
   return `https://digital.saaszo.in${normalizedPath}`;
 }
 

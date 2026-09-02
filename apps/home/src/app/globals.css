@@ -451,6 +451,14 @@ body {
   color: #ffffff;
 }
 
+.digital-brand-logo,
+.digital-footer-logo {
+  display: block;
+  width: 120px;
+  height: 40px;
+  object-fit: contain;
+}
+
 .mobile-menu-strip {
   position: absolute;
   right: 0;

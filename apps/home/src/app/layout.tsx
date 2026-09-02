@@ -18,7 +18,10 @@ export const metadata: Metadata = {
     "Unify your workflow across invoicing, tasks, commerce, HR, and engagement automations from one business platform.",
   keywords: ["SaaS", "HRMS", "Seller", "Engage", "Business Platform", "SaaSzo"],
   icons: {
-    icon: [{ url: "/icon" }],
+    icon: [
+      { url: "/digital-assets/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon" },
+    ],
   },
 };
 
