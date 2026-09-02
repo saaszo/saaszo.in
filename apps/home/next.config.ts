@@ -9,6 +9,32 @@ const invoiceAppOrigin = (
   process.env.INVOICE_APP_ORIGIN ??
   (isVercelDeployment ? hostedInvoiceOrigin : localInvoiceOrigin)
 ).replace(/\/$/, "");
+const digitalApiOrigin = (() => {
+  const configuredUrl =
+    process.env.NEXT_PUBLIC_DIGITAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL;
+  if (!configuredUrl) return null;
+
+  try {
+    return new URL(configuredUrl).origin;
+  } catch {
+    return null;
+  }
+})();
+const connectSrcOrigins = [
+  "https://api.saaszo.in",
+  "https://*.googleapis.com",
+  "https://identitytoolkit.googleapis.com",
+  "https://securetoken.googleapis.com",
+  "https://*.firebaseio.com",
+  "wss://*.firebaseio.com",
+  "https://accounts.google.com",
+  "https://www.google-analytics.com",
+  "https://analytics.google.com",
+  "https://www.googletagmanager.com",
+  ...(digitalApiOrigin && digitalApiOrigin !== "https://api.saaszo.in"
+    ? [digitalApiOrigin]
+    : []),
+];
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -24,7 +50,7 @@ const csp = [
   // frame-src: Firebase Auth popup uses hidden iframes on firebaseapp.com;
   // Google OAuth popup embeds accounts.google.com; phone OTP uses google.com reCAPTCHA
   "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://www.google.com",
-  "connect-src 'self' https://api.saaszo.in https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://accounts.google.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com",
+  `connect-src 'self' ${connectSrcOrigins.join(" ")}`,
   "form-action 'self' https://www.saaszo.in https://saaszo.in",
   "upgrade-insecure-requests",
 ].join("; ");
@@ -143,6 +169,111 @@ const nextConfig: NextConfig = {
       {
         source: "/privacy-policy",
         destination: "/privacy",
+        permanent: true,
+      },
+      {
+        source: "/about.php",
+        destination: "/about",
+        permanent: true,
+      },
+      {
+        source: "/approach.php",
+        destination: "/approach",
+        permanent: true,
+      },
+      {
+        source: "/blog.php",
+        destination: "/blog",
+        permanent: true,
+      },
+      {
+        source: "/blog-single.php",
+        destination: "/blog",
+        permanent: true,
+      },
+      {
+        source: "/careers.php",
+        destination: "/careers",
+        permanent: true,
+      },
+      {
+        source: "/contact.php",
+        destination: "/contact",
+        permanent: true,
+      },
+      {
+        source: "/creator-program.php",
+        destination: "/creator-program",
+        permanent: true,
+      },
+      {
+        source: "/guest-post.php",
+        destination: "/creator-program",
+        permanent: true,
+      },
+      {
+        source: "/job.php",
+        destination: "/careers",
+        permanent: true,
+      },
+      {
+        source: "/packages.php",
+        destination: "/packages",
+        permanent: true,
+      },
+      {
+        source: "/rss.php",
+        destination: "/rss.xml",
+        permanent: true,
+      },
+      {
+        source: "/services.php",
+        destination: "/services",
+        permanent: true,
+      },
+      {
+        source: "/team.php",
+        destination: "/team",
+        permanent: true,
+      },
+      {
+        source: "/pages/audit.php",
+        destination: "/audit",
+        permanent: true,
+      },
+      {
+        source: "/pages/industries.php",
+        destination: "/industries",
+        permanent: true,
+      },
+      {
+        source: "/pages/privacy.php",
+        destination: "/privacy",
+        permanent: true,
+      },
+      {
+        source: "/pages/terms.php",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/pages/services/:slug.php",
+        destination: "/services/:slug",
+        permanent: true,
+      },
+      {
+        source: "/pages/industries/:slug.php",
+        destination: "/industries/:slug",
+        permanent: true,
+      },
+      {
+        source: "/tools/index.php",
+        destination: "/tools",
+        permanent: true,
+      },
+      {
+        source: "/tools/:slug.php",
+        destination: "/tools",
         permanent: true,
       },
     ];

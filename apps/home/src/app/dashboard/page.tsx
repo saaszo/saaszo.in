@@ -16,6 +16,14 @@ import {
 } from "@/lib/auth-client";
 import { appConfig } from "@/lib/config";
 import {
+  executionPhases,
+  FOUNDER_USER_TARGET,
+  getPlanAudience,
+  getPlanDisplayName,
+  getPlanFounderPriceSummary,
+  growthMilestones,
+} from "@/lib/pricing-plans";
+import {
   meetsPasswordRequirements,
   resolveSafeRedirectTarget,
   toSafeAbsoluteUrl,
@@ -246,6 +254,33 @@ export default function DashboardPage() {
         .length || 1,
     [toolStates],
   );
+  const subscriptionHint = useMemo(() => {
+    if (!subscription) {
+      return "Action Required";
+    }
+
+    if (subscription.status !== "active") {
+      return "Action Required";
+    }
+
+    return `${getPlanAudience(subscription.planName)} · ${getPlanFounderPriceSummary(subscription.planName)}`;
+  }, [subscription?.planName, subscription?.status]);
+  const founderHint = useMemo(() => {
+    if (!subscription) {
+      return "Founder pricing details will appear here.";
+    }
+
+    if (subscription.founderPricingLocked) {
+      return `Locked founder pricing · ${subscription.currentPaidCustomers ?? 0}/${subscription.founderPricingCustomerCap ?? FOUNDER_USER_TARGET} paid customers`;
+    }
+
+    return `${subscription.founderSlotsRemaining ?? 0} founder slots still visible`;
+  }, [
+    subscription?.currentPaidCustomers,
+    subscription?.founderPricingCustomerCap,
+    subscription?.founderPricingLocked,
+    subscription?.founderSlotsRemaining,
+  ]);
   const isDataLoading = isBranchesLoading || isStaffLoading;
 
   useEffect(() => {
@@ -413,7 +448,10 @@ export default function DashboardPage() {
 
         nextStates[product.tool] = {
           state: mappedState,
-          message: access.message,
+          message:
+            mappedState === "upgrade_plan" && access.requiredPlan
+              ? `${access.message} Upgrade to ${getPlanDisplayName(access.requiredPlan)} to unlock ${product.name}.`
+              : access.message,
           redirectUrl: access.redirectUrl,
           ctaText:
             mappedState === "upgrade_plan"
@@ -598,6 +636,14 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-right-4 duration-700">
+            {workspaceUser?.role === "super_admin" ? (
+              <Link
+                href="/dashboard/platform"
+                className="px-6 py-4 rounded-2xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all font-bold text-sm text-primary shadow-sm"
+              >
+                Platform Admin
+              </Link>
+            ) : null}
             <Link
               href="/dashboard/billing"
               className="px-6 py-4 rounded-2xl border border-outline-variant/40 bg-surface-container hover:bg-surface-container-high transition-all font-bold text-sm shadow-sm"
@@ -684,13 +730,18 @@ export default function DashboardPage() {
                 <StatCard
                   label="Subscription"
                   value={subscription.planName}
-                  hint={
-                    subscription.status === "active"
-                      ? "Active"
-                      : "Action Required"
-                  }
+                  hint={subscriptionHint}
                   icon="workspace_premium"
                   trend={subscription.status === "active" ? "up" : "down"}
+                />
+                <StatCard
+                  label="Founder Pricing"
+                  value={
+                    subscription.founderPricingLocked ? "Locked" : "Open"
+                  }
+                  hint={founderHint}
+                  icon="local_activity"
+                  trend={subscription.founderPricingLocked ? "up" : "neutral"}
                 />
                 <StatCard
                   label="Setup Status"
@@ -708,6 +759,80 @@ export default function DashboardPage() {
                   icon="account_circle"
                   trend={profile.profileCompleted ? "up" : "neutral"}
                 />
+              </div>
+
+              <div className="mt-4 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-[0_8px_30px_rgba(25,28,30,0.06)]">
+                <p className="text-xs font-semibold tracking-widest uppercase text-primary">
+                  Included In Your Plan
+                </p>
+                <p className="mt-2 text-lg font-bold text-on-surface">
+                  {subscription.headline ?? "Core workspace access"}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {(subscription.includedFeatures ?? []).map((feature) => (
+                    <span
+                      key={feature}
+                      className="rounded-full border border-outline-variant/20 bg-surface-container px-3 py-1.5 text-xs font-medium text-on-surface-variant"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+                <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-[0_8px_30px_rgba(25,28,30,0.06)]">
+                  <p className="text-xs font-semibold tracking-widest uppercase text-primary">
+                    Founder Milestones
+                  </p>
+                  <p className="mt-2 text-lg font-bold text-on-surface">
+                    Pricing rises only after the product proves retention and trust.
+                  </p>
+                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    {growthMilestones.map((milestone) => (
+                      <div
+                        key={milestone.key}
+                        className="rounded-2xl border border-outline-variant/20 bg-surface-container px-4 py-4"
+                      >
+                        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+                          {milestone.title}
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-on-surface">
+                          {milestone.goal}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-[0_8px_30px_rgba(25,28,30,0.06)]">
+                  <p className="text-xs font-semibold tracking-widest uppercase text-primary">
+                    Shipping Phases
+                  </p>
+                  <p className="mt-2 text-lg font-bold text-on-surface">
+                    Operational depth expands in a fixed execution order.
+                  </p>
+                  <div className="mt-4 space-y-3">
+                    {executionPhases.map((phase, index) => (
+                      <div
+                        key={phase.key}
+                        className="rounded-2xl border border-outline-variant/20 bg-surface-container px-4 py-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
+                            {index + 1}
+                          </span>
+                          <p className="text-sm font-bold text-on-surface">
+                            {phase.title}
+                          </p>
+                        </div>
+                        <p className="mt-2 text-sm text-on-surface-variant">
+                          {phase.goal}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </section>
 

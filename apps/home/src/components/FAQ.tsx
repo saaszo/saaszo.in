@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
+import { FOUNDER_PRICING_NOTE, FOUNDER_USER_TARGET } from "../lib/pricing-plans";
 
 const FAQS = [
   {
     q: "Is SaaSzo really free? What's the catch?",
-    a: "Yes — 100% free during our beta. No credit card, no hidden fees, no feature lockouts. We're building SaaSzo with real Indian businesses and offering full access while we grow. When we introduce pricing in the future, existing users will be grandfathered at their current plan.",
+    a: `Yes. SaaSzo keeps a real Free plan for solo businesses, and paid founder pricing starts low for the first ${FOUNDER_USER_TARGET.toLocaleString()} paid users. No credit card is required to start. ${FOUNDER_PRICING_NOTE}`,
   },
   {
     q: "Do I need a separate login for each product?",
@@ -12,7 +13,7 @@ const FAQS = [
   },
   {
     q: "How many users can I add to my account?",
-    a: "During beta, you can add up to 50 users on the Growth tier. Each user gets their own login and access to whichever products you grant them. Roles and permissions are managed from the Admin Panel.",
+    a: "Free is built for 1 user. Starter is best for 2 to 3 users, Growth covers 5 users comfortably, and larger teams can move to Business Pro or Enterprise. Each user gets their own login and product access controls.",
   },
   {
     q: "Is my data secure?",
@@ -24,7 +25,7 @@ const FAQS = [
   },
   {
     q: "Can I use SaaSzo for my existing team?",
-    a: "Yes. You can invite your entire team immediately after signup. Each member gets a dedicated login, and you can assign them to specific products and roles. There's no migration required — start fresh or import your existing data.",
+    a: "Yes. You can start with one user and expand as your plan grows. Each team member gets a dedicated login, product-specific access, and room to scale into branch workflows, billing, inventory, and operations without changing software later.",
   },
   {
     q: "What happens to my data if I stop using SaaSzo?",

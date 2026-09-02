@@ -17,6 +17,17 @@ import {
 import { appConfig, toAbsoluteApiUrl } from "@/lib/config";
 import { auth } from "@/lib/firebase";
 import {
+  getPlanBillingCycle,
+  getPlanDisplayName,
+  getPlanSeats,
+  normalizeBillingCycle,
+  normalizePlanSlug,
+  parsePricingCatalog,
+  type PlanCapability,
+  type PricingCatalogSnapshot,
+  type PublicPricingPlan,
+} from "@/lib/pricing-plans";
+import {
   buildSearchParams,
   getCookieValue,
   meetsPasswordRequirements,
@@ -59,11 +70,162 @@ type AuthInfo = {
 };
 
 type SubscriptionInfo = {
+  planKey?: string;
   planName: string;
   status: string;
   billingCycle: string;
   seats: number;
   currentPeriodEnd: string | null;
+  headline?: string;
+  includedFeatures?: string[];
+  founderPricingLocked?: boolean;
+  founderPricingLockedAt?: string | null;
+  founderPricingCustomerCap?: number;
+  founderPricingPlanKey?: string | null;
+  founderPricingBillingCycle?: string | null;
+  founderSlotsRemaining?: number;
+  currentPaidCustomers?: number;
+};
+
+export type BillingCatalogInfo = {
+  founderPricingTarget: number;
+  paidCustomers: number;
+  founderSlotsRemaining: number;
+  publicPlans: PublicPricingPlan[];
+  capabilityMatrix: PlanCapability[];
+  currentPlanKey: string;
+  currentPlanName: string;
+  currentBillingCycle: string;
+  nextPlanKey: string | null;
+  nextPlanName: string | null;
+};
+
+export type PlatformOverviewInfo = {
+  founderPricingTarget: number;
+  totalUsers: number;
+  totalOrganizations: number;
+  activeUsers: number;
+  newSignupsToday: number;
+  newSignupsThisWeek: number;
+  freePlanUsers: number;
+  paidPlanUsers: number;
+  founderPricingLockedCompanies: number;
+  founderPricingSlotsRemaining: number;
+  totalRevenue: number;
+  monthlyRecurringRevenue: number;
+  pricingCatalog: PricingCatalogSnapshot | null;
+};
+
+export type PlatformSignupReportPoint = {
+  day: string;
+  total: number;
+};
+
+export type PlatformRevenueReportPoint = {
+  period: string;
+  total: number;
+};
+
+export type PlatformBusinessTypePoint = {
+  business_category: string;
+  total: number;
+};
+
+export type PlatformToolUsageReport = {
+  events: Array<{
+    tool_key: string;
+    events: number;
+  }>;
+  subscriptions: Array<{
+    tool_key: string;
+    subscriptions: number;
+  }>;
+};
+
+export type PlatformPlanInfo = {
+  id: number;
+  key: string;
+  name: string;
+  billing_cycle: string;
+  price: number;
+  currency: string;
+  trial_days?: number | null;
+  status: string;
+};
+
+export type PlatformSubscriptionInfo = {
+  id: number;
+  company_id: number;
+  company_name: string;
+  product_key: string;
+  plan_name: string;
+  starts_at: string | null;
+  expires_at: string | null;
+  is_active: boolean;
+  amount_paid: number;
+  payment_id?: string | null;
+};
+
+export type PlatformPaymentInfo = {
+  id: number;
+  company_name: string;
+  payment_type: string;
+  payment_date: string | null;
+  amount: number;
+  method: string | null;
+  transaction_id: string | null;
+};
+
+export type PlatformPlanInput = {
+  key: string;
+  name: string;
+  billing_cycle: string;
+  price: number;
+  currency: string;
+  trial_days?: number | null;
+  status: string;
+};
+
+export type PlatformSubscriptionInput = {
+  company_id: number;
+  product_key: string;
+  plan_name: string;
+  months?: number | null;
+  starts_at?: string | null;
+  expires_at?: string | null;
+  is_active?: boolean;
+  amount_paid?: number | null;
+  payment_id?: string | null;
+};
+
+export type PlatformOrganizationInfo = {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  plan_type: string | null;
+  billing_cycle?: string | null;
+  is_active?: boolean;
+  account_state?: string | null;
+  founder_pricing_locked_at?: string | null;
+  founder_pricing_customer_cap?: number | null;
+  founder_pricing_plan_type?: string | null;
+  founder_pricing_billing_cycle?: string | null;
+  created_at?: string | null;
+};
+
+export type PlatformOrganizationUpdateInput = {
+  name?: string;
+  email?: string | null;
+  phone?: string | null;
+  plan_type?: string | null;
+  billing_cycle?: "monthly" | "yearly" | "free_forever" | null;
+  is_active?: boolean;
+  account_state?: string | null;
+  founder_pricing_locked?: boolean;
+  founder_pricing_customer_cap?: number | null;
+  founder_pricing_plan_type?: string | null;
+  founder_pricing_billing_cycle?: "monthly" | "yearly" | "free_forever" | null;
 };
 
 export type SessionUserInfo = {
@@ -153,7 +315,11 @@ type AuthContextValue = {
   postAuthRedirect: string | null;
   setOnboardingState: (next: Partial<OnboardingInfo>) => void;
   reloadUser: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: (options?: {
+    plan?: string | null;
+    companyName?: string | null;
+    billingCycle?: string | null;
+  }) => Promise<void>;
   signOut: () => Promise<void>;
   setupRecaptcha: (
     containerId: string,
@@ -177,8 +343,54 @@ type AuthContextValue = {
     password: string,
     name?: string,
     companyName?: string,
-    options?: { redirect?: string | null },
+    options?: {
+      redirect?: string | null;
+      plan?: string | null;
+      billingCycle?: string | null;
+    },
   ) => Promise<void>;
+  saveBillingPlan: (
+    plan: string,
+    billingCycle?: string,
+  ) => Promise<{ success: boolean; message?: string }>;
+  getBillingCatalog: () => Promise<BillingCatalogInfo | null>;
+  getPlatformOverview: () => Promise<PlatformOverviewInfo | null>;
+  getPlatformOrganizations: (
+    params?: { q?: string; perPage?: number },
+  ) => Promise<PlatformOrganizationInfo[]>;
+  getPlatformSignupReport: () => Promise<PlatformSignupReportPoint[]>;
+  getPlatformRevenueReport: () => Promise<PlatformRevenueReportPoint[]>;
+  getPlatformBusinessTypesReport: () => Promise<PlatformBusinessTypePoint[]>;
+  getPlatformToolUsageReport: () => Promise<PlatformToolUsageReport | null>;
+  getPlatformPlans: () => Promise<PlatformPlanInfo[]>;
+  getPlatformSubscriptions: (params?: {
+    tool?: string;
+    perPage?: number;
+  }) => Promise<PlatformSubscriptionInfo[]>;
+  getPlatformPayments: (params?: {
+    status?: string;
+    perPage?: number;
+  }) => Promise<PlatformPaymentInfo[]>;
+  savePlatformPlan: (
+    input: PlatformPlanInput,
+    id?: number | null,
+  ) => Promise<{ success: boolean; message?: string; plan?: PlatformPlanInfo | null }>;
+  savePlatformSubscription: (
+    input: PlatformSubscriptionInput,
+    id?: number | null,
+  ) => Promise<{
+    success: boolean;
+    message?: string;
+    subscription?: PlatformSubscriptionInfo | null;
+  }>;
+  updatePlatformOrganization: (
+    id: number,
+    input: PlatformOrganizationUpdateInput,
+  ) => Promise<{
+    success: boolean;
+    message?: string;
+    organization?: PlatformOrganizationInfo | null;
+  }>;
   updateProfile: (
     values: Partial<ProfilePayload>,
   ) => Promise<{ error?: string }>;
@@ -213,6 +425,8 @@ type AuthContextValue = {
     status: string;
     message?: string;
     redirectUrl?: string;
+    requiredPlan?: string;
+    currentPlan?: string;
   }>;
 };
 
@@ -262,6 +476,9 @@ type BackendAuthResponse = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 let backendTokenCache: string | null = null;
 const googleRedirectIntentKey = "saaszo_google_auth_intent";
+const pendingSignupPlanKey = "saaszo_signup_plan";
+const pendingSignupCompanyKey = "saaszo_signup_company";
+const pendingSignupBillingCycleKey = "saaszo_signup_billing_cycle";
 const TOKEN_STORAGE_KEY = "saaszo_backend_token";
 const sharedCookieDomain = ".saaszo.in";
 const EIGHT_HOURS_IN_MS = 8 * 60 * 60 * 1000;
@@ -364,6 +581,66 @@ function clearGoogleRedirectIntent() {
   setSharedBooleanCookie(googleRedirectIntentKey, "0", 0);
 }
 
+function setPendingSignupContext(options?: {
+  plan?: string | null;
+  companyName?: string | null;
+  billingCycle?: string | null;
+}) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.setItem(
+    pendingSignupPlanKey,
+    normalizePlanSlug(options?.plan),
+  );
+
+  const companyName = options?.companyName?.trim();
+  if (companyName) {
+    window.sessionStorage.setItem(pendingSignupCompanyKey, companyName);
+  } else {
+    window.sessionStorage.removeItem(pendingSignupCompanyKey);
+  }
+
+  window.sessionStorage.setItem(
+    pendingSignupBillingCycleKey,
+    normalizeBillingCycle(options?.billingCycle, options?.plan),
+  );
+}
+
+function getPendingSignupContext() {
+  if (typeof window === "undefined") {
+    return {
+      plan: "free",
+      companyName: null as string | null,
+      billingCycle: "free_forever",
+    };
+  }
+
+  return {
+    plan: normalizePlanSlug(
+      window.sessionStorage.getItem(pendingSignupPlanKey),
+    ),
+    companyName: window.sessionStorage.getItem(pendingSignupCompanyKey)?.trim()
+      ? window.sessionStorage.getItem(pendingSignupCompanyKey)?.trim() ?? null
+      : null,
+    billingCycle: normalizeBillingCycle(
+      window.sessionStorage.getItem(pendingSignupBillingCycleKey),
+      window.sessionStorage.getItem(pendingSignupPlanKey),
+    ),
+  };
+}
+
+function clearPendingSignupContext() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.removeItem(pendingSignupPlanKey);
+  window.sessionStorage.removeItem(pendingSignupCompanyKey);
+  window.sessionStorage.removeItem(pendingSignupBillingCycleKey);
+}
+
 async function fetchWithTimeout(
   input: RequestInfo | URL,
   init: RequestInit = {},
@@ -427,6 +704,8 @@ function getErrorMessage(payload: any, fallback: string) {
 function normalizeBackendSession(
   payload: BackendAuthResponse,
 ): Omit<AuthSessionState, "user" | "authenticated" | "error" | "loading"> {
+  const companyPlanType = normalizePlanSlug(payload.company?.plan_type);
+
   if (payload.profile && payload.auth && payload.subscription) {
     return {
       workspaceUser: {
@@ -442,7 +721,40 @@ function normalizeBackendSession(
       },
       profile: payload.profile,
       auth: payload.auth,
-      subscription: payload.subscription,
+      subscription: {
+        ...payload.subscription,
+        planKey: normalizePlanSlug(
+          payload.subscription.planKey ??
+            payload.subscription.planName ??
+            companyPlanType,
+        ),
+        founderPricingBillingCycle: payload.subscription
+          .founderPricingBillingCycle
+          ? normalizeBillingCycle(
+              payload.subscription.founderPricingBillingCycle,
+              payload.subscription.founderPricingPlanKey ??
+                payload.subscription.planKey ??
+                companyPlanType,
+            )
+          : null,
+        founderPricingPlanKey: payload.subscription.founderPricingPlanKey
+          ? normalizePlanSlug(payload.subscription.founderPricingPlanKey)
+          : null,
+        planName: getPlanDisplayName(
+          payload.subscription.planName ?? companyPlanType,
+        ),
+        billingCycle: normalizeBillingCycle(
+          payload.subscription.billingCycle,
+          payload.subscription.planKey ??
+            payload.subscription.planName ??
+            companyPlanType,
+        ),
+        seats:
+          typeof payload.subscription.seats === "number" &&
+          payload.subscription.seats > 0
+            ? payload.subscription.seats
+            : getPlanSeats(payload.subscription.planName ?? companyPlanType),
+      },
       onboarding: payload.onboarding ?? null,
     };
   }
@@ -484,11 +796,22 @@ function normalizeBackendSession(
       emailVerified: Boolean(user.email),
     },
     subscription: {
-      planName: toTitleCase(company.plan_type, "Free"),
+      planKey: companyPlanType,
+      planName: getPlanDisplayName(company.plan_type),
       status: company.is_active === false ? "inactive" : "active",
-      billingCycle: "monthly",
-      seats: 1,
+      billingCycle: normalizeBillingCycle(
+        getPlanBillingCycle(company.plan_type),
+        company.plan_type,
+      ),
+      seats: getPlanSeats(company.plan_type),
       currentPeriodEnd: null,
+      founderPricingLocked: false,
+      founderPricingLockedAt: null,
+      founderPricingCustomerCap: undefined,
+      founderPricingPlanKey: null,
+      founderPricingBillingCycle: null,
+      founderSlotsRemaining: undefined,
+      currentPaidCustomers: undefined,
     },
     onboarding: payload.onboarding ?? null,
   };
@@ -589,6 +912,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function syncFirebaseUserSession(firebaseUser: FirebaseUser) {
     const token = await firebaseUser.getIdToken();
+    const pendingSignupContext = getPendingSignupContext();
 
     // Pass the ?redirect= URL param to the backend so it can return the
     // correct redirect target (e.g. /dashboard/settings) instead of always
@@ -605,7 +929,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(
-        urlRedirectParam ? { redirect: urlRedirectParam } : {},
+        {
+          ...(urlRedirectParam ? { redirect: urlRedirectParam } : {}),
+          ...(pendingSignupContext.plan
+            ? { plan: pendingSignupContext.plan }
+            : {}),
+          ...(pendingSignupContext.billingCycle
+            ? { billing_cycle: pendingSignupContext.billingCycle }
+            : {}),
+          ...(pendingSignupContext.companyName
+            ? { business_name: pendingSignupContext.companyName }
+            : {}),
+        },
       ),
     });
 
@@ -662,6 +997,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription: data.subscription ?? null,
       onboarding: data.onboarding ?? null,
     });
+
+    clearPendingSignupContext();
 
     return data;
   }
@@ -882,6 +1219,425 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     await hydrateBackendSession(storedToken);
+  }
+
+  async function saveBillingPlan(
+    plan: string,
+    billingCycle?: string,
+  ): Promise<{ success: boolean; message?: string }> {
+    try {
+      const payload = await fetchBackendJson("/auth/billing/plan", {
+        method: "POST",
+        body: JSON.stringify({
+          plan,
+          billing_cycle: normalizeBillingCycle(billingCycle, plan),
+        }),
+      });
+
+      const session = normalizeBackendSession(payload);
+      setPostAuthRedirect(
+        resolveAuthRedirectTarget(payload.redirect, session.onboarding),
+      );
+      setState((current) => ({
+        ...current,
+        workspaceUser: session.workspaceUser,
+        profile: session.profile,
+        auth: session.auth,
+        subscription: session.subscription,
+        onboarding: session.onboarding,
+        error: "",
+      }));
+
+      return {
+        success: true,
+        message: payload.message ?? "Billing plan updated successfully.",
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message || "Could not update billing plan.",
+      };
+    }
+  }
+
+  async function getBillingCatalog(): Promise<BillingCatalogInfo | null> {
+    try {
+      const payload = await fetchBackendJson("/auth/billing/catalog");
+      const data = (payload as any)?.data;
+      const catalog = parsePricingCatalog(payload);
+
+      if (!data || !catalog) {
+        return null;
+      }
+
+      return {
+        founderPricingTarget: catalog.founderPricingTarget,
+        paidCustomers: catalog.paidCustomers,
+        founderSlotsRemaining: catalog.founderSlotsRemaining,
+        publicPlans: catalog.publicPlans,
+        capabilityMatrix: catalog.capabilityMatrix,
+        currentPlanKey: normalizePlanSlug(data.current_plan_key),
+        currentPlanName: String(data.current_plan_name ?? ""),
+        currentBillingCycle: String(data.current_billing_cycle ?? "monthly"),
+        nextPlanKey: data.next_plan_key
+          ? normalizePlanSlug(data.next_plan_key)
+          : null,
+        nextPlanName: data.next_plan_name ? String(data.next_plan_name) : null,
+      };
+    } catch (err) {
+      console.error("getBillingCatalog error:", err);
+      return null;
+    }
+  }
+
+  async function getPlatformOverview(): Promise<PlatformOverviewInfo | null> {
+    try {
+      const payload = await fetchBackendJson("/admin/overview");
+      const data = (payload as any)?.data;
+
+      if (!data) {
+        return null;
+      }
+
+      return {
+        founderPricingTarget: Number(data.founder_pricing_target ?? 0),
+        totalUsers: Number(data.total_users ?? 0),
+        totalOrganizations: Number(data.total_organizations ?? 0),
+        activeUsers: Number(data.active_users ?? 0),
+        newSignupsToday: Number(data.new_signups_today ?? 0),
+        newSignupsThisWeek: Number(data.new_signups_this_week ?? 0),
+        freePlanUsers: Number(data.free_plan_users ?? 0),
+        paidPlanUsers: Number(data.paid_plan_users ?? 0),
+        founderPricingLockedCompanies: Number(
+          data.founder_pricing_locked_companies ?? 0,
+        ),
+        founderPricingSlotsRemaining: Number(
+          data.founder_pricing_slots_remaining ?? 0,
+        ),
+        totalRevenue: Number(data.total_revenue ?? 0),
+        monthlyRecurringRevenue: Number(
+          data.monthly_recurring_revenue ?? 0,
+        ),
+        pricingCatalog: parsePricingCatalog(data.pricing_catalog ?? null),
+      };
+    } catch (err) {
+      console.error("getPlatformOverview error:", err);
+      return null;
+    }
+  }
+
+  async function getPlatformOrganizations(
+    params?: { q?: string; perPage?: number },
+  ): Promise<PlatformOrganizationInfo[]> {
+    try {
+      const query = buildSearchParams({
+        q: params?.q || undefined,
+        per_page: params?.perPage ?? 25,
+      });
+      const payload = await fetchBackendJson(
+        `/admin/organizations${query ? `?${query}` : ""}`,
+      );
+      const rows = (payload as any)?.data?.data;
+
+      if (!Array.isArray(rows)) {
+        return [];
+      }
+
+      return rows as PlatformOrganizationInfo[];
+    } catch (err) {
+      console.error("getPlatformOrganizations error:", err);
+      return [];
+    }
+  }
+
+  async function getPlatformSignupReport(): Promise<PlatformSignupReportPoint[]> {
+    try {
+      const payload = await fetchBackendJson("/admin/reports/signups");
+      const rows = (payload as any)?.data;
+      return Array.isArray(rows)
+        ? rows.map((row) => ({
+            day: String(row.day ?? ""),
+            total: Number(row.total ?? 0),
+          }))
+        : [];
+    } catch (err) {
+      console.error("getPlatformSignupReport error:", err);
+      return [];
+    }
+  }
+
+  async function getPlatformRevenueReport(): Promise<PlatformRevenueReportPoint[]> {
+    try {
+      const payload = await fetchBackendJson("/admin/reports/revenue");
+      const rows = (payload as any)?.data;
+      return Array.isArray(rows)
+        ? rows.map((row) => ({
+            period: String(row.period ?? ""),
+            total: Number(row.total ?? 0),
+          }))
+        : [];
+    } catch (err) {
+      console.error("getPlatformRevenueReport error:", err);
+      return [];
+    }
+  }
+
+  async function getPlatformBusinessTypesReport(): Promise<PlatformBusinessTypePoint[]> {
+    try {
+      const payload = await fetchBackendJson("/admin/reports/business-types");
+      const rows = (payload as any)?.data;
+      return Array.isArray(rows)
+        ? rows.map((row) => ({
+            business_category: String(row.business_category ?? "Unknown"),
+            total: Number(row.total ?? 0),
+          }))
+        : [];
+    } catch (err) {
+      console.error("getPlatformBusinessTypesReport error:", err);
+      return [];
+    }
+  }
+
+  async function getPlatformToolUsageReport(): Promise<PlatformToolUsageReport | null> {
+    try {
+      const payload = await fetchBackendJson("/admin/reports/tool-usage");
+      const data = (payload as any)?.data;
+
+      if (!data || typeof data !== "object") {
+        return null;
+      }
+
+      return {
+        events: Array.isArray(data.events)
+          ? data.events.map((row: any) => ({
+              tool_key: String(row.tool_key ?? ""),
+              events: Number(row.events ?? 0),
+            }))
+          : [],
+        subscriptions: Array.isArray(data.subscriptions)
+          ? data.subscriptions.map((row: any) => ({
+              tool_key: String(row.tool_key ?? ""),
+              subscriptions: Number(row.subscriptions ?? 0),
+            }))
+          : [],
+      };
+    } catch (err) {
+      console.error("getPlatformToolUsageReport error:", err);
+      return null;
+    }
+  }
+
+  async function getPlatformPlans(): Promise<PlatformPlanInfo[]> {
+    try {
+      const payload = await fetchBackendJson("/admin/plans");
+      const rows = (payload as any)?.data;
+      return Array.isArray(rows)
+        ? rows.map((row) => ({
+            id: Number(row.id ?? 0),
+            key: String(row.key ?? ""),
+            name: String(row.name ?? ""),
+            billing_cycle: String(row.billing_cycle ?? ""),
+            price: Number(row.price ?? 0),
+            currency: String(row.currency ?? "INR"),
+            trial_days:
+              typeof row.trial_days === "number" ? row.trial_days : null,
+            status: String(row.status ?? "unknown"),
+          }))
+        : [];
+    } catch (err) {
+      console.error("getPlatformPlans error:", err);
+      return [];
+    }
+  }
+
+  async function getPlatformSubscriptions(params?: {
+    tool?: string;
+    perPage?: number;
+  }): Promise<PlatformSubscriptionInfo[]> {
+    try {
+      const query = buildSearchParams({
+        tool: params?.tool || undefined,
+        per_page: params?.perPage ?? 25,
+      });
+      const payload = await fetchBackendJson(
+        `/admin/subscriptions${query ? `?${query}` : ""}`,
+      );
+      const rows = (payload as any)?.data?.data;
+      return Array.isArray(rows)
+        ? rows.map((row) => ({
+            id: Number(row.id ?? 0),
+            company_id: Number(row.company_id ?? 0),
+            company_name: String(row.company?.name ?? "Unknown company"),
+            product_key: String(row.product_key ?? ""),
+            plan_name: String(row.plan_name ?? ""),
+            starts_at: row.starts_at ? String(row.starts_at) : null,
+            expires_at: row.expires_at ? String(row.expires_at) : null,
+            is_active: Boolean(row.is_active),
+            amount_paid: Number(row.amount_paid ?? 0),
+            payment_id: row.payment_id ? String(row.payment_id) : null,
+          }))
+        : [];
+    } catch (err) {
+      console.error("getPlatformSubscriptions error:", err);
+      return [];
+    }
+  }
+
+  async function getPlatformPayments(params?: {
+    status?: string;
+    perPage?: number;
+  }): Promise<PlatformPaymentInfo[]> {
+    try {
+      const query = buildSearchParams({
+        status: params?.status || undefined,
+        per_page: params?.perPage ?? 25,
+      });
+      const payload = await fetchBackendJson(
+        `/admin/payments${query ? `?${query}` : ""}`,
+      );
+      const rows = (payload as any)?.data?.data;
+      return Array.isArray(rows)
+        ? rows.map((row) => ({
+            id: Number(row.id ?? 0),
+            company_name: String(row.company?.name ?? "Unknown company"),
+            payment_type: String(row.payment_type ?? ""),
+            payment_date: row.payment_date ? String(row.payment_date) : null,
+            amount: Number(row.amount ?? 0),
+            method: row.method ? String(row.method) : null,
+            transaction_id: row.transaction_id
+              ? String(row.transaction_id)
+              : null,
+          }))
+        : [];
+    } catch (err) {
+      console.error("getPlatformPayments error:", err);
+      return [];
+    }
+  }
+
+  async function savePlatformPlan(
+    input: PlatformPlanInput,
+    id?: number | null,
+  ): Promise<{ success: boolean; message?: string; plan?: PlatformPlanInfo | null }> {
+    try {
+      const payload = await fetchBackendJson(
+        id ? `/admin/plans/${id}` : "/admin/plans",
+        {
+          method: id ? "PATCH" : "POST",
+          body: JSON.stringify(input),
+        },
+      );
+      const row = (payload as any)?.data ?? null;
+      return {
+        success: true,
+        message: payload.message ?? (id ? "Plan updated successfully." : "Plan created successfully."),
+        plan: row
+          ? {
+              id: Number(row.id ?? 0),
+              key: String(row.key ?? input.key ?? ""),
+              name: String(row.name ?? input.name ?? ""),
+              billing_cycle: String(row.billing_cycle ?? input.billing_cycle ?? ""),
+              price: Number(row.price ?? input.price ?? 0),
+              currency: String(row.currency ?? input.currency ?? "INR"),
+              trial_days:
+                typeof row.trial_days === "number" ? row.trial_days : input.trial_days ?? null,
+              status: String(row.status ?? input.status ?? "active"),
+            }
+          : null,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message || "Could not save plan.",
+        plan: null,
+      };
+    }
+  }
+
+  async function savePlatformSubscription(
+    input: PlatformSubscriptionInput,
+    id?: number | null,
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    subscription?: PlatformSubscriptionInfo | null;
+  }> {
+    try {
+      const payload = await fetchBackendJson(
+        id ? `/admin/subscriptions/${id}` : "/admin/subscriptions",
+        {
+          method: id ? "PATCH" : "POST",
+          body: JSON.stringify(input),
+        },
+      );
+      const row = (payload as any)?.data ?? null;
+      return {
+        success: true,
+        message:
+          payload.message ??
+          (id
+            ? "Subscription updated successfully."
+            : "Subscription created successfully."),
+        subscription: row
+          ? {
+              id: Number(row.id ?? 0),
+              company_id: Number(row.company_id ?? input.company_id ?? 0),
+              company_name: String(
+                row.company?.name ?? row.company_name ?? "Unknown company",
+              ),
+              product_key: String(row.product_key ?? input.product_key ?? ""),
+              plan_name: String(row.plan_name ?? input.plan_name ?? ""),
+              starts_at: row.starts_at ? String(row.starts_at) : input.starts_at ?? null,
+              expires_at: row.expires_at
+                ? String(row.expires_at)
+                : input.expires_at ?? null,
+              is_active:
+                typeof row.is_active === "boolean"
+                  ? row.is_active
+                  : Boolean(input.is_active),
+              amount_paid: Number(row.amount_paid ?? input.amount_paid ?? 0),
+              payment_id: row.payment_id
+                ? String(row.payment_id)
+                : input.payment_id ?? null,
+            }
+          : null,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message || "Could not save subscription.",
+        subscription: null,
+      };
+    }
+  }
+
+  async function updatePlatformOrganization(
+    id: number,
+    input: PlatformOrganizationUpdateInput,
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    organization?: PlatformOrganizationInfo | null;
+  }> {
+    try {
+      const payload = await fetchBackendJson(`/admin/organizations/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      });
+      const row = (payload as any)?.data ?? null;
+
+      return {
+        success: true,
+        message: payload.message ?? "Organization updated successfully.",
+        organization: row as PlatformOrganizationInfo | null,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message || "Could not update organization.",
+        organization: null,
+      };
+    }
   }
 
   function setOnboardingState(next: Partial<OnboardingInfo>) {
@@ -1118,10 +1874,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(options?: {
+    plan?: string | null;
+    companyName?: string | null;
+    billingCycle?: string | null;
+  }) {
     if (!auth) {
       throw new Error("Firebase not initialized");
     }
+
+    setPendingSignupContext(options);
 
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
@@ -1241,10 +2003,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     name?: string,
     companyName?: string,
-    options?: { redirect?: string | null },
+    options?: {
+      redirect?: string | null;
+      plan?: string | null;
+      billingCycle?: string | null;
+    },
   ) {
     const displayName = name?.trim() || email.split("@")[0] || "SaaSzo User";
     const normalizedCompanyName = companyName?.trim() || "SaaSzo Workspace";
+    const normalizedPlan = normalizePlanSlug(options?.plan);
+    const normalizedBillingCycle = normalizeBillingCycle(
+      options?.billingCycle,
+      normalizedPlan,
+    );
 
     const payload = await fetchBackendJson("/auth/register", {
       method: "POST",
@@ -1254,6 +2025,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         password_confirmation: password,
+        plan: normalizedPlan,
+        billing_cycle: normalizedBillingCycle,
         email_verified_via: "otp",
         ...(options?.redirect ? { redirect: options.redirect } : {}),
       }),
@@ -1280,6 +2053,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       await hydrateCookieSession();
     }
+    clearPendingSignupContext();
     navigateAfterAuth(router, redirectUrl);
   }
 
@@ -1711,6 +2485,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         status: String((payload as any).status || "unknown"),
         message: payload.message,
         redirectUrl: (payload as any).redirect_url,
+        requiredPlan: (payload as any).required_plan,
+        currentPlan: (payload as any).current_plan,
       };
     } catch (err: any) {
       return {
@@ -1732,6 +2508,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sendPhoneOtp,
     signInWithEmail,
     signUpWithEmail,
+    saveBillingPlan,
+    getBillingCatalog,
+    getPlatformOverview,
+    getPlatformOrganizations,
+    getPlatformSignupReport,
+    getPlatformRevenueReport,
+    getPlatformBusinessTypesReport,
+    getPlatformToolUsageReport,
+    getPlatformPlans,
+    getPlatformSubscriptions,
+    getPlatformPayments,
+    savePlatformPlan,
+    savePlatformSubscription,
+    updatePlatformOrganization,
     updateProfile,
     updatePassword,
     sendPasswordReset,
