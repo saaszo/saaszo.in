@@ -17,6 +17,7 @@ const navItems = [
 ];
 
 const moreItems = [
+  { href: "/bussinsh_tool", label: "Premium Tools Beta", target: "_self" },
   { href: "/about", label: "About Us", target: "_self" },
   { href: "/team", label: "Our Team", target: "_self" },
   { href: "/careers", label: "Careers", target: "_self" },
@@ -38,6 +39,7 @@ const quickLinks = [
 ];
 
 const importantLinks = [
+  { href: "/bussinsh_tool", label: "Premium Tools Beta" },
   { href: "/creator-program", label: "Influencer Program" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms of Service" },

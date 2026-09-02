@@ -6,6 +6,12 @@ import {
 
 const tools = [
   {
+    title: "Premium Tools Beta Tester",
+    href: "/bussinsh_tool",
+    description:
+      "Early access preview for upcoming SaaSzo premium business tools.",
+  },
+  {
     title: "Growth Audit",
     href: "/audit",
     description: "Website and marketing audit request flow.",
