@@ -33,7 +33,7 @@ export function SvgBarChart({
     return (
       <div
         className={cn(
-          "flex items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 text-xs text-slate-400 font-medium",
+          "flex items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/50 text-xs text-slate-400 font-medium",
           className,
         )}
         style={{ height }}
@@ -72,7 +72,7 @@ export function SvgBarChart({
 
               {/* Bar */}
               <div
-                className="w-full max-w-[36px] rounded-t-lg transition-all duration-300 hover:brightness-110 cursor-pointer shadow-xs"
+                className="w-full max-w-[36px] rounded-t-xs transition-all duration-300 hover:brightness-110 cursor-pointer shadow-2xs"
                 style={{
                   height: `${barHeightPct}%`,
                   backgroundColor: barColor,
@@ -132,7 +132,7 @@ export function SvgAreaChart({
     return (
       <div
         className={cn(
-          "flex items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 text-xs text-slate-400 font-medium",
+          "flex items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/50 text-xs text-slate-400 font-medium",
           className,
         )}
         style={{ height }}
@@ -286,7 +286,7 @@ export function CategoryBreakdown({
 
   if (!categories || categories.length === 0 || totalCount === 0) {
     return (
-      <div className="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+      <div className="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
         No business category data available yet.
       </div>
     );
@@ -295,7 +295,7 @@ export function CategoryBreakdown({
   return (
     <div className={cn("space-y-4", className)}>
       {/* Progress Bar Ribbon */}
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100 p-0.5 gap-0.5">
+      <div className="flex h-2.5 w-full overflow-hidden rounded bg-slate-100 p-0.5 gap-0.5">
         {categories.map((cat, idx) => {
           const pct = Math.max((cat.count / totalCount) * 100, 2);
           const color =
@@ -304,7 +304,7 @@ export function CategoryBreakdown({
           return (
             <div
               key={cat.label}
-              className="h-full rounded-full transition-all duration-300 first:rounded-l-full last:rounded-r-full"
+              className="h-full rounded-xs transition-all duration-300"
               style={{ width: `${pct}%`, backgroundColor: color }}
               title={`${cat.label}: ${cat.count} (${pct.toFixed(1)}%)`}
             />
@@ -313,7 +313,7 @@ export function CategoryBreakdown({
       </div>
 
       {/* Legend & Breakdown List */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
         {categories.map((cat, idx) => {
           const pct = ((cat.count / totalCount) * 100).toFixed(1);
           const color =
@@ -323,10 +323,10 @@ export function CategoryBreakdown({
           return (
             <div
               key={cat.label}
-              className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50/60 border border-slate-100 hover:bg-slate-100/60 transition-colors"
+              className="flex items-center gap-2 p-2 rounded-md bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100/70 transition-colors"
             >
               <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
+                className="w-2 h-2 rounded-xs shrink-0"
                 style={{ backgroundColor: color }}
               />
               <div className="min-w-0 flex-1">
@@ -362,7 +362,7 @@ interface ToolAdoptionMeterProps {
 export function ToolAdoptionMeter({ tools, className }: ToolAdoptionMeterProps) {
   if (!tools || tools.length === 0) {
     return (
-      <div className="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+      <div className="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
         No tool adoption data recorded yet.
       </div>
     );
@@ -371,7 +371,7 @@ export function ToolAdoptionMeter({ tools, className }: ToolAdoptionMeterProps) 
   const maxEvents = Math.max(...tools.map((t) => t.events), 1);
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("space-y-3.5", className)}>
       {tools.map((tool, idx) => {
         const pct = Math.min(Math.round((tool.events / maxEvents) * 100), 100);
         const color =
@@ -381,10 +381,10 @@ export function ToolAdoptionMeter({ tools, className }: ToolAdoptionMeterProps) 
         return (
           <div key={tool.toolKey} className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-slate-800 uppercase tracking-wider">
+              <span className="font-semibold text-slate-800 uppercase tracking-wider text-[11px]">
                 {tool.name || tool.toolKey}
               </span>
-              <span className="text-slate-500 font-medium">
+              <span className="text-slate-500 font-medium text-[11px]">
                 {tool.events.toLocaleString()} events ·{" "}
                 <span className="text-indigo-600 font-semibold">
                   {tool.subscriptions} active
@@ -392,9 +392,9 @@ export function ToolAdoptionMeter({ tools, className }: ToolAdoptionMeterProps) 
               </span>
             </div>
 
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className="h-1.5 w-full overflow-hidden rounded bg-slate-100">
               <div
-                className="h-full rounded-full transition-all duration-500"
+                className="h-full rounded-xs transition-all duration-500"
                 style={{
                   width: `${Math.max(pct, 4)}%`,
                   backgroundColor: color,

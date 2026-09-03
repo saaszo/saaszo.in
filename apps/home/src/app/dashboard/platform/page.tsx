@@ -624,7 +624,7 @@ export default function PlatformAdminPage() {
 
   if (loading || (authenticated && !isSuperAdmin)) {
     return (
-      <div className="min-h-screen bg-background text-on-surface flex items-center justify-center px-6">
+      <div className="min-h-screen bg-background text-slate-900 flex items-center justify-center px-6">
         <p className="text-lg font-semibold">Loading platform controls...</p>
       </div>
     );
@@ -642,7 +642,7 @@ export default function PlatformAdminPage() {
             <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
               Platform Admin
             </span>
-            <span className="rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700 uppercase">
+            <span className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold text-indigo-700 uppercase">
               Super Admin Console
             </span>
           </div>
@@ -656,7 +656,7 @@ export default function PlatformAdminPage() {
         <button
           type="button"
           onClick={() => void loadData(search.trim())}
-          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-sm">refresh</span>
           {refreshing ? "Refreshing..." : "Refresh"}
@@ -707,10 +707,10 @@ export default function PlatformAdminPage() {
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <section className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-[0_20px_60px_rgba(25,28,30,0.08)]">
+          <section className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
                   Founder Milestones
                 </p>
                 <h2 className="mt-2 text-2xl font-bold tracking-tight">
@@ -718,7 +718,7 @@ export default function PlatformAdminPage() {
                 </h2>
               </div>
               {pricingCatalog ? (
-                <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
+                <div className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
                   {pricingCatalog.paidCustomers} paid ·{" "}
                   {pricingCatalog.founderSlotsRemaining} slots left
                 </div>
@@ -729,19 +729,19 @@ export default function PlatformAdminPage() {
               {growthMilestones.map((milestone) => (
                 <div
                   key={milestone.key}
-                  className="rounded-2xl border border-outline-variant/20 bg-surface-container px-4 py-4"
+                  className="rounded-lg border border-slate-200/80 bg-slate-50 px-4 py-4"
                 >
-                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-primary">
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-indigo-600">
                     {milestone.title}
                   </p>
-                  <p className="mt-2 text-sm font-semibold text-on-surface">
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
                     {milestone.goal}
                   </p>
                   <ul className="mt-4 space-y-2">
                     {milestone.signals.map((signal) => (
                       <li
                         key={signal}
-                        className="flex items-start gap-2 text-xs text-on-surface-variant"
+                        className="flex items-start gap-2 text-xs text-slate-500"
                       >
                         <span className="mt-1 inline-block h-2 w-2 rounded-full bg-primary" />
                         <span>{signal}</span>
@@ -753,8 +753,8 @@ export default function PlatformAdminPage() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-[0_20px_60px_rgba(25,28,30,0.08)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+          <section className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
               Shipping Phases
             </p>
             <h2 className="mt-2 text-2xl font-bold tracking-tight">
@@ -764,17 +764,17 @@ export default function PlatformAdminPage() {
               {executionPhases.map((phase, index) => (
                 <div
                   key={phase.key}
-                  className="rounded-2xl border border-outline-variant/20 bg-surface-container px-4 py-4"
+                  className="rounded-lg border border-slate-200/80 bg-slate-50 px-4 py-4"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 text-xs font-black text-indigo-600">
                       {index + 1}
                     </span>
-                    <p className="text-sm font-bold text-on-surface">
+                    <p className="text-sm font-bold text-slate-900">
                       {phase.title}
                     </p>
                   </div>
-                  <p className="mt-2 text-sm text-on-surface-variant">
+                  <p className="mt-2 text-sm text-slate-500">
                     {phase.goal}
                   </p>
                 </div>
@@ -783,23 +783,23 @@ export default function PlatformAdminPage() {
           </section>
         </div>
 
-        <section className="mt-8 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-[0_20px_60px_rgba(25,28,30,0.08)]">
+        <section className="mt-8 rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
                 Pricing Ladder
               </p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight">
                 Founder offer versus post-1000 pricing
               </h2>
-              <p className="mt-2 max-w-3xl text-sm text-on-surface-variant">
+              <p className="mt-2 max-w-3xl text-sm text-slate-500">
                 Annual pricing should remain the default best-value choice while
                 founder slots are still open. This snapshot helps admin and sales
                 teams explain the current entry offer clearly.
               </p>
             </div>
             {pricingCatalog ? (
-              <div className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">
+              <div className="rounded bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
                 {pricingCatalog.founderSlotsRemaining} founder slots still visible
               </div>
             ) : null}
@@ -809,16 +809,16 @@ export default function PlatformAdminPage() {
             {(pricingCatalog?.publicPlans ?? []).filter((plan) => plan.slug !== "free").map((plan) => (
               <div
                 key={plan.slug}
-                className="rounded-2xl border border-outline-variant/20 bg-surface-container px-4 py-4"
+                className="rounded-lg border border-slate-200/80 bg-slate-50 px-4 py-4"
               >
-                <p className="text-sm font-black text-on-surface">{plan.name}</p>
-                <p className="mt-1 text-xs text-on-surface-variant">
+                <p className="text-sm font-black text-slate-900">{plan.name}</p>
+                <p className="mt-1 text-xs text-slate-500">
                   Founder now: {getPlanPrice(plan.slug, "yearly")}/year
                 </p>
-                <p className="mt-1 text-xs text-on-surface-variant">
+                <p className="mt-1 text-xs text-slate-500">
                   New users later: {getPlanPrice(plan.slug, "yearly", "next")}/year
                 </p>
-                <div className="mt-3 rounded-xl bg-primary/5 px-3 py-3 text-xs font-medium text-primary">
+                <div className="mt-3 rounded-md bg-indigo-50/50 px-3 py-3 text-xs font-medium text-indigo-600">
                   Yearly saves commitment friction and keeps pricing simple during
                   the first 1,000 paid-workspace push.
                 </div>
@@ -827,22 +827,22 @@ export default function PlatformAdminPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-[0_20px_60px_rgba(25,28,30,0.08)]">
+        <section className="mt-8 rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
                 Billing Operations
               </p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight">
                 Plans, subscriptions, and payment records
               </h2>
-              <p className="mt-2 max-w-3xl text-sm text-on-surface-variant">
+              <p className="mt-2 max-w-3xl text-sm text-slate-500">
                 Founder pricing only works well when admin can also inspect the
                 actual plan catalog, live subscriptions, and payment records
                 without leaving the control center.
               </p>
             </div>
-            <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
+            <div className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
               Billing admin visibility
             </div>
           </div>
@@ -888,12 +888,12 @@ export default function PlatformAdminPage() {
 
           {billingMessage ? (
             <div
-              className={`mt-5 rounded-2xl px-4 py-3 text-sm font-medium ${
+              className={`mt-5 rounded-lg px-4 py-3 text-sm font-medium ${
                 billingTone === "success"
                   ? "bg-emerald-500/10 text-emerald-700"
                   : billingTone === "error"
                     ? "bg-rose-500/10 text-rose-700"
-                    : "bg-primary/10 text-primary"
+                    : "bg-indigo-50 text-indigo-700 text-indigo-600"
               }`}
             >
               {billingMessage}
@@ -902,18 +902,18 @@ export default function PlatformAdminPage() {
 
           <div className="mt-6 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
             <div className="space-y-6">
-              <div className="rounded-2xl border border-outline-variant/20 bg-surface-container p-5">
+              <div className="rounded-lg border border-slate-200/80 bg-slate-50 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-bold text-on-surface">Plan records</h3>
-                    <p className="mt-1 text-sm text-on-surface-variant">
+                    <h3 className="text-lg font-bold text-slate-900">Plan records</h3>
+                    <p className="mt-1 text-sm text-slate-500">
                       Select a plan to edit or create a new one.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={startNewPlan}
-                    className="rounded-xl border border-outline-variant/20 bg-surface-container-lowest px-3 py-2 text-xs font-semibold text-primary"
+                    className="rounded-md border border-slate-200/80 bg-white px-3 py-2 text-xs font-semibold text-indigo-600"
                   >
                     New plan
                   </button>
@@ -930,47 +930,47 @@ export default function PlatformAdminPage() {
                           setPlanForm(createPlanFormState(plan));
                           setBillingMessage(null);
                         }}
-                        className={`w-full rounded-2xl border px-4 py-3 text-left ${
+                        className={`w-full rounded-lg border px-4 py-3 text-left ${
                           selectedPlanId === plan.id
-                            ? "border-primary bg-primary/10"
-                            : "border-outline-variant/20 bg-surface-container-lowest"
+                            ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                            : "border-slate-200/80 bg-white"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-bold text-on-surface">
+                          <span className="text-sm font-bold text-slate-900">
                             {plan.name}
                           </span>
-                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
+                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                             {plan.status}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-on-surface-variant">
+                        <p className="mt-1 text-xs text-slate-500">
                           {plan.key} · {plan.billing_cycle} · {plan.currency} {plan.price}
                         </p>
                       </button>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">
+                    <p className="text-sm text-slate-500">
                       No plan records found yet.
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-outline-variant/20 bg-surface-container p-5">
+              <div className="rounded-lg border border-slate-200/80 bg-slate-50 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-bold text-on-surface">
+                    <h3 className="text-lg font-bold text-slate-900">
                       Subscription records
                     </h3>
-                    <p className="mt-1 text-sm text-on-surface-variant">
+                    <p className="mt-1 text-sm text-slate-500">
                       Select a subscription to edit or create a new one.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={startNewSubscription}
-                    className="rounded-xl border border-outline-variant/20 bg-surface-container-lowest px-3 py-2 text-xs font-semibold text-primary"
+                    className="rounded-md border border-slate-200/80 bg-white px-3 py-2 text-xs font-semibold text-indigo-600"
                   >
                     New subscription
                   </button>
@@ -987,28 +987,28 @@ export default function PlatformAdminPage() {
                           setSubscriptionForm(createSubscriptionFormState(subscription));
                           setBillingMessage(null);
                         }}
-                        className={`w-full rounded-2xl border px-4 py-3 text-left ${
+                        className={`w-full rounded-lg border px-4 py-3 text-left ${
                           selectedSubscriptionId === subscription.id
-                            ? "border-primary bg-primary/10"
-                            : "border-outline-variant/20 bg-surface-container-lowest"
+                            ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                            : "border-slate-200/80 bg-white"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-bold text-on-surface">
+                          <span className="text-sm font-bold text-slate-900">
                             {subscription.company_name}
                           </span>
-                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">
+                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                             {subscription.is_active ? "active" : "inactive"}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-on-surface-variant">
+                        <p className="mt-1 text-xs text-slate-500">
                           {subscription.product_key} · {subscription.plan_name} ·{" "}
                           {formatCurrency(subscription.amount_paid)}
                         </p>
                       </button>
                     ))
                   ) : (
-                    <p className="text-sm text-on-surface-variant">
+                    <p className="text-sm text-slate-500">
                       No subscription records found yet.
                     </p>
                   )}
@@ -1019,14 +1019,14 @@ export default function PlatformAdminPage() {
             <div className="space-y-6">
               <form
                 onSubmit={handlePlanSave}
-                className="rounded-2xl border border-outline-variant/20 bg-surface-container p-5"
+                className="rounded-lg border border-slate-200/80 bg-slate-50 p-5"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-bold text-on-surface">
+                    <h3 className="text-lg font-bold text-slate-900">
                       {selectedPlan ? "Edit plan" : "Create plan"}
                     </h3>
-                    <p className="mt-1 text-sm text-on-surface-variant">
+                    <p className="mt-1 text-sm text-slate-500">
                       Manage platform pricing records used by admin billing operations.
                     </p>
                   </div>
@@ -1034,27 +1034,27 @@ export default function PlatformAdminPage() {
 
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Key
                     </span>
                     <input
                       value={planForm.key}
                       onChange={(event) => updatePlanForm("key", event.target.value)}
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Name
                     </span>
                     <input
                       value={planForm.name}
                       onChange={(event) => updatePlanForm("name", event.target.value)}
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Billing Cycle
                     </span>
                     <input
@@ -1062,22 +1062,22 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updatePlanForm("billing_cycle", event.target.value)
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Price
                     </span>
                     <input
                       value={planForm.price}
                       onChange={(event) => updatePlanForm("price", event.target.value)}
                       inputMode="decimal"
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Currency
                     </span>
                     <input
@@ -1085,11 +1085,11 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updatePlanForm("currency", event.target.value)
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Trial Days
                     </span>
                     <input
@@ -1098,19 +1098,19 @@ export default function PlatformAdminPage() {
                         updatePlanForm("trial_days", event.target.value)
                       }
                       inputMode="numeric"
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                 </div>
 
                 <label className="mt-4 block">
-                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                     Status
                   </span>
                   <select
                     value={planForm.status}
                     onChange={(event) => updatePlanForm("status", event.target.value)}
-                    className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                    className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                   >
                     {PLAN_STATUS_OPTIONS.map((status) => (
                       <option key={status} value={status}>
@@ -1123,7 +1123,7 @@ export default function PlatformAdminPage() {
                 <button
                   type="submit"
                   disabled={savingPlan}
-                  className="mt-5 w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  className="mt-5 w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {savingPlan
                     ? "Saving plan..."
@@ -1135,14 +1135,14 @@ export default function PlatformAdminPage() {
 
               <form
                 onSubmit={handleSubscriptionSave}
-                className="rounded-2xl border border-outline-variant/20 bg-surface-container p-5"
+                className="rounded-lg border border-slate-200/80 bg-slate-50 p-5"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-bold text-on-surface">
+                    <h3 className="text-lg font-bold text-slate-900">
                       {selectedSubscription ? "Edit subscription" : "Create subscription"}
                     </h3>
-                    <p className="mt-1 text-sm text-on-surface-variant">
+                    <p className="mt-1 text-sm text-slate-500">
                       Assign plan access to a company for a specific product.
                     </p>
                   </div>
@@ -1150,7 +1150,7 @@ export default function PlatformAdminPage() {
 
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   <label className="block md:col-span-2">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Company
                     </span>
                     <select
@@ -1158,7 +1158,7 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("company_id", event.target.value)
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     >
                       <option value="">Select company</option>
                       {organizations.map((organization) => (
@@ -1169,7 +1169,7 @@ export default function PlatformAdminPage() {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Product
                     </span>
                     <select
@@ -1177,7 +1177,7 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("product_key", event.target.value)
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     >
                       {PRODUCT_KEY_OPTIONS.map((product) => (
                         <option key={product} value={product}>
@@ -1187,7 +1187,7 @@ export default function PlatformAdminPage() {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Plan Name
                     </span>
                     <input
@@ -1195,11 +1195,11 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("plan_name", event.target.value)
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Months
                     </span>
                     <input
@@ -1208,11 +1208,11 @@ export default function PlatformAdminPage() {
                         updateSubscriptionForm("months", event.target.value)
                       }
                       inputMode="numeric"
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Starts At
                     </span>
                     <input
@@ -1221,11 +1221,11 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("starts_at", event.target.value)
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Expires At
                     </span>
                     <input
@@ -1234,11 +1234,11 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("expires_at", event.target.value)
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Amount Paid
                     </span>
                     <input
@@ -1247,11 +1247,11 @@ export default function PlatformAdminPage() {
                         updateSubscriptionForm("amount_paid", event.target.value)
                       }
                       inputMode="decimal"
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Payment ID
                     </span>
                     <input
@@ -1259,12 +1259,12 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("payment_id", event.target.value)
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                 </div>
 
-                <label className="mt-4 flex items-center gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-lowest px-4 py-3">
+                <label className="mt-4 flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-4 py-3">
                   <input
                     type="checkbox"
                     checked={subscriptionForm.is_active}
@@ -1273,7 +1273,7 @@ export default function PlatformAdminPage() {
                     }
                     className="h-4 w-4"
                   />
-                  <span className="text-sm font-semibold text-on-surface">
+                  <span className="text-sm font-semibold text-slate-900">
                     Subscription is active
                   </span>
                 </label>
@@ -1281,7 +1281,7 @@ export default function PlatformAdminPage() {
                 <button
                   type="submit"
                   disabled={savingSubscription}
-                  className="mt-5 w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  className="mt-5 w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {savingSubscription
                     ? "Saving subscription..."
@@ -1294,22 +1294,22 @@ export default function PlatformAdminPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-[0_20px_60px_rgba(25,28,30,0.08)]">
+        <section className="mt-8 rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
                 Reports & Exports
               </p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight">
                 Growth, revenue, and category visibility
               </h2>
-              <p className="mt-2 max-w-3xl text-sm text-on-surface-variant">
+              <p className="mt-2 max-w-3xl text-sm text-slate-500">
                 These blocks keep founder-pricing decisions tied to real signups,
                 revenue movement, business mix, and tool adoption. Each block can
                 be exported to CSV for review outside the dashboard.
               </p>
             </div>
-            <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
+            <div className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
               Live admin reports
             </div>
           </div>
@@ -1410,10 +1410,10 @@ export default function PlatformAdminPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-[0_20px_60px_rgba(25,28,30,0.08)]">
+        <section className="mt-8 rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
                 Organizations
               </p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight">
@@ -1428,11 +1428,11 @@ export default function PlatformAdminPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search organization, email, phone..."
-                className="w-72 rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm outline-none"
+                className="w-72 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
               />
               <button
                 type="submit"
-                className="rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm font-semibold"
+                className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold"
               >
                 Search
               </button>
@@ -1441,22 +1441,22 @@ export default function PlatformAdminPage() {
 
           <div className="mt-5 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
             <div className="overflow-x-auto">
-              <table className="min-w-full border-separate border-spacing-0 overflow-hidden rounded-2xl border border-outline-variant/20">
+              <table className="min-w-full border-separate border-spacing-0 overflow-hidden rounded-lg border border-slate-200/80">
                 <thead>
-                  <tr className="bg-surface-container">
-                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant">
+                  <tr className="bg-slate-50">
+                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                       Organization
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant">
+                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                       Plan
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant">
+                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                       Billing
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant">
+                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                       Founder Lock
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant">
+                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                       Account State
                     </th>
                   </tr>
@@ -1473,34 +1473,34 @@ export default function PlatformAdminPage() {
                           onClick={() => handleOrganizationSelect(organization)}
                           className={`cursor-pointer transition-colors ${
                             isSelected
-                              ? "bg-primary/10"
+                              ? "bg-indigo-50 text-indigo-700"
                               : index % 2 === 0
-                                ? "bg-surface-container-lowest"
-                                : "bg-surface-container"
+                                ? "bg-white"
+                                : "bg-slate-50"
                           }`}
                         >
                           <td className="px-4 py-4 align-top">
-                            <p className="text-sm font-semibold text-on-surface">
+                            <p className="text-sm font-semibold text-slate-900">
                               {organization.name}
                             </p>
-                            <p className="mt-1 text-xs text-on-surface-variant">
+                            <p className="mt-1 text-xs text-slate-500">
                               {organization.email ||
                                 organization.phone ||
                                 "No contact"}
                             </p>
                           </td>
-                          <td className="px-4 py-4 text-sm text-on-surface">
+                          <td className="px-4 py-4 text-sm text-slate-900">
                             {organization.plan_type || "free"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-on-surface">
+                          <td className="px-4 py-4 text-sm text-slate-900">
                             {organization.billing_cycle || "free_forever"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-on-surface">
+                          <td className="px-4 py-4 text-sm text-slate-900">
                             {organization.founder_pricing_locked_at
                               ? "Locked"
                               : "Open"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-on-surface">
+                          <td className="px-4 py-4 text-sm text-slate-900">
                             {organization.account_state ||
                               (organization.is_active ? "active" : "inactive")}
                           </td>
@@ -1511,7 +1511,7 @@ export default function PlatformAdminPage() {
                     <tr>
                       <td
                         colSpan={5}
-                        className="px-4 py-10 text-center text-sm text-on-surface-variant"
+                        className="px-4 py-10 text-center text-sm text-slate-500"
                       >
                         {loadingData
                           ? "Loading organizations..."
@@ -1523,23 +1523,23 @@ export default function PlatformAdminPage() {
               </table>
             </div>
 
-            <div className="rounded-2xl border border-outline-variant/20 bg-surface-container p-5">
+            <div className="rounded-lg border border-slate-200/80 bg-slate-50 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">
                     Workspace Controls
                   </p>
-                  <h3 className="mt-2 text-xl font-bold text-on-surface">
+                  <h3 className="mt-2 text-xl font-bold text-slate-900">
                     {selectedOrganization?.name || "Select an organization"}
                   </h3>
-                  <p className="mt-1 text-sm text-on-surface-variant">
+                  <p className="mt-1 text-sm text-slate-500">
                     {selectedOrganization?.email ||
                       selectedOrganization?.phone ||
                       "Choose a row to edit founder pricing and billing."}
                   </p>
                 </div>
                 {selectedOrganization?.founder_pricing_locked_at ? (
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-primary">
+                  <span className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
                     Founder locked
                   </span>
                 ) : null}
@@ -1547,12 +1547,12 @@ export default function PlatformAdminPage() {
 
               {statusMessage ? (
                 <div
-                  className={`mt-4 rounded-2xl px-4 py-3 text-sm font-medium ${
+                  className={`mt-4 rounded-lg px-4 py-3 text-sm font-medium ${
                     statusTone === "success"
                       ? "bg-emerald-500/10 text-emerald-700"
                       : statusTone === "error"
                         ? "bg-rose-500/10 text-rose-700"
-                        : "bg-primary/10 text-primary"
+                        : "bg-indigo-50 text-indigo-700 text-indigo-600"
                   }`}
                 >
                   {statusMessage}
@@ -1561,7 +1561,7 @@ export default function PlatformAdminPage() {
 
               <form onSubmit={handleSave} className="mt-5 space-y-4">
                 <label className="block">
-                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                     Plan
                   </span>
                   <select
@@ -1570,7 +1570,7 @@ export default function PlatformAdminPage() {
                       updateFormValue("plan_type", event.target.value)
                     }
                     disabled={!selectedOrganization}
-                    className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none disabled:opacity-50"
+                    className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                   >
                     {PLAN_OPTIONS.map((plan) => (
                       <option key={plan} value={plan}>
@@ -1582,7 +1582,7 @@ export default function PlatformAdminPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Billing Cycle
                     </span>
                     <select
@@ -1594,7 +1594,7 @@ export default function PlatformAdminPage() {
                         )
                       }
                       disabled={!selectedOrganization}
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none disabled:opacity-50"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                     >
                       {BILLING_OPTIONS.map((cycle) => (
                         <option key={cycle} value={cycle}>
@@ -1605,7 +1605,7 @@ export default function PlatformAdminPage() {
                   </label>
 
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Account State
                     </span>
                     <select
@@ -1614,7 +1614,7 @@ export default function PlatformAdminPage() {
                         updateFormValue("account_state", event.target.value)
                       }
                       disabled={!selectedOrganization}
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none disabled:opacity-50"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                     >
                       {ACCOUNT_STATE_OPTIONS.map((state) => (
                         <option key={state} value={state}>
@@ -1625,7 +1625,7 @@ export default function PlatformAdminPage() {
                   </label>
                 </div>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-lowest px-4 py-3">
+                <label className="flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-4 py-3">
                   <input
                     type="checkbox"
                     checked={formState.is_active}
@@ -1635,12 +1635,12 @@ export default function PlatformAdminPage() {
                     disabled={!selectedOrganization}
                     className="h-4 w-4"
                   />
-                  <span className="text-sm font-semibold text-on-surface">
+                  <span className="text-sm font-semibold text-slate-900">
                     Workspace is active
                   </span>
                 </label>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-lowest px-4 py-3">
+                <label className="flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-4 py-3">
                   <input
                     type="checkbox"
                     checked={formState.founder_pricing_locked}
@@ -1653,14 +1653,14 @@ export default function PlatformAdminPage() {
                     disabled={!selectedOrganization}
                     className="h-4 w-4"
                   />
-                  <span className="text-sm font-semibold text-on-surface">
+                  <span className="text-sm font-semibold text-slate-900">
                     Lock founder pricing for this workspace
                   </span>
                 </label>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Founder Plan
                     </span>
                     <select
@@ -1674,7 +1674,7 @@ export default function PlatformAdminPage() {
                       disabled={
                         !selectedOrganization || !formState.founder_pricing_locked
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none disabled:opacity-50"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                     >
                       {PLAN_OPTIONS.filter((plan) => plan !== "free").map((plan) => (
                         <option key={plan} value={plan}>
@@ -1685,7 +1685,7 @@ export default function PlatformAdminPage() {
                   </label>
 
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                       Founder Billing
                     </span>
                     <select
@@ -1699,7 +1699,7 @@ export default function PlatformAdminPage() {
                       disabled={
                         !selectedOrganization || !formState.founder_pricing_locked
                       }
-                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none disabled:opacity-50"
+                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                     >
                       {BILLING_OPTIONS.map((cycle) => (
                         <option key={cycle} value={cycle}>
@@ -1711,7 +1711,7 @@ export default function PlatformAdminPage() {
                 </div>
 
                 <label className="block">
-                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                     Founder Customer Cap
                   </span>
                   <input
@@ -1727,11 +1727,11 @@ export default function PlatformAdminPage() {
                     disabled={
                       !selectedOrganization || !formState.founder_pricing_locked
                     }
-                    className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm outline-none disabled:opacity-50"
+                    className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                   />
                 </label>
 
-                <div className="rounded-2xl bg-primary/5 px-4 py-4 text-sm text-on-surface-variant">
+                <div className="rounded-lg bg-indigo-50/50 px-4 py-4 text-sm text-slate-500">
                   Founder lock preserves the selected plan and billing cycle for this
                   workspace even after public pricing changes.
                 </div>
@@ -1739,7 +1739,7 @@ export default function PlatformAdminPage() {
                 <button
                   type="submit"
                   disabled={!selectedOrganization || saving}
-                  className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {saving ? "Saving changes..." : "Save workspace settings"}
                 </button>
@@ -1761,7 +1761,7 @@ function MetricCard({
   hint: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+    <div className="rounded-lg border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
       <p className="text-[10px] font-bold tracking-wider uppercase text-slate-400 mb-1">
         {label}
       </p>
@@ -1791,7 +1791,7 @@ function ReportCard({
   chart?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+    <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
       <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
           <h3 className="text-base font-bold text-slate-900 tracking-tight">{title}</h3>
@@ -1800,7 +1800,7 @@ function ReportCard({
         <button
           type="button"
           onClick={onAction}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-xs">download</span>
           {actionLabel}
@@ -1813,7 +1813,7 @@ function ReportCard({
         </div>
       )}
 
-      <div className="mt-3 overflow-hidden rounded-xl border border-slate-200/70">
+      <div className="mt-3 overflow-hidden rounded-md border border-slate-200/70">
         <div className="grid grid-cols-2 bg-slate-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
           <span>{headers[0]}</span>
           <span className="text-right">{headers[1]}</span>

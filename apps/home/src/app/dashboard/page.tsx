@@ -424,8 +424,8 @@ export default function DashboardPage() {
 
   if (loading || (authenticated && requiresSetupCompletion)) {
     return (
-      <div className="min-h-screen bg-background text-on-surface flex items-center justify-center px-6">
-        <div className="rounded-3xl border border-outline-variant/30 bg-surface-container-lowest px-8 py-6 shadow-[0_24px_80px_rgba(25,28,30,0.10)]">
+      <div className="min-h-screen bg-background text-slate-900 flex items-center justify-center px-6">
+        <div className="rounded-lg border border-slate-200 bg-white px-8 py-6 shadow-xs">
           <p className="text-lg font-semibold">Loading your workspace...</p>
         </div>
       </div>
@@ -571,7 +571,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Tab Switcher Pills */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/70 overflow-x-auto self-start sm:self-auto shrink-0 shadow-2xs">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-lg border border-slate-200/70 overflow-x-auto self-start sm:self-auto shrink-0 shadow-2xs">
           <TabButton
             active={activeTab === "overview"}
             onClick={() => navigateToTab("overview")}
@@ -665,7 +665,7 @@ export default function DashboardPage() {
 
               {/* ── Live Sales & Activity Pulse (SVG Charts) ────────────────── */}
               <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 tracking-tight">
@@ -675,7 +675,7 @@ export default function DashboardPage() {
                         Daily invoice & POS counter transactions
                       </p>
                     </div>
-                    <span className="rounded-full bg-emerald-50 border border-emerald-200/60 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
+                    <span className="rounded bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
                       +18.4% this week
                     </span>
                   </div>
@@ -694,7 +694,7 @@ export default function DashboardPage() {
                   />
                 </div>
 
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 tracking-tight">
@@ -704,7 +704,7 @@ export default function DashboardPage() {
                         Estimated collection & retail receivables
                       </p>
                     </div>
-                    <span className="rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-1 text-[11px] font-bold text-indigo-700">
+                    <span className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold text-indigo-700 uppercase tracking-wider">
                       Live Pulse
                     </span>
                   </div>
@@ -723,7 +723,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+              <div className="mt-6 rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
                 <p className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                   Included In Your Plan
                 </p>
@@ -743,7 +743,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
                   <p className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                     Founder Milestones
                   </p>
@@ -754,7 +754,7 @@ export default function DashboardPage() {
                     {growthMilestones.map((milestone) => (
                       <div
                         key={milestone.key}
-                        className="rounded-xl border border-slate-200/70 bg-slate-50 p-3.5"
+                        className="rounded-md border border-slate-200/70 bg-slate-50 p-3.5"
                       >
                         <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">
                           {milestone.title}
@@ -767,7 +767,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
                   <p className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                     Shipping Phases
                   </p>
@@ -778,10 +778,10 @@ export default function DashboardPage() {
                     {executionPhases.map((phase, index) => (
                       <div
                         key={phase.key}
-                        className="rounded-xl border border-slate-200/70 bg-slate-50 p-3.5"
+                        className="rounded-md border border-slate-200/70 bg-slate-50 p-3.5"
                       >
                         <div className="flex items-center gap-2.5">
-                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-bold text-indigo-700">
+                          <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-indigo-100 text-[11px] font-bold text-indigo-700">
                             {index + 1}
                           </span>
                           <p className="text-xs font-bold text-slate-900">
@@ -805,7 +805,7 @@ export default function DashboardPage() {
                   <h2 className="text-3xl font-black tracking-tight">
                     Your Business Suite
                   </h2>
-                  <p className="mt-2 text-on-surface-variant font-medium opacity-70">
+                  <p className="mt-2 text-slate-500 font-medium opacity-70">
                     Switch between tools or explore new solutions for your
                     business.
                   </p>
@@ -893,20 +893,20 @@ export default function DashboardPage() {
             </section>
 
             <section className="grid gap-8 xl:grid-cols-[1.2fr,0.8fr]">
-              <div className="rounded-[2.5rem] border border-outline-variant/20 bg-surface-container-lowest p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+              <div className="rounded-lg border border-slate-200/80 bg-white p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-black tracking-tight">
                       Branch & Team Snapshot
                     </h2>
-                    <p className="mt-2 text-sm font-medium text-on-surface-variant opacity-70">
+                    <p className="mt-2 text-sm font-medium text-slate-500 opacity-70">
                       Review how your business is structured before assigning
                       deeper permissions.
                     </p>
                   </div>
                   <button
                     onClick={() => navigateToTab("team")}
-                    className="rounded-2xl border border-outline-variant/20 px-5 py-3 text-xs font-black uppercase tracking-wider text-primary transition-colors hover:bg-primary/5"
+                    className="rounded-lg border border-slate-200/80 px-5 py-3 text-xs font-black uppercase tracking-wider text-primary transition-colors hover:bg-primary/5"
                   >
                     Manage Team
                   </button>
@@ -962,7 +962,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="rounded-[2.5rem] border border-outline-variant/20 bg-surface-container-lowest p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+              <div className="rounded-lg border border-slate-200/80 bg-white p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
                 <h2 className="text-2xl font-black tracking-tight">
                   Workspace Guardrails
                 </h2>
@@ -1042,12 +1042,12 @@ export default function DashboardPage() {
                 <h2 className="text-3xl font-black tracking-tight">
                   Business Profile
                 </h2>
-                <p className="mt-4 text-on-surface-variant text-base font-medium leading-relaxed opacity-70">
+                <p className="mt-4 text-slate-500 text-base font-medium leading-relaxed opacity-70">
                   Update your business identity. These details appear on your
                   invoices and documents.
                 </p>
 
-                <div className="mt-8 p-8 rounded-[2.5rem] bg-primary/5 border border-primary/10">
+                <div className="mt-8 p-8 rounded-lg bg-primary/5 border border-primary/10">
                   <div className="flex items-center gap-3 text-primary mb-4">
                     <span className="material-symbols-outlined text-2xl font-bold">
                       verified
@@ -1076,7 +1076,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-2 bg-surface-container-lowest rounded-[3rem] p-8 md:p-12 border border-outline-variant/20 shadow-[0_24px_64px_rgba(25,28,30,0.04)]">
+              <div className="lg:col-span-2 bg-white rounded-[3rem] p-8 md:p-12 border border-slate-200/80 shadow-[0_24px_64px_rgba(25,28,30,0.04)]">
                 <form className="space-y-8" onSubmit={handleProfileSubmit}>
                   <div className="grid md:grid-cols-2 gap-8">
                     <Field
@@ -1139,38 +1139,38 @@ export default function DashboardPage() {
             {/* ── Security Section ───────────────────── */}
             <section
               id="security"
-              className="grid lg:grid-cols-3 gap-12 border-t border-outline-variant/10 pt-16"
+              className="grid lg:grid-cols-3 gap-12 border-t border-slate-100 pt-16"
             >
               <div className="lg:col-span-1">
                 <h2 className="text-3xl font-black tracking-tight">Security</h2>
-                <p className="mt-4 text-on-surface-variant text-base font-medium leading-relaxed opacity-70">
+                <p className="mt-4 text-slate-500 text-base font-medium leading-relaxed opacity-70">
                   Protect your workspace and manage how you access the platform.
                 </p>
 
                 <div className="mt-8 space-y-4">
-                  <div className="flex items-center gap-4 p-5 rounded-2xl bg-surface-container/50 border border-outline-variant/10">
-                    <div className="h-10 w-10 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center">
+                  <div className="flex items-center gap-4 p-5 rounded-lg bg-slate-50/50 border border-slate-100">
+                    <div className="h-10 w-10 rounded-md bg-tertiary/10 text-tertiary flex items-center justify-center">
                       <span className="material-symbols-outlined text-xl">
                         vibration
                       </span>
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-bold">Two-Factor Auth</p>
-                      <p className="text-[10px] text-on-surface-variant font-medium">
+                      <p className="text-[10px] text-slate-500 font-medium">
                         Recommended
                       </p>
                     </div>
                     <div className="h-2 w-2 rounded-full bg-outline-variant/30" />
                   </div>
-                  <div className="flex items-center gap-4 p-5 rounded-2xl bg-surface-container/50 border border-outline-variant/10">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <div className="flex items-center gap-4 p-5 rounded-lg bg-slate-50/50 border border-slate-100">
+                    <div className="h-10 w-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
                       <span className="material-symbols-outlined text-xl">
                         history
                       </span>
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-bold">Login History</p>
-                      <p className="text-[10px] text-on-surface-variant font-medium">
+                      <p className="text-[10px] text-slate-500 font-medium">
                         View sessions
                       </p>
                     </div>
@@ -1178,7 +1178,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-2 bg-surface-container-lowest rounded-[3rem] p-8 md:p-12 border border-outline-variant/20 shadow-[0_24px_64px_rgba(25,28,30,0.04)]">
+              <div className="lg:col-span-2 bg-white rounded-[3rem] p-8 md:p-12 border border-slate-200/80 shadow-[0_24px_64px_rgba(25,28,30,0.04)]">
                 {auth.canChangePassword ? (
                   <form className="space-y-6" onSubmit={handlePasswordSubmit}>
                     <Field
@@ -1209,7 +1209,7 @@ export default function DashboardPage() {
                     <button
                       type="submit"
                       disabled={isSavingPassword}
-                      className="w-full py-5 rounded-[1.5rem] border border-outline-variant/40 bg-surface-container hover:bg-surface-container-high transition-all font-bold text-lg disabled:opacity-70 shadow-sm"
+                      className="w-full py-5 rounded-[1.5rem] border border-slate-200/40 bg-slate-50 hover:bg-slate-50-high transition-all font-bold text-lg disabled:opacity-70 shadow-sm"
                     >
                       {isSavingPassword
                         ? "Updating Password..."
@@ -1217,18 +1217,18 @@ export default function DashboardPage() {
                     </button>
                   </form>
                 ) : (
-                  <div className="rounded-[2.5rem] bg-surface-container p-10 border border-outline-variant/20 shadow-inner">
+                  <div className="rounded-lg bg-slate-50 p-10 border border-slate-200/80 shadow-inner">
                     <div className="flex items-start gap-6">
-                      <div className="h-16 w-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
                         <span className="material-symbols-outlined text-4xl">
                           verified_user
                         </span>
                       </div>
                       <div>
-                        <p className="font-black text-2xl text-on-surface tracking-tight">
+                        <p className="font-black text-2xl text-slate-900 tracking-tight">
                           Social Identity Active
                         </p>
-                        <p className="text-lg text-on-surface-variant mt-3 font-medium leading-relaxed opacity-80">
+                        <p className="text-lg text-slate-500 mt-3 font-medium leading-relaxed opacity-80">
                           You are authenticated via{" "}
                           <span className="text-primary font-bold">
                             {auth.primaryProvider}
@@ -1243,25 +1243,25 @@ export default function DashboardPage() {
               </div>
 
               <div className="lg:col-span-3 grid md:grid-cols-2 gap-8 mt-4">
-                <div className="bg-surface-container-lowest rounded-[2.5rem] p-8 border border-outline-variant/20 shadow-sm flex flex-col justify-between">
+                <div className="bg-white rounded-lg p-8 border border-slate-200/80 shadow-sm flex flex-col justify-between">
                   <div>
-                    <div className="h-12 w-12 rounded-xl bg-error/10 text-error flex items-center justify-center mb-6">
+                    <div className="h-12 w-12 rounded-md bg-error/10 text-error flex items-center justify-center mb-6">
                       <span className="material-symbols-outlined text-2xl">
                         devices
                       </span>
                     </div>
                     <h3 className="text-xl font-black">Active Sessions</h3>
-                    <p className="text-sm text-on-surface-variant font-medium mt-2 mb-6">
+                    <p className="text-sm text-slate-500 font-medium mt-2 mb-6">
                       Sign out of all other active sessions across your browsers
                       and devices to secure your account.
                     </p>
                   </div>
-                  <button className="w-full py-4 rounded-xl font-bold text-error border border-error/20 hover:bg-error/10 transition-colors">
+                  <button className="w-full py-4 rounded-md font-bold text-error border border-error/20 hover:bg-error/10 transition-colors">
                     Sign Out All Devices
                   </button>
                 </div>
 
-                <div className="bg-surface-container-lowest rounded-[2.5rem] p-8 border border-outline-variant/20 shadow-sm">
+                <div className="bg-white rounded-lg p-8 border border-slate-200/80 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-black">Security Audit</h3>
                     <span className="text-xs font-bold text-primary uppercase tracking-wider border border-primary/20 px-2 py-1 rounded-md bg-primary/5">
@@ -1270,34 +1270,34 @@ export default function DashboardPage() {
                   </div>
                   <div className="space-y-5">
                     <div className="flex items-start gap-4">
-                      <div className="h-8 w-8 rounded-full bg-surface-container flex items-center justify-center shrink-0 mt-1">
-                        <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
+                      <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0 mt-1">
+                        <span className="material-symbols-outlined text-[16px] text-slate-500">
                           login
                         </span>
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-bold">Successful Login</p>
-                        <p className="text-xs text-on-surface-variant mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Mac OS • Chrome
                         </p>
                       </div>
-                      <span className="text-[10px] font-bold text-on-surface-variant/70">
+                      <span className="text-[10px] font-bold text-slate-500/70">
                         Just now
                       </span>
                     </div>
                     <div className="flex items-start gap-4 opacity-70">
-                      <div className="h-8 w-8 rounded-full bg-surface-container flex items-center justify-center shrink-0 mt-1">
-                        <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
+                      <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0 mt-1">
+                        <span className="material-symbols-outlined text-[16px] text-slate-500">
                           shield_person
                         </span>
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-bold">Tool Access Granted</p>
-                        <p className="text-xs text-on-surface-variant mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Admin updated permissions
                         </p>
                       </div>
-                      <span className="text-[10px] font-bold text-on-surface-variant/70">
+                      <span className="text-[10px] font-bold text-slate-500/70">
                         Yesterday
                       </span>
                     </div>
@@ -1339,7 +1339,7 @@ function BranchesView({
           <h2 className="text-3xl font-black tracking-tight">
             Business Branches
           </h2>
-          <p className="mt-2 text-on-surface-variant font-medium opacity-70">
+          <p className="mt-2 text-slate-500 font-medium opacity-70">
             Manage your physical locations, stores, and warehouses.
           </p>
         </div>
@@ -1349,7 +1349,7 @@ function BranchesView({
               setEditingBranch(null);
               setIsModalOpen(true);
             }}
-            className="flex items-center gap-2 px-6 py-4 rounded-2xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="flex items-center gap-2 px-6 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             style={{
               background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
             }}
@@ -1358,7 +1358,7 @@ function BranchesView({
             Add New Branch
           </button>
         ) : (
-          <div className="rounded-2xl border border-outline-variant/20 bg-surface-container px-5 py-4 text-sm font-semibold text-on-surface-variant">
+          <div className="rounded-lg border border-slate-200/80 bg-slate-50 px-5 py-4 text-sm font-semibold text-slate-500">
             View-only branch access
           </div>
         )}
@@ -1367,19 +1367,19 @@ function BranchesView({
       {isLoading && branches.length === 0 ? (
         <div className="py-20 flex flex-col items-center justify-center">
           <span className="h-12 w-12 rounded-full border-4 border-primary/10 border-t-primary animate-spin" />
-          <p className="mt-4 font-bold text-on-surface-variant">
+          <p className="mt-4 font-bold text-slate-500">
             Fetching branches...
           </p>
         </div>
       ) : branches.length === 0 ? (
-        <div className="py-20 rounded-[3rem] border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center text-center px-6">
-          <div className="h-20 w-20 rounded-3xl bg-surface-container flex items-center justify-center text-on-surface-variant mb-6">
+        <div className="py-20 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center px-6">
+          <div className="h-20 w-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 mb-6">
             <span className="material-symbols-outlined text-4xl">
               storefront
             </span>
           </div>
           <h3 className="text-xl font-bold">No branches found</h3>
-          <p className="mt-2 text-on-surface-variant max-w-sm font-medium">
+          <p className="mt-2 text-slate-500 max-w-sm font-medium">
             Start by adding your first branch. You can manage inventory and
             staff separately for each location.
           </p>
@@ -1389,11 +1389,11 @@ function BranchesView({
           {branches.map((branch) => (
             <div
               key={branch.id}
-              className="group rounded-[2.5rem] border border-outline-variant/20 bg-surface-container-lowest p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)] hover:shadow-[0_24px_64px_rgba(25,28,30,0.08)] transition-all"
+              className="group rounded-lg border border-slate-200/80 bg-white p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)] hover:shadow-[0_24px_64px_rgba(25,28,30,0.08)] transition-all"
             >
               <div className="flex items-start justify-between mb-6">
                 <div
-                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                     branch.branch_type === "Main Branch"
                       ? "bg-primary/10 text-primary"
                       : "bg-tertiary/10 text-tertiary"
@@ -1409,7 +1409,7 @@ function BranchesView({
                           setEditingBranch(branch);
                           setIsModalOpen(true);
                         }}
-                        className="h-8 w-8 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors"
+                        className="h-8 w-8 rounded-full hover:bg-slate-50 flex items-center justify-center text-slate-500 transition-colors"
                       >
                         <span className="material-symbols-outlined text-sm">
                           edit
@@ -1426,7 +1426,7 @@ function BranchesView({
                             onRefresh();
                           }
                         }}
-                        className="h-8 w-8 rounded-full hover:bg-error/10 hover:text-error flex items-center justify-center text-on-surface-variant transition-colors"
+                        className="h-8 w-8 rounded-full hover:bg-error/10 hover:text-error flex items-center justify-center text-slate-500 transition-colors"
                       >
                         <span className="material-symbols-outlined text-sm">
                           delete
@@ -1444,20 +1444,20 @@ function BranchesView({
                 {branch.branch_code || "No Code"}
               </p>
 
-              <div className="space-y-4 pt-4 border-t border-outline-variant/10">
+              <div className="space-y-4 pt-4 border-t border-slate-100">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-on-surface-variant text-lg">
+                  <span className="material-symbols-outlined text-slate-500 text-lg">
                     location_on
                   </span>
-                  <span className="text-sm font-medium text-on-surface line-clamp-1">
+                  <span className="text-sm font-medium text-slate-900 line-clamp-1">
                     {branch.location || branch.city || "No Location"}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-on-surface-variant text-lg">
+                  <span className="material-symbols-outlined text-slate-500 text-lg">
                     groups
                   </span>
-                  <span className="text-sm font-medium text-on-surface">
+                  <span className="text-sm font-medium text-slate-900">
                     {branch.employee_count} Team Members
                   </span>
                 </div>
@@ -1469,12 +1469,12 @@ function BranchesView({
                     setEditingBranch(branch);
                     setIsModalOpen(true);
                   }}
-                  className="mt-8 w-full py-4 rounded-2xl bg-surface-container font-bold text-sm hover:bg-surface-container-high transition-colors"
+                  className="mt-8 w-full py-4 rounded-lg bg-slate-50 font-bold text-sm hover:bg-slate-50-high transition-colors"
                 >
                   Manage Branch
                 </button>
               ) : (
-                <div className="mt-8 w-full rounded-2xl border border-outline-variant/20 bg-surface px-4 py-4 text-center text-sm font-semibold text-on-surface-variant">
+                <div className="mt-8 w-full rounded-lg border border-slate-200/80 bg-surface px-4 py-4 text-center text-sm font-semibold text-slate-500">
                   Branch details locked for your role
                 </div>
               )}
@@ -1545,7 +1545,7 @@ function TeamView({
           <h2 className="text-3xl font-black tracking-tight">
             Team Management
           </h2>
-          <p className="mt-2 text-on-surface-variant font-medium opacity-70">
+          <p className="mt-2 text-slate-500 font-medium opacity-70">
             Add employees, assign roles, and manage tool permissions.
           </p>
         </div>
@@ -1553,7 +1553,7 @@ function TeamView({
           <select
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
-            className="px-4 py-4 rounded-2xl border border-outline-variant/30 bg-surface outline-none focus:border-primary font-bold text-sm shadow-sm"
+            className="px-4 py-4 rounded-lg border border-slate-200 bg-surface outline-none focus:border-primary font-bold text-sm shadow-sm"
           >
             <option value="all">All Branches</option>
             {branches.map((b) => (
@@ -1568,7 +1568,7 @@ function TeamView({
                 setEditingStaff(null);
                 setIsModalOpen(true);
               }}
-              className="flex items-center gap-2 px-6 py-4 rounded-2xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="flex items-center gap-2 px-6 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               style={{
                 background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
               }}
@@ -1577,7 +1577,7 @@ function TeamView({
               Add Employee
             </button>
           ) : (
-            <div className="rounded-2xl border border-outline-variant/20 bg-surface-container px-5 py-4 text-sm font-semibold text-on-surface-variant">
+            <div className="rounded-lg border border-slate-200/80 bg-slate-50 px-5 py-4 text-sm font-semibold text-slate-500">
               View-only team access
             </div>
           )}
@@ -1587,38 +1587,38 @@ function TeamView({
       {isLoading && staff.length === 0 ? (
         <div className="py-20 flex flex-col items-center justify-center">
           <span className="h-12 w-12 rounded-full border-4 border-primary/10 border-t-primary animate-spin" />
-          <p className="mt-4 font-bold text-on-surface-variant">
+          <p className="mt-4 font-bold text-slate-500">
             Fetching team...
           </p>
         </div>
       ) : filteredStaff.length === 0 ? (
-        <div className="py-20 rounded-[3rem] border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center text-center px-6">
-          <div className="h-20 w-20 rounded-3xl bg-surface-container flex items-center justify-center text-on-surface-variant mb-6">
+        <div className="py-20 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center px-6">
+          <div className="h-20 w-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 mb-6">
             <span className="material-symbols-outlined text-4xl">groups</span>
           </div>
           <h3 className="text-xl font-bold">No employees found</h3>
-          <p className="mt-2 text-on-surface-variant max-w-sm font-medium">
+          <p className="mt-2 text-slate-500 max-w-sm font-medium">
             {branchFilter === "all"
               ? "Start by adding your first team member to manage your business operations."
               : "No employees are currently assigned to this branch."}
           </p>
         </div>
       ) : (
-        <div className="bg-surface-container-lowest rounded-[2.5rem] border border-outline-variant/20 shadow-[0_12px_32px_rgba(25,28,30,0.04)] overflow-hidden">
+        <div className="bg-white rounded-lg border border-slate-200/80 shadow-[0_12px_32px_rgba(25,28,30,0.04)] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-outline-variant/10">
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                <tr className="border-b border-slate-100">
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">
                     Employee
                   </th>
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">
                     Role & Branch
                   </th>
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">
                     Tool Access
                   </th>
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">
                     Actions
                   </th>
                 </tr>
@@ -1627,29 +1627,29 @@ function TeamView({
                 {filteredStaff.map((member) => (
                   <tr
                     key={member.id}
-                    className="hover:bg-surface-container/30 transition-colors group"
+                    className="hover:bg-slate-50/30 transition-colors group"
                   >
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-lg">
+                        <div className="h-12 w-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black text-lg">
                           {member.name[0]}
                         </div>
                         <div>
-                          <p className="font-bold text-on-surface">
+                          <p className="font-bold text-slate-900">
                             {member.name}
                           </p>
-                          <p className="text-xs text-on-surface-variant">
+                          <p className="text-xs text-slate-500">
                             {member.email}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <div className="px-2 py-1 inline-block rounded-lg bg-surface-container text-[10px] font-black uppercase tracking-wider mb-1">
+                      <div className="px-2 py-1 inline-block rounded-lg bg-slate-50 text-[10px] font-black uppercase tracking-wider mb-1">
                         {templates?.roles[member.role]?.name ||
                           member.role.replace("_", " ")}
                       </div>
-                      <div className="flex items-center gap-1.5 mt-1 text-xs font-medium text-on-surface-variant">
+                      <div className="flex items-center gap-1.5 mt-1 text-xs font-medium text-slate-500">
                         <span className="material-symbols-outlined text-sm">
                           storefront
                         </span>
@@ -1670,7 +1670,7 @@ function TeamView({
                             </span>
                           ))
                         ) : (
-                          <span className="text-[10px] text-on-surface-variant italic opacity-50">
+                          <span className="text-[10px] text-slate-500 italic opacity-50">
                             No tools assigned
                           </span>
                         )}
@@ -1685,7 +1685,7 @@ function TeamView({
                                 setEditingStaff(member);
                                 setIsPermissionModalOpen(true);
                               }}
-                              className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                              className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
                               title="Manage Permissions"
                             >
                               <span className="material-symbols-outlined text-lg">
@@ -1697,7 +1697,7 @@ function TeamView({
                                 setEditingStaff(member);
                                 setIsModalOpen(true);
                               }}
-                              className="h-10 w-10 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                              className="h-10 w-10 rounded-md bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
                             >
                               <span className="material-symbols-outlined text-lg">
                                 edit
@@ -1714,7 +1714,7 @@ function TeamView({
                                   onRefresh();
                                 }
                               }}
-                              className="h-10 w-10 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error transition-colors"
+                              className="h-10 w-10 rounded-md bg-slate-50 flex items-center justify-center text-slate-500 hover:text-error transition-colors"
                             >
                               <span className="material-symbols-outlined text-lg">
                                 delete
@@ -1722,7 +1722,7 @@ function TeamView({
                             </button>
                           </>
                         ) : (
-                          <span className="text-xs font-semibold text-on-surface-variant">
+                          <span className="text-xs font-semibold text-slate-500">
                             Limited
                           </span>
                         )}
@@ -1799,19 +1799,19 @@ function BranchModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-2xl bg-surface-container-lowest rounded-[3rem] border border-outline-variant/30 shadow-[0_40px_120px_rgba(25,28,30,0.2)] overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="px-8 py-8 border-b border-outline-variant/10 flex items-center justify-between">
+      <div className="w-full max-w-2xl bg-white rounded-[3rem] border border-slate-200 shadow-[0_40px_120px_rgba(25,28,30,0.2)] overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="px-8 py-8 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h3 className="text-2xl font-black tracking-tight">
               {branch ? "Edit Branch" : "Add New Branch"}
             </h3>
-            <p className="text-sm text-on-surface-variant font-medium opacity-70">
+            <p className="text-sm text-slate-500 font-medium opacity-70">
               Define location and contact details.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="h-12 w-12 rounded-2xl hover:bg-surface-container flex items-center justify-center transition-colors"
+            className="h-12 w-12 rounded-lg hover:bg-slate-50 flex items-center justify-center transition-colors"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -1833,7 +1833,7 @@ function BranchModal({
             />
 
             <label className="block">
-              <span className="text-sm font-semibold text-on-surface">
+              <span className="text-sm font-semibold text-slate-900">
                 Branch Type
               </span>
               <select
@@ -1841,7 +1841,7 @@ function BranchModal({
                 onChange={(e) =>
                   setValues((c) => ({ ...c, branch_type: e.target.value }))
                 }
-                className="mt-2 w-full rounded-2xl border border-outline-variant/30 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
               >
                 <option value="Main Branch">Main Branch</option>
                 <option value="Sub Branch">Sub Branch</option>
@@ -1882,16 +1882,16 @@ function BranchModal({
           />
         </div>
 
-        <div className="px-8 py-8 bg-surface-container/30 border-t border-outline-variant/10 flex justify-end gap-4">
+        <div className="px-8 py-8 bg-slate-50/30 border-t border-slate-100 flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="px-8 py-4 rounded-2xl font-bold text-sm hover:bg-surface-container transition-colors"
+            className="px-8 py-4 rounded-lg font-bold text-sm hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => onSave({ ...values, id: branch?.id })}
-            className="px-10 py-4 rounded-2xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="px-10 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             style={{
               background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
             }}
@@ -1950,19 +1950,19 @@ function StaffModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-3xl bg-surface-container-lowest rounded-[3rem] border border-outline-variant/30 shadow-[0_40px_120px_rgba(25,28,30,0.2)] overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="px-8 py-8 border-b border-outline-variant/10 flex items-center justify-between">
+      <div className="w-full max-w-3xl bg-white rounded-[3rem] border border-slate-200 shadow-[0_40px_120px_rgba(25,28,30,0.2)] overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="px-8 py-8 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h3 className="text-2xl font-black tracking-tight">
               {staff ? "Edit Employee" : "Add New Employee"}
             </h3>
-            <p className="text-sm text-on-surface-variant font-medium opacity-70">
+            <p className="text-sm text-slate-500 font-medium opacity-70">
               Assign roles and manage tool access.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="h-12 w-12 rounded-2xl hover:bg-surface-container flex items-center justify-center transition-colors"
+            className="h-12 w-12 rounded-lg hover:bg-slate-50 flex items-center justify-center transition-colors"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -1997,7 +1997,7 @@ function StaffModal({
             />
 
             <label className="block">
-              <span className="text-sm font-semibold text-on-surface">
+              <span className="text-sm font-semibold text-slate-900">
                 Assigned Branch
               </span>
               <select
@@ -2005,7 +2005,7 @@ function StaffModal({
                 onChange={(e) =>
                   setValues((c) => ({ ...c, branch_id: e.target.value }))
                 }
-                className="mt-2 w-full rounded-2xl border border-outline-variant/30 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
               >
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -2016,7 +2016,7 @@ function StaffModal({
             </label>
 
             <label className="block">
-              <span className="text-sm font-semibold text-on-surface">
+              <span className="text-sm font-semibold text-slate-900">
                 Branch Scope
               </span>
               <select
@@ -2027,7 +2027,7 @@ function StaffModal({
                     branch_scope: e.target.value as "all" | "single",
                   }))
                 }
-                className="mt-2 w-full rounded-2xl border border-outline-variant/30 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
               >
                 <option value="single">This Branch Only</option>
                 <option value="all">All Branches</option>
@@ -2049,7 +2049,7 @@ function StaffModal({
           </div>
 
           <div>
-            <span className="text-sm font-black uppercase tracking-widest text-on-surface-variant block mb-4">
+            <span className="text-sm font-black uppercase tracking-widest text-slate-500 block mb-4">
               Tool Access Permissions
             </span>
             <div className="flex flex-wrap gap-3">
@@ -2057,10 +2057,10 @@ function StaffModal({
                 <button
                   key={tool}
                   onClick={() => toggleTool(tool)}
-                  className={`px-6 py-3 rounded-xl border font-bold text-xs transition-all ${
+                  className={`px-6 py-3 rounded-md border font-bold text-xs transition-all ${
                     values.tool_access?.includes(tool)
                       ? "bg-primary border-primary text-white shadow-md"
-                      : "bg-surface border-outline-variant/30 text-on-surface-variant hover:border-primary/30"
+                      : "bg-surface border-slate-200 text-slate-500 hover:border-primary/30"
                   }`}
                 >
                   {tool.toUpperCase()}
@@ -2070,16 +2070,16 @@ function StaffModal({
           </div>
         </div>
 
-        <div className="px-8 py-8 bg-surface-container/30 border-t border-outline-variant/10 flex justify-end gap-4">
+        <div className="px-8 py-8 bg-slate-50/30 border-t border-slate-100 flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="px-8 py-4 rounded-2xl font-bold text-sm hover:bg-surface-container transition-colors"
+            className="px-8 py-4 rounded-lg font-bold text-sm hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => onSave({ ...values, id: staff?.id })}
-            className="px-10 py-4 rounded-2xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="px-10 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             style={{
               background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
             }}
@@ -2137,12 +2137,12 @@ function PermissionModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-6xl bg-surface-container-lowest rounded-[3rem] border border-outline-variant/30 shadow-[0_40px_120px_rgba(25,28,30,0.2)] flex flex-col md:flex-row h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="w-full max-w-6xl bg-white rounded-[3rem] border border-slate-200 shadow-[0_40px_120px_rgba(25,28,30,0.2)] flex flex-col md:flex-row h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300">
         {/* Left Sidebar: Role Presets */}
-        <div className="w-full md:w-80 border-r border-outline-variant/10 flex flex-col bg-surface-container/20">
-          <div className="p-8 border-b border-outline-variant/10">
+        <div className="w-full md:w-80 border-r border-slate-100 flex flex-col bg-slate-50/20">
+          <div className="p-8 border-b border-slate-100">
             <h3 className="text-xl font-black tracking-tight">Role Presets</h3>
-            <p className="text-xs text-on-surface-variant font-medium mt-1 opacity-70">
+            <p className="text-xs text-slate-500 font-medium mt-1 opacity-70">
               Apply a predefined access level.
             </p>
           </div>
@@ -2151,18 +2151,18 @@ function PermissionModal({
               <button
                 key={key}
                 onClick={() => applyPreset(key)}
-                className={`w-full text-left p-4 rounded-2xl transition-all border ${
+                className={`w-full text-left p-4 rounded-lg transition-all border ${
                   selectedRole === key
                     ? "bg-primary/10 border-primary/20 ring-1 ring-primary/20"
-                    : "hover:bg-surface-container border-transparent"
+                    : "hover:bg-slate-50 border-transparent"
                 }`}
               >
                 <p
-                  className={`font-bold text-sm ${selectedRole === key ? "text-primary" : "text-on-surface"}`}
+                  className={`font-bold text-sm ${selectedRole === key ? "text-primary" : "text-slate-900"}`}
                 >
                   {role.name}
                 </p>
-                <p className="text-[10px] text-on-surface-variant mt-1 leading-relaxed line-clamp-2">
+                <p className="text-[10px] text-slate-500 mt-1 leading-relaxed line-clamp-2">
                   {role.description}
                 </p>
               </button>
@@ -2172,23 +2172,23 @@ function PermissionModal({
 
         {/* Main Content: Detailed Permissions */}
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="p-8 border-b border-outline-variant/10 flex items-center justify-between shrink-0">
+          <div className="p-8 border-b border-slate-100 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black">
                 {staff.name[0]}
               </div>
               <div>
                 <h3 className="text-xl font-black tracking-tight">
                   {staff.name}
                 </h3>
-                <p className="text-xs text-on-surface-variant font-medium">
+                <p className="text-xs text-slate-500 font-medium">
                   Configure individual access overrides.
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="h-12 w-12 rounded-2xl hover:bg-surface-container flex items-center justify-center transition-colors"
+              className="h-12 w-12 rounded-lg hover:bg-slate-50 flex items-center justify-center transition-colors"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
@@ -2199,7 +2199,7 @@ function PermissionModal({
             <section>
               <div className="flex items-center gap-2 mb-6">
                 <span className="h-1 w-4 rounded-full bg-primary" />
-                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant">
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">
                   Tool Access
                 </h4>
               </div>
@@ -2208,10 +2208,10 @@ function PermissionModal({
                   <button
                     key={tool}
                     onClick={() => toggleTool(tool)}
-                    className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${
+                    className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${
                       toolAccess.includes(tool)
                         ? "bg-primary text-white border-primary shadow-md"
-                        : "bg-surface border-outline-variant/30 text-on-surface-variant"
+                        : "bg-surface border-slate-200 text-slate-500"
                     }`}
                   >
                     <span className="material-symbols-outlined text-xl">
@@ -2237,25 +2237,25 @@ function PermissionModal({
             <section>
               <div className="flex items-center gap-2 mb-6">
                 <span className="h-1 w-4 rounded-full bg-tertiary" />
-                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant">
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">
                   Branch Scope
                 </h4>
               </div>
-              <div className="flex gap-4 p-2 bg-surface-container/30 rounded-2xl border border-outline-variant/10 max-w-sm">
+              <div className="flex gap-4 p-2 bg-slate-50/30 rounded-lg border border-slate-100 max-w-sm">
                 <button
                   onClick={() => setBranchScope("single")}
-                  className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all ${branchScope === "single" ? "bg-white shadow-sm text-on-surface" : "text-on-surface-variant hover:bg-white/50"}`}
+                  className={`flex-1 py-3 px-4 rounded-md text-xs font-bold transition-all ${branchScope === "single" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:bg-white/50"}`}
                 >
                   Assigned Branch
                 </button>
                 <button
                   onClick={() => setBranchScope("all")}
-                  className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all ${branchScope === "all" ? "bg-white shadow-sm text-on-surface" : "text-on-surface-variant hover:bg-white/50"}`}
+                  className={`flex-1 py-3 px-4 rounded-md text-xs font-bold transition-all ${branchScope === "all" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:bg-white/50"}`}
                 >
                   All Branches
                 </button>
               </div>
-              <p className="mt-3 text-[10px] text-on-surface-variant font-medium ml-2">
+              <p className="mt-3 text-[10px] text-slate-500 font-medium ml-2">
                 {branchScope === "all"
                   ? "This user can view and manage data across all registered branches."
                   : `Access is restricted to the ${staff.branch_name || "assigned"} branch.`}
@@ -2266,7 +2266,7 @@ function PermissionModal({
             <section className="space-y-8">
               <div className="flex items-center gap-2 mb-2">
                 <span className="h-1 w-4 rounded-full bg-primary" />
-                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant">
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">
                   Detailed Permissions
                 </h4>
               </div>
@@ -2275,11 +2275,11 @@ function PermissionModal({
                 {Object.entries(groups).map(([toolKey, group]) => (
                   <div
                     key={toolKey}
-                    className={`rounded-3xl border p-6 ${toolAccess.includes(toolKey) ? "border-outline-variant/30 bg-surface-container/10" : "border-outline-variant/10 opacity-40 grayscale pointer-events-none"}`}
+                    className={`rounded-lg border p-6 ${toolAccess.includes(toolKey) ? "border-slate-200 bg-slate-50/50" : "border-slate-100 opacity-40 grayscale pointer-events-none"}`}
                   >
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <div className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center">
                           <span className="material-symbols-outlined text-lg">
                             {toolKey === "invoice" ? "receipt_long" : "apps"}
                           </span>
@@ -2287,7 +2287,7 @@ function PermissionModal({
                         <p className="font-black text-sm">{group.label}</p>
                       </div>
                       {!toolAccess.includes(toolKey) && (
-                        <span className="text-[10px] font-bold uppercase text-on-surface-variant">
+                        <span className="text-[10px] font-bold uppercase text-slate-500">
                           Disabled
                         </span>
                       )}
@@ -2298,9 +2298,9 @@ function PermissionModal({
                         <button
                           key={permKey}
                           onClick={() => togglePermission(permKey)}
-                          className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-surface-container transition-colors group"
+                          className="w-full flex items-center justify-between p-3 rounded-md hover:bg-slate-50 transition-colors group"
                         >
-                          <span className="text-xs font-medium text-on-surface-variant group-hover:text-on-surface">
+                          <span className="text-xs font-medium text-slate-500 group-hover:text-slate-900">
                             {label}
                           </span>
                           <div
@@ -2319,10 +2319,10 @@ function PermissionModal({
             </section>
           </div>
 
-          <div className="p-8 bg-surface-container/30 border-t border-outline-variant/10 flex justify-end gap-4 shrink-0">
+          <div className="p-8 bg-slate-50/30 border-t border-slate-100 flex justify-end gap-4 shrink-0">
             <button
               onClick={onClose}
-              className="px-8 py-4 rounded-2xl font-bold text-sm hover:bg-surface-container transition-colors"
+              className="px-8 py-4 rounded-lg font-bold text-sm hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
@@ -2335,7 +2335,7 @@ function PermissionModal({
                   branch_scope: branchScope,
                 })
               }
-              className="px-10 py-4 rounded-2xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="px-10 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               style={{
                 background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
               }}
@@ -2369,7 +2369,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none active:scale-[0.98]",
+        "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none active:scale-[0.98]",
         active
           ? "bg-white text-indigo-700 shadow-xs ring-1 ring-slate-200/80 font-bold"
           : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50",
@@ -2382,7 +2382,7 @@ function TabButton({
       {count !== undefined && (
         <span
           className={cn(
-            "text-[10px] px-1.5 py-0.2 rounded-full font-bold",
+            "text-[10px] px-1.5 py-0.5 rounded font-bold",
             active
               ? "bg-indigo-100 text-indigo-700"
               : "bg-slate-200 text-slate-600",
@@ -2420,7 +2420,7 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col rounded-2xl border bg-white p-6 shadow-2xs transition-all duration-200",
+        "relative flex flex-col rounded-lg border bg-white p-6 shadow-2xs transition-all duration-200",
         isActive
           ? "border-slate-200/80 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5"
           : "border-slate-200/50 bg-slate-50/70 opacity-90",
@@ -2428,22 +2428,22 @@ function ProductCard({
     >
       {/* Badge */}
       {accessState === "locked_inactive" && (
-        <span className="absolute top-5 right-5 rounded-full bg-rose-50 text-rose-700 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-rose-200/60">
+        <span className="absolute top-5 right-5 rounded bg-rose-50 text-rose-700 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-rose-200/60">
           Locked
         </span>
       )}
       {accessState === "no_access" && (
-        <span className="absolute top-5 right-5 rounded-full bg-slate-100 text-slate-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
+        <span className="absolute top-5 right-5 rounded bg-slate-100 text-slate-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-slate-200">
           No Access
         </span>
       )}
       {accessState === "upgrade_plan" && (
-        <span className="absolute top-5 right-5 rounded-full bg-indigo-50 text-indigo-700 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-indigo-200/60">
+        <span className="absolute top-5 right-5 rounded bg-indigo-50 text-indigo-700 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-indigo-200/60">
           Premium
         </span>
       )}
       {accessState === "coming_soon" && product.badge && (
-        <span className="absolute top-5 right-5 rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 border border-slate-200">
+        <span className="absolute top-5 right-5 rounded bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600 border border-slate-200">
           {product.badge}
         </span>
       )}
@@ -2451,7 +2451,7 @@ function ProductCard({
       {/* Icon */}
       <div
         className={cn(
-          "mb-5 flex h-12 w-12 items-center justify-center rounded-xl shadow-xs text-white",
+          "mb-5 flex h-12 w-12 items-center justify-center rounded-md shadow-xs text-white",
           !isActive && accessState !== "coming_soon" && "grayscale opacity-70",
         )}
         style={{ background: product.color }}
@@ -2495,7 +2495,7 @@ function ProductCard({
             isLaunching || (!isActionable && accessState !== "coming_soon")
           }
           className={cn(
-            "w-full py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]",
+            "w-full py-2.5 px-4 rounded-md font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]",
             isActive
               ? "text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs hover:shadow-sm hover:-translate-y-0.5"
               : accessState === "upgrade_plan" ||
@@ -2560,21 +2560,21 @@ function ReadOnlyCard({
   helper: string;
 }) {
   return (
-    <div className="rounded-[2rem] border border-outline-variant/20 bg-surface-container p-5 shadow-sm">
+    <div className="rounded-[2rem] border border-slate-200/80 bg-slate-50 p-5 shadow-sm">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <span className="material-symbols-rounded text-2xl">{icon}</span>
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
             {label}
           </p>
-          <p className="truncate text-base font-black tracking-tight text-on-surface">
+          <p className="truncate text-base font-black tracking-tight text-slate-900">
             {value}
           </p>
         </div>
       </div>
-      <p className="mt-4 text-xs font-medium leading-relaxed text-on-surface-variant opacity-80">
+      <p className="mt-4 text-xs font-medium leading-relaxed text-slate-500 opacity-80">
         {helper}
       </p>
     </div>
@@ -2600,22 +2600,22 @@ function GuardrailItem({
         : "bg-primary/10 text-primary";
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-[1.75rem] border border-outline-variant/20 bg-surface-container p-4 shadow-sm">
+    <div className="flex items-center justify-between gap-4 rounded-[1.75rem] border border-slate-200/80 bg-slate-50 p-4 shadow-sm">
       <div className="flex items-center gap-3">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-2xl ${toneClasses}`}
+          className={`flex h-10 w-10 items-center justify-center rounded-lg ${toneClasses}`}
         >
           <span className="material-symbols-rounded text-xl">{icon}</span>
         </div>
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-on-surface-variant">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
             {label}
           </p>
-          <p className="text-sm font-bold text-on-surface">{value}</p>
+          <p className="text-sm font-bold text-slate-900">{value}</p>
         </div>
       </div>
       <span
-        className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${toneClasses}`}
+        className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${toneClasses}`}
       >
         {tone === "good" ? "Healthy" : tone === "warn" ? "Review" : "Info"}
       </span>
@@ -2637,9 +2637,9 @@ function StatCard({
   trend?: "up" | "down" | "neutral";
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+    <div className="rounded-lg border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
       <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+        <div className="w-10 h-10 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
           <span className="material-symbols-rounded text-xl font-bold">
             {icon}
           </span>
@@ -2647,7 +2647,7 @@ function StatCard({
         {trend && (
           <div
             className={cn(
-              "flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
+              "flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
               trend === "up"
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
                 : trend === "down"
@@ -2694,13 +2694,13 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-on-surface">{label}</span>
+      <span className="text-sm font-semibold text-slate-900">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="mt-2 w-full rounded-2xl border border-outline-variant/30 bg-surface px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--color-primary-container)] transition-all"
+        className="mt-2 w-full rounded-lg border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--color-primary-container)] transition-all"
       />
     </label>
   );
@@ -2724,7 +2724,7 @@ function QuickActionCard({
   const content = (
     <div
       className={cn(
-        "flex flex-col items-center justify-center p-5 rounded-2xl border transition-all duration-200 select-none",
+        "flex flex-col items-center justify-center p-5 rounded-lg border transition-all duration-200 select-none",
         disabled
           ? "cursor-not-allowed opacity-50 grayscale bg-slate-50 border-slate-200"
           : "hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer",
@@ -2777,15 +2777,15 @@ function ProfileInfoItem({
   icon: string;
 }) {
   return (
-    <div className="flex items-start gap-4 p-4 rounded-2xl bg-surface-container/30 border border-outline-variant/10">
-      <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+    <div className="flex items-start gap-4 p-4 rounded-lg bg-slate-50/30 border border-slate-100">
+      <div className="h-10 w-10 rounded-md bg-primary/5 flex items-center justify-center text-primary">
         <span className="material-symbols-outlined text-xl">{icon}</span>
       </div>
       <div>
-        <p className="text-[10px] font-black tracking-widest uppercase text-on-surface-variant mb-0.5">
+        <p className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-0.5">
           {label}
         </p>
-        <p className="text-sm font-bold text-on-surface line-clamp-1">
+        <p className="text-sm font-bold text-slate-900 line-clamp-1">
           {value}
         </p>
       </div>
