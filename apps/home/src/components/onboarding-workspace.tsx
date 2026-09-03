@@ -387,11 +387,11 @@ export function OnboardingWorkspace() {
     shouldFetchLocations,
   );
   const primaryButtonClass =
-    "cursor-pointer bg-primary text-white shadow-md hover:bg-primary/90";
+    "cursor-pointer bg-indigo-600 text-white shadow-xs hover:bg-indigo-700 transition-colors font-semibold rounded-xl";
   const softButtonClass =
-    "cursor-pointer border-primary/20 bg-primary/10 text-primary hover:bg-primary/15";
+    "cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors font-semibold rounded-xl";
   const ghostButtonClass =
-    "cursor-pointer text-primary hover:bg-primary/10 hover:text-primary";
+    "cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors font-medium rounded-xl";
 
   function consumePostSetupRedirect(fallback: string) {
     if (typeof window === "undefined") {
@@ -2002,10 +2002,10 @@ export function OnboardingWorkspace() {
               onPick(item);
             }}
             className={cn(
-              "flex items-center justify-center p-3 text-sm font-semibold rounded-xl border-2 transition-all duration-200 text-center",
+              "flex items-center justify-center p-3 text-xs sm:text-sm font-semibold rounded-xl border transition-all duration-200 text-center min-h-[44px]",
               activeValue === item
-                ? "border-primary bg-primary/10 text-primary shadow-sm"
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50",
+                ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-xs ring-1 ring-indigo-600"
+                : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
             )}
           >
             {item}
@@ -2232,7 +2232,7 @@ export function OnboardingWorkspace() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
           <p className="text-slate-500 font-medium">
             Preparing your setup wizard...
           </p>
@@ -2266,121 +2266,139 @@ export function OnboardingWorkspace() {
         }
       `}</style>
       {/* LEFT PANE - Hero & Context */}
-      <div className="hidden lg:flex flex-col w-[360px] xl:w-[420px] bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white flex-shrink-0 relative overflow-hidden">
-        {/* Abstract graphics */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-[20%] right-[-10%] w-64 h-64 bg-white rounded-full blur-3xl mix-blend-overlay"></div>
-          <div className="absolute bottom-[10%] left-[-20%] w-80 h-80 bg-white rounded-full blur-3xl mix-blend-overlay"></div>
+      <div className="hidden lg:flex flex-col w-[340px] xl:w-[400px] bg-slate-950 p-8 text-white shrink-0 relative overflow-y-auto border-r border-slate-800/80">
+        <div className="flex items-center gap-2.5 mb-8 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+            S
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold tracking-tight text-white">SaaSzo</span>
+            <span className="text-[10px] font-semibold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60">
+              Setup Wizard
+            </span>
+          </div>
         </div>
 
-        <div className="relative z-10 flex flex-col h-full">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/30">
-              <Hexagon className="w-6 h-6 fill-white" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">SaaSzo</span>
+        <div className="my-auto py-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-800/80 text-indigo-300 text-xs font-semibold mb-4">
+            <span>Step {currentStep} of {stepLabels.length}</span>
+            <span className="text-indigo-400">•</span>
+            <span className="text-slate-300">{stepLabels[currentStep - 1]}</span>
           </div>
 
-          <div className="mt-auto mb-auto">
-            <h1 className="text-4xl font-extrabold mb-6 leading-tight">
-              {currentStep === 8
-                ? "You're all set!"
-                : "Let's set up your business."}
-            </h1>
-            <p className="text-white/80 text-lg leading-relaxed mb-3">
-              {currentStepHelp.title}
-            </p>
-            <p className="text-white/70 text-sm leading-relaxed mb-6">
-              {currentStepHelp.description}
-            </p>
+          <h1 className="text-2xl xl:text-3xl font-extrabold mb-3 leading-tight text-white tracking-tight">
+            {currentStep === 8
+              ? "You're all set!"
+              : "Set up your business"}
+          </h1>
+          <p className="text-slate-200 text-sm font-medium leading-relaxed mb-2">
+            {currentStepHelp.title}
+          </p>
+          <p className="text-slate-400 text-xs leading-relaxed mb-6">
+            {currentStepHelp.description}
+          </p>
 
-            <div className="flex flex-col gap-4">
-              {currentStepHelp.highlights.map((item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20"
-                >
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-5 h-5 text-green-300" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold">Why this matters</div>
-                    <div className="text-xs text-white/70">{item}</div>
-                  </div>
+          <div className="flex flex-col gap-3">
+            {currentStepHelp.highlights.map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3 bg-slate-900/90 border border-slate-800/80 p-3.5 rounded-xl"
+              >
+                <div className="w-5 h-5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center shrink-0 mt-0.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                 </div>
-              ))}
-            </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-200">Why this matters</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{item}</div>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
+
+        <div className="pt-4 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center justify-between shrink-0">
+          <span>SaaSzo Invoice &amp; POS</span>
+          <span className="text-emerald-400 font-medium">100% Offline Capable</span>
         </div>
       </div>
 
       {/* RIGHT PANE - Form & Wizard */}
-      <div className="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden relative">
         {/* Top Header */}
-        <div className="flex items-center justify-between p-4 md:px-8 border-b border-slate-200 bg-white shrink-0">
-          <div className="flex items-center gap-2 lg:hidden">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Hexagon className="w-5 h-5 text-white fill-white/20" />
+        <div className="border-b border-slate-200/80 bg-white shrink-0 z-20 shadow-2xs">
+          <div className="flex items-center justify-between px-4 sm:px-8 py-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="lg:hidden w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                S
+              </div>
+              <div>
+                <div className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span>{stepLabels[currentStep - 1]}</span>
+                  <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/60">
+                    {currentStep} / {stepLabels.length}
+                  </span>
+                </div>
+              </div>
             </div>
-            <span className="font-bold text-slate-900">SaaSzo</span>
-          </div>
 
-          <div className="hidden lg:flex flex-1 items-center gap-2 max-w-2xl mx-auto px-4">
-            {stepLabels.map((label, idx) => (
-              <div key={label} className="flex items-center gap-2 flex-1">
+            {/* Desktop Step Badges */}
+            <div className="hidden md:flex items-center gap-1.5 overflow-x-auto py-1">
+              {stepLabels.map((label, idx) => (
                 <div
+                  key={label}
                   className={cn(
-                    "flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold transition-colors",
-                    currentStep > idx + 1
-                      ? "bg-green-500 text-white"
-                      : currentStep === idx + 1
-                        ? "bg-primary text-white ring-4 ring-primary/20"
-                        : "bg-slate-200 text-slate-500",
+                    "flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors shrink-0",
+                    currentStep === idx + 1
+                      ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                      : currentStep > idx + 1
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80"
+                        : "bg-slate-50 text-slate-400 border border-slate-100",
                   )}
                 >
                   {currentStep > idx + 1 ? (
-                    <CheckCircle2 className="w-4 h-4" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   ) : (
-                    idx + 1
+                    <span className="w-3.5 h-3.5 flex items-center justify-center text-[10px] font-bold">
+                      {idx + 1}
+                    </span>
                   )}
+                  <span className="hidden xl:inline">{label}</span>
                 </div>
-                {idx < stepLabels.length - 1 && (
-                  <div
-                    className={cn(
-                      "flex-1 h-1 rounded-full",
-                      currentStep > idx + 1 ? "bg-green-500" : "bg-slate-200",
-                    )}
-                  />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div className="w-24" />
+          {/* Full-width Progress Bar */}
+          <div className="w-full bg-slate-100 h-1">
+            <div
+              className="bg-indigo-600 h-1 transition-all duration-300"
+              style={{ width: `${(currentStep / stepLabels.length) * 100}%` }}
+            />
+          </div>
         </div>
 
         {/* Form Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-visible p-4 md:px-8 md:py-5">
-          <div className="max-w-3xl mx-auto w-full h-full flex flex-col">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 md:p-8">
+          <div className="max-w-3xl mx-auto w-full pb-20">
             {/* Error/Success Messages */}
             {(error || success) && (
               <div
                 className={cn(
-                  "p-4 rounded-xl mb-8 font-medium text-sm flex items-start gap-3",
+                  "p-4 rounded-xl mb-6 font-medium text-xs sm:text-sm flex items-start gap-3",
                   error
                     ? "bg-red-50 text-red-700 border border-red-200"
-                    : "bg-green-50 text-green-700 border border-green-200",
+                    : "bg-emerald-50 text-emerald-700 border border-emerald-200",
                 )}
               >
                 {error || success}
               </div>
             )}
 
-            <div className="flex-1 min-h-0 overflow-visible pb-16 md:pb-12">
-              <h2 className="text-2xl font-extrabold text-slate-900 mb-1">
+            <div className="min-h-0 pb-8">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-1 tracking-tight">
                 {stepLabels[currentStep - 1]}
               </h2>
-              <p className="text-slate-500 mb-5 font-medium text-base">
+              <p className="text-slate-500 mb-6 font-medium text-sm">
                 Please provide the necessary details below.
               </p>
 
@@ -2589,7 +2607,7 @@ export function OnboardingWorkspace() {
                             <button
                               type="button"
                               onClick={useSuggestedCityList}
-                              className="font-semibold text-primary hover:underline"
+                              className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline"
                             >
                               Choose from list
                             </button>
@@ -2616,7 +2634,7 @@ export function OnboardingWorkspace() {
                         <button
                           type="button"
                           onClick={() => handleCitySelection(MANUAL_CITY_VALUE)}
-                          className="text-xs font-semibold text-primary hover:underline"
+                          className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline"
                         >
                           City not listed? Enter manually
                         </button>
@@ -2644,7 +2662,7 @@ export function OnboardingWorkspace() {
                     )}
                   </div>
                   {shouldOfferPasswordSetup && (
-                    <Card className="col-span-full border-primary/15 bg-primary/5 p-5 shadow-sm">
+                    <Card className="col-span-full border border-indigo-200/80 bg-indigo-50/40 p-5 rounded-2xl shadow-xs">
                       <div className="space-y-4">
                         <div className="space-y-1">
                           <div className="text-sm font-semibold text-slate-900">
@@ -2882,7 +2900,7 @@ export function OnboardingWorkspace() {
               )}
 
               {currentStep === 3 && (
-                <div className="space-y-6 overflow-y-auto pr-2 lg:max-h-[calc(100dvh-220px)]">
+                <div className="space-y-6">
                   <div
                     className="space-y-3"
                     style={getFieldShakeStyle("team_size")}
@@ -2992,7 +3010,7 @@ export function OnboardingWorkspace() {
                           <>
                             {!!form.gst_number && (
                               <div className="flex flex-wrap gap-2">
-                                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                                <span className="rounded-full bg-indigo-50 border border-indigo-200/70 px-3 py-1 text-xs font-semibold text-indigo-700">
                                   {form.gst_number}
                                 </span>
                                 {form.gst_state && (
@@ -3060,7 +3078,7 @@ export function OnboardingWorkspace() {
                               {selectedRegistrationTypes.map((item) => (
                                 <span
                                   key={item}
-                                  className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                                  className="rounded-full bg-indigo-50 border border-indigo-200/70 px-3 py-1 text-xs font-semibold text-indigo-700"
                                 >
                                   {item}
                                 </span>
@@ -3194,7 +3212,7 @@ export function OnboardingWorkspace() {
                             {(form.required_reports || []).map((item) => (
                               <span
                                 key={item}
-                                className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                                className="rounded-full bg-indigo-50 border border-indigo-200/70 px-3 py-1 text-xs font-semibold text-indigo-700"
                               >
                                 {item}
                               </span>
@@ -3234,7 +3252,7 @@ export function OnboardingWorkspace() {
                               {(form.payment_methods || []).map((item) => (
                                 <span
                                   key={item}
-                                  className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                                  className="rounded-full bg-indigo-50 border border-indigo-200/70 px-3 py-1 text-xs font-semibold text-indigo-700"
                                 >
                                   {item}
                                 </span>
@@ -3310,7 +3328,7 @@ export function OnboardingWorkspace() {
                           form.bank_ifsc) && (
                           <div className="mt-3 flex flex-wrap gap-2">
                             {form.bank_name && (
-                              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                              <span className="rounded-full bg-indigo-50 border border-indigo-200/70 px-3 py-1 text-xs font-semibold text-indigo-700">
                                 {form.bank_name}
                               </span>
                             )}
@@ -3369,7 +3387,7 @@ export function OnboardingWorkspace() {
                           </p>
                           <Label
                             htmlFor="logo-upload"
-                            className="inline-flex cursor-pointer rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
+                            className="inline-flex cursor-pointer rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs transition-colors"
                           >
                             {uploading
                               ? "Uploading..."
@@ -3433,7 +3451,7 @@ export function OnboardingWorkspace() {
                             {(form.show_on_invoice || []).map((item) => (
                               <span
                                 key={item}
-                                className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                                className="rounded-full bg-indigo-50 border border-indigo-200/70 px-3 py-1 text-xs font-semibold text-indigo-700"
                               >
                                 {item}
                               </span>
@@ -3468,10 +3486,10 @@ export function OnboardingWorkspace() {
                       "We have configured SaaSzo specifically for your business operations."}
                   </p>
 
-                  <div className="w-full max-w-md mt-8 grid gap-4">
+                  <div className="w-full max-w-md mt-6 grid gap-4">
                     <Button
                       size="lg"
-                      className="h-14 text-base w-full shadow-lg"
+                      className={cn("h-13 text-base w-full", primaryButtonClass)}
                       onClick={() => navigateTo("/dashboard")}
                     >
                       Enter Dashboard
@@ -3480,55 +3498,55 @@ export function OnboardingWorkspace() {
                 </div>
               )}
             </div>
-
-            {/* Bottom Actions */}
-            {currentStep < 8 && (
-              <div className="-mx-4 mt-6 shrink-0 border-t border-slate-200 bg-white px-4 pb-3 pt-4 md:-mx-8 md:px-8">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <Button
-                    variant="ghost"
-                    className={cn("font-semibold", ghostButtonClass)}
-                    onClick={() => setCurrentStep((s) => Math.max(1, s - 1))}
-                    disabled={currentStep === 1 || saving}
-                  >
-                    <ChevronLeft className="w-4 h-4 mr-1" /> Back
-                  </Button>
-
-                  <div className="flex flex-col-reverse gap-3 sm:flex-row">
-                    <Button
-                      variant="secondary"
-                      className={softButtonClass}
-                      onClick={() => saveStep(currentStep, false)}
-                      disabled={saving}
-                    >
-                      {saving ? "Saving..." : "Save Progress"}
-                    </Button>
-
-                    {currentStep < 7 ? (
-                      <Button
-                        onClick={() => saveStep(currentStep, true)}
-                        disabled={saving}
-                        className={cn("px-8", primaryButtonClass)}
-                      >
-                        {saving ? "Saving..." : "Continue"}{" "}
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleComplete}
-                        disabled={saving}
-                        className={cn("px-8", primaryButtonClass)}
-                      >
-                        {saving ? "Completing..." : "Complete Setup"}{" "}
-                        <CheckCircle2 className="w-4 h-4 ml-1" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Sticky Bottom Actions Bar */}
+        {currentStep < 8 && (
+          <div className="shrink-0 border-t border-slate-200/80 bg-white/95 backdrop-blur-md px-4 sm:px-8 py-3.5 z-20 shadow-xs">
+            <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
+              <Button
+                variant="ghost"
+                className={ghostButtonClass}
+                onClick={() => setCurrentStep((s) => Math.max(1, s - 1))}
+                disabled={currentStep === 1 || saving}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+
+              <div className="flex items-center gap-2.5">
+                <Button
+                  variant="outline"
+                  className={softButtonClass}
+                  onClick={() => saveStep(currentStep, false)}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save Draft"}
+                </Button>
+
+                {currentStep < 7 ? (
+                  <Button
+                    onClick={() => saveStep(currentStep, true)}
+                    disabled={saving}
+                    className={cn("px-6 sm:px-8", primaryButtonClass)}
+                  >
+                    {saving ? "Saving..." : "Continue"}
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleComplete}
+                    disabled={saving}
+                    className={cn("px-6 sm:px-8", primaryButtonClass)}
+                  >
+                    {saving ? "Completing..." : "Complete Setup"}
+                    <CheckCircle2 className="w-4 h-4 ml-1" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {verificationModal && (
@@ -3700,14 +3718,14 @@ export function OnboardingWorkspace() {
       )}
 
       {gstDetailsModalOpen && (
-        <div className="fixed inset-0 z-[78] flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-start justify-between gap-4">
+        <div className="fixed inset-0 z-[78] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 shrink-0">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                   GST details
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-xs sm:text-sm text-slate-500">
                   Fill only the main GST information here. This section is
                   required only when GST status is Yes.
                 </p>
@@ -3715,72 +3733,74 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setGstDetailsModalOpen(false)}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-6 grid gap-5 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label className="text-slate-700">
-                  GST Number <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  className="h-12 bg-white uppercase"
-                  value={form.gst_number || ""}
-                  placeholder="22AAAAA0000A1Z5"
-                  maxLength={15}
-                  onChange={(e) =>
-                    handleAlphaNumericField("gst_number", e.target.value, 15)
-                  }
-                  autoCapitalize="characters"
-                />
-                <p className="text-xs text-slate-500">{gstFormatMessage}</p>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-slate-700">
-                  Legal Business Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  className="h-12 bg-white"
-                  value={form.legal_business_name || ""}
-                  placeholder="Legal entity name"
-                  maxLength={255}
-                  onChange={(e) =>
-                    handleTextField("legal_business_name", e.target.value, 255)
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-slate-700">
-                  GST State <span className="text-red-500">*</span>
-                </Label>
-                <SearchableSelect
-                  placeholder="Select GST state..."
-                  options={stateOptions}
-                  value={form.gst_state || ""}
-                  onChange={(val) => setValue("gst_state", val)}
-                  emptyMessage={
-                    locationsLoading ? "Loading states..." : "No state found."
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-slate-700">
-                  GST Type <span className="text-red-500">*</span>
-                </Label>
-                <SearchableSelect
-                  placeholder="Select GST type..."
-                  options={gstTypeOptions}
-                  value={form.gst_type || ""}
-                  onChange={(val) => setValue("gst_type", val)}
-                  emptyMessage="No GST type found."
-                />
+            <div className="flex-1 overflow-y-auto py-4 pr-1">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-slate-700">
+                    GST Number <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    className="h-12 bg-white uppercase"
+                    value={form.gst_number || ""}
+                    placeholder="22AAAAA0000A1Z5"
+                    maxLength={15}
+                    onChange={(e) =>
+                      handleAlphaNumericField("gst_number", e.target.value, 15)
+                    }
+                    autoCapitalize="characters"
+                  />
+                  <p className="text-xs text-slate-500">{gstFormatMessage}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">
+                    Legal Business Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    className="h-12 bg-white"
+                    value={form.legal_business_name || ""}
+                    placeholder="Legal entity name"
+                    maxLength={255}
+                    onChange={(e) =>
+                      handleTextField("legal_business_name", e.target.value, 255)
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">
+                    GST State <span className="text-red-500">*</span>
+                  </Label>
+                  <SearchableSelect
+                    placeholder="Select GST state..."
+                    options={stateOptions}
+                    value={form.gst_state || ""}
+                    onChange={(val) => setValue("gst_state", val)}
+                    emptyMessage={
+                      locationsLoading ? "Loading states..." : "No state found."
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700">
+                    GST Type <span className="text-red-500">*</span>
+                  </Label>
+                  <SearchableSelect
+                    placeholder="Select GST type..."
+                    options={gstTypeOptions}
+                    value={form.gst_type || ""}
+                    onChange={(val) => setValue("gst_type", val)}
+                    emptyMessage="No GST type found."
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="pt-4 border-t border-slate-100 flex justify-end gap-3 shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -3802,14 +3822,14 @@ export function OnboardingWorkspace() {
       )}
 
       {registrationDetailsModalOpen && (
-        <div className="fixed inset-0 z-[77] flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-5xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-start justify-between gap-4">
+        <div className="fixed inset-0 z-[77] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-5xl max-h-[90vh] flex flex-col rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 shrink-0">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                   Extra registration details
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-xs sm:text-sm text-slate-500">
                   Only the registration inputs for your selected business IDs
                   are shown here.
                 </p>
@@ -3817,17 +3837,17 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setRegistrationDetailsModalOpen(false)}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-6 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="flex-1 overflow-y-auto py-4 pr-1">
               {renderRegistrationDetailFields()}
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="pt-4 border-t border-slate-100 flex justify-end gap-3 shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -3849,54 +3869,56 @@ export function OnboardingWorkspace() {
       )}
 
       {reportsModalOpen && (
-        <div className="fixed inset-0 z-[76] flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-start justify-between gap-4">
+        <div className="fixed inset-0 z-[76] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 shrink-0">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                   Select required reports
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-xs sm:text-sm text-slate-500">
                   Pick the reports you want to see more prominently after setup.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setReportsModalOpen(false)}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
-              {requiredReportOptions.map((opt) => (
-                <label
-                  key={opt}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl border p-3 cursor-pointer transition-colors",
-                    (form.required_reports || []).includes(opt)
-                      ? "border-primary bg-primary/5 text-primary font-medium"
-                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-                    checked={(form.required_reports || []).includes(opt)}
-                    onChange={() =>
-                      setValue(
-                        "required_reports",
-                        toggleArrayValue(form.required_reports, opt),
-                      )
-                    }
-                  />
-                  <span className="text-sm">{opt}</span>
-                </label>
-              ))}
+            <div className="flex-1 overflow-y-auto py-4 pr-1">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {requiredReportOptions.map((opt) => (
+                  <label
+                    key={opt}
+                    className={cn(
+                      "flex items-center gap-3 rounded-2xl border p-3.5 cursor-pointer transition-colors",
+                      (form.required_reports || []).includes(opt)
+                        ? "border-indigo-600 bg-indigo-50/70 text-indigo-900 font-medium ring-1 ring-indigo-600"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      checked={(form.required_reports || []).includes(opt)}
+                      onChange={() =>
+                        setValue(
+                          "required_reports",
+                          toggleArrayValue(form.required_reports, opt),
+                        )
+                      }
+                    />
+                    <span className="text-sm">{opt}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="pt-4 border-t border-slate-100 flex justify-end shrink-0">
               <Button
                 type="button"
                 className={primaryButtonClass}
@@ -3910,54 +3932,56 @@ export function OnboardingWorkspace() {
       )}
 
       {paymentMethodsModalOpen && (
-        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-start justify-between gap-4">
+        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 shrink-0">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                   Select payment methods
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-xs sm:text-sm text-slate-500">
                   Choose the payment modes your business will accept.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setPaymentMethodsModalOpen(false)}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
-              {paymentMethodSelectOptions.map((opt) => (
-                <label
-                  key={opt.value}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl border p-3 cursor-pointer transition-colors",
-                    (form.payment_methods || []).includes(opt.value)
-                      ? "border-primary bg-primary/5 text-primary font-medium"
-                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-                    checked={(form.payment_methods || []).includes(opt.value)}
-                    onChange={() =>
-                      setValue(
-                        "payment_methods",
-                        toggleArrayValue(form.payment_methods, opt.value),
-                      )
-                    }
-                  />
-                  <span className="text-sm">{opt.label}</span>
-                </label>
-              ))}
+            <div className="flex-1 overflow-y-auto py-4 pr-1">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {paymentMethodSelectOptions.map((opt) => (
+                  <label
+                    key={opt.value}
+                    className={cn(
+                      "flex items-center gap-3 rounded-2xl border p-3.5 cursor-pointer transition-colors",
+                      (form.payment_methods || []).includes(opt.value)
+                        ? "border-indigo-600 bg-indigo-50/70 text-indigo-900 font-medium ring-1 ring-indigo-600"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      checked={(form.payment_methods || []).includes(opt.value)}
+                      onChange={() =>
+                        setValue(
+                          "payment_methods",
+                          toggleArrayValue(form.payment_methods, opt.value),
+                        )
+                      }
+                    />
+                    <span className="text-sm">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="pt-4 border-t border-slate-100 flex justify-end shrink-0">
               <Button
                 type="button"
                 className={primaryButtonClass}
@@ -3971,14 +3995,14 @@ export function OnboardingWorkspace() {
       )}
 
       {bankDetailsModalOpen && (
-        <div className="fixed inset-0 z-[74] flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-5xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-start justify-between gap-4">
+        <div className="fixed inset-0 z-[74] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-5xl max-h-[90vh] flex flex-col rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 shrink-0">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                   Bank details
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-xs sm:text-sm text-slate-500">
                   Add only the bank information you want to show or use for
                   payment collection.
                 </p>
@@ -3986,18 +4010,18 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setBankDetailsModalOpen(false)}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-6 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="flex-1 overflow-y-auto py-4 pr-2">
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-slate-700">Account Holder Name</Label>
                   <Input
-                    className="h-12 bg-slate-50"
+                    className="h-12 bg-white"
                     value={form.bank_account_holder_name || ""}
                     placeholder="Business / account holder name"
                     maxLength={255}
@@ -4015,7 +4039,7 @@ export function OnboardingWorkspace() {
                   {useCustomBank ? (
                     <div className="space-y-2">
                       <Input
-                        className="h-12 bg-slate-50"
+                        className="h-12 bg-white"
                         value={form.bank_name || ""}
                         placeholder="Type bank name"
                         maxLength={255}
@@ -4050,7 +4074,7 @@ export function OnboardingWorkspace() {
                 <div className="space-y-2">
                   <Label className="text-slate-700">Account Number</Label>
                   <Input
-                    className="h-12 bg-slate-50"
+                    className="h-12 bg-white"
                     inputMode="numeric"
                     value={form.bank_account_number || ""}
                     placeholder="123456789012"
@@ -4067,7 +4091,7 @@ export function OnboardingWorkspace() {
                 <div className="space-y-2">
                   <Label className="text-slate-700">IFSC Code</Label>
                   <Input
-                    className="h-12 bg-slate-50 uppercase"
+                    className="h-12 bg-white uppercase"
                     value={form.bank_ifsc || ""}
                     placeholder="HDFC0001234"
                     maxLength={11}
@@ -4080,7 +4104,7 @@ export function OnboardingWorkspace() {
                 <div className="space-y-2">
                   <Label className="text-slate-700">SWIFT Code</Label>
                   <Input
-                    className="h-12 bg-slate-50 uppercase"
+                    className="h-12 bg-white uppercase"
                     value={form.bank_swift_code || ""}
                     placeholder="HDFCINBBXXX"
                     maxLength={11}
@@ -4097,7 +4121,7 @@ export function OnboardingWorkspace() {
                 <div className="space-y-2">
                   <Label className="text-slate-700">MICR Code</Label>
                   <Input
-                    className="h-12 bg-slate-50"
+                    className="h-12 bg-white"
                     inputMode="numeric"
                     value={form.bank_micr_code || ""}
                     placeholder="302240001"
@@ -4110,7 +4134,7 @@ export function OnboardingWorkspace() {
                 <div className="space-y-2">
                   <Label className="text-slate-700">Bank Branch</Label>
                   <Input
-                    className="h-12 bg-slate-50"
+                    className="h-12 bg-white"
                     value={form.bank_branch_name || ""}
                     placeholder="Jaipur Main Branch"
                     maxLength={255}
@@ -4122,7 +4146,7 @@ export function OnboardingWorkspace() {
                 <div className="space-y-2">
                   <Label className="text-slate-700">Account Type</Label>
                   <Input
-                    className="h-12 bg-slate-50"
+                    className="h-12 bg-white"
                     value={form.bank_account_type || ""}
                     placeholder="Current / Savings / OD"
                     maxLength={50}
@@ -4134,7 +4158,7 @@ export function OnboardingWorkspace() {
                 <div className="sm:col-span-2 space-y-2">
                   <Label className="text-slate-700">Other Bank Notes</Label>
                   <Input
-                    className="h-12 bg-slate-50"
+                    className="h-12 bg-white"
                     value={form.bank_notes || form.bank_details || ""}
                     placeholder="Any extra payment instruction or old bank detail text"
                     maxLength={500}
@@ -4148,7 +4172,7 @@ export function OnboardingWorkspace() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="pt-4 border-t border-slate-100 flex justify-end gap-3 shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -4170,14 +4194,14 @@ export function OnboardingWorkspace() {
       )}
 
       {showOnInvoiceModalOpen && (
-        <div className="fixed inset-0 z-[73] flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-start justify-between gap-4">
+        <div className="fixed inset-0 z-[73] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 shrink-0">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                   Select what to show on invoice
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-xs sm:text-sm text-slate-500">
                   Pick the business details and branding elements you want
                   printed on invoices.
                 </p>
@@ -4185,40 +4209,42 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setShowOnInvoiceModalOpen(false)}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
-              {availableShowOnInvoiceOptions.map((opt) => (
-                <label
-                  key={opt.value}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl border p-3 cursor-pointer transition-colors",
-                    (form.show_on_invoice || []).includes(opt.value)
-                      ? "border-primary bg-primary/5 text-primary font-medium"
-                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-                    checked={(form.show_on_invoice || []).includes(opt.value)}
-                    onChange={() =>
-                      setValue(
-                        "show_on_invoice",
-                        toggleArrayValue(form.show_on_invoice, opt.value),
-                      )
-                    }
-                  />
-                  <span className="text-sm">{opt.label}</span>
-                </label>
-              ))}
+            <div className="flex-1 overflow-y-auto py-4 pr-1">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {availableShowOnInvoiceOptions.map((opt) => (
+                  <label
+                    key={opt.value}
+                    className={cn(
+                      "flex items-center gap-3 rounded-2xl border p-3.5 cursor-pointer transition-colors",
+                      (form.show_on_invoice || []).includes(opt.value)
+                        ? "border-indigo-600 bg-indigo-50/70 text-indigo-900 font-medium ring-1 ring-indigo-600"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      checked={(form.show_on_invoice || []).includes(opt.value)}
+                      onChange={() =>
+                        setValue(
+                          "show_on_invoice",
+                          toggleArrayValue(form.show_on_invoice, opt.value),
+                        )
+                      }
+                    />
+                    <span className="text-sm">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="pt-4 border-t border-slate-100 flex justify-end shrink-0">
               <Button
                 type="button"
                 className={primaryButtonClass}
@@ -4232,54 +4258,56 @@ export function OnboardingWorkspace() {
       )}
 
       {registrationPickerOpen && (
-        <div className="fixed inset-0 z-[72] flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-start justify-between gap-4">
+        <div className="fixed inset-0 z-[72] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 shrink-0">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                   Select registrations
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-xs sm:text-sm text-slate-500">
                   Choose only the registrations that apply to this business.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setRegistrationPickerOpen(false)}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
-              {registrationTypeOptions.map((opt) => (
-                <label
-                  key={opt}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl border p-3 cursor-pointer transition-colors",
-                    selectedRegistrationTypes.includes(opt)
-                      ? "border-primary bg-primary/5 text-primary font-medium"
-                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-                    checked={selectedRegistrationTypes.includes(opt)}
-                    onChange={() =>
-                      setValue(
-                        "registration_types",
-                        toggleArrayValue(form.registration_types, opt),
-                      )
-                    }
-                  />
-                  <span className="text-sm">{opt}</span>
-                </label>
-              ))}
+            <div className="flex-1 overflow-y-auto py-4 pr-1">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {registrationTypeOptions.map((opt) => (
+                  <label
+                    key={opt}
+                    className={cn(
+                      "flex items-center gap-3 rounded-2xl border p-3.5 cursor-pointer transition-colors",
+                      selectedRegistrationTypes.includes(opt)
+                        ? "border-indigo-600 bg-indigo-50/70 text-indigo-900 font-medium ring-1 ring-indigo-600"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      checked={selectedRegistrationTypes.includes(opt)}
+                      onChange={() =>
+                        setValue(
+                          "registration_types",
+                          toggleArrayValue(form.registration_types, opt),
+                        )
+                      }
+                    />
+                    <span className="text-sm">{opt}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="pt-4 border-t border-slate-100 flex justify-end shrink-0">
               <Button
                 type="button"
                 className={primaryButtonClass}
