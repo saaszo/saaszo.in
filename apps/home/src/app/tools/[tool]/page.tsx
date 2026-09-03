@@ -5,19 +5,24 @@ import {
 } from "@/components/digital/DigitalMarketingShell";
 import {
   DigitalToolBuilder,
-  isDigitalToolType,
 } from "@/components/digital/DigitalToolBuilder";
 
 type ToolPageProps = {
   params: Promise<{ tool: string }>;
 };
 
-const titles: Record<string, string> = {
+type ToolType = "certificate" | "letter" | "vcard" | "icard";
+
+const titles: Record<ToolType, string> = {
   certificate: "Certificate Tool",
   letter: "Letter Tool",
   vcard: "VCard Tool",
   icard: "ICard Tool",
 };
+
+function isDigitalToolType(value: string): value is ToolType {
+  return Object.hasOwn(titles, value);
+}
 
 export async function generateMetadata({ params }: ToolPageProps) {
   const { tool } = await params;

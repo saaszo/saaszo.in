@@ -171,7 +171,3 @@ export function DigitalToolBuilder({ type }: { type: ToolType }) {
     </section>
   );
 }
-
-export function isDigitalToolType(value: string): value is ToolType {
-  return ["certificate", "letter", "vcard", "icard"].includes(value);
-}
