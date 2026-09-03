@@ -69,58 +69,6 @@ const PRODUCTS: Product[] = [
     accentColor: "#3b82f6",
     ctaText: "Open App",
   },
-  {
-    id: "task",
-    name: "Task Management",
-    tagline: "Projects · Tasks · Team Chat",
-    description:
-      "Plan projects, assign work, track progress, manage delivery, and collaborate with your team in one shared workspace.",
-    icon: "task_alt",
-    tool: "task",
-    status: "active",
-    color: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
-    accentColor: "#6b38d4",
-    ctaText: "Open App",
-  },
-  {
-    id: "engage",
-    name: "Engage",
-    tagline: "Broadcasts · Automations · Follow-ups",
-    description:
-      "Run campaigns, automate follow-ups, manage message journeys, and keep customer engagement moving from one focused workspace.",
-    icon: "campaign",
-    tool: "engage",
-    status: "active",
-    color: "linear-gradient(135deg, #ec4899 0%, #f97316 100%)",
-    accentColor: "#ec4899",
-    ctaText: "Open App",
-  },
-  {
-    id: "seller",
-    name: "Seller Hub",
-    tagline: "Orders · Returns · Charges · Settlements",
-    description:
-      "Track marketplace orders, reconcile settlements, review returns, manage charges, and monitor ecommerce profitability in one place.",
-    icon: "storefront",
-    tool: "seller",
-    status: "active",
-    color: "linear-gradient(135deg, #f97316 0%, #ef4444 100%)",
-    accentColor: "#f97316",
-    ctaText: "Open App",
-  },
-  {
-    id: "hrms",
-    name: "HRMS & Payroll",
-    tagline: "Attendance · Payroll · Staff",
-    description:
-      "Manage your team — mark attendance, run payroll, track leaves, and generate payslips.",
-    icon: "badge",
-    tool: "hrms",
-    status: "active",
-    color: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-    accentColor: "#10b981",
-    ctaText: "Open App",
-  },
 ];
 
 const INVOICE_BRIDGE_FALLBACK_URL =
