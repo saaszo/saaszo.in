@@ -286,7 +286,7 @@ export function normalizeOldDigitalLink(url?: string | null) {
     .replace("/careers.php", "/careers")
     .replace("/approach.php", "/approach")
     .replace("/tools/index.php", "/tools")
-    .replace("/tools/", "/tools/")
+    .replace(/\/tools\/([^/?#]+)\.php/i, "/tools/$1")
     .replace("/creator-program.php", "/creator-program")
     .replace("/guest-post.php", "/creator-program")
     .replace("/packages.php", "/packages")

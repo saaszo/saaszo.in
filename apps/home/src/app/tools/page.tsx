@@ -18,23 +18,23 @@ const tools = [
   },
   {
     title: "Certificate Tool",
-    href: "https://digital.saaszo.in/tools/certificate.php",
-    description: "Legacy certificate generator tool.",
+    href: "/tools/certificate",
+    description: "Generate certificate documents from the new SaaSzo API.",
   },
   {
     title: "Letter Tool",
-    href: "https://digital.saaszo.in/tools/letter.php",
-    description: "Legacy letter generator tool.",
+    href: "/tools/letter",
+    description: "Create downloadable letters from the migrated backend.",
   },
   {
     title: "VCard Tool",
-    href: "https://digital.saaszo.in/tools/vcard.php",
-    description: "Legacy vCard generator tool.",
+    href: "/tools/vcard",
+    description: "Build a contact vCard without leaving saaszo.in.",
   },
   {
     title: "ICard Tool",
-    href: "https://digital.saaszo.in/tools/icard.php",
-    description: "Legacy ID card generator tool.",
+    href: "/tools/icard",
+    description: "Generate ID card documents through the new API system.",
   },
 ];
 
@@ -49,7 +49,7 @@ export default function ToolsPage() {
       <PageHero
         eyebrow="Tools"
         title="SaaSzo Digital tools and growth utilities."
-        description="The growth audit is available inside the new frontend. Legacy document tools are linked until they are migrated into Laravel/Next."
+        description="Growth audit and document tools now run from the new saaszo.in frontend with Laravel API support."
       />
       <section className="mx-auto grid max-w-7xl gap-4 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:px-8">
         {tools.map((tool) => (

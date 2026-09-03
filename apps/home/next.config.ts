@@ -273,7 +273,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/tools/:slug.php",
-        destination: "/tools",
+        destination: "/tools/:slug",
         permanent: true,
       },
     ];
