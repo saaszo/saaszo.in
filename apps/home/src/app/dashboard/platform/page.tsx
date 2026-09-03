@@ -642,7 +642,7 @@ export default function PlatformAdminPage() {
             <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
               Platform Admin
             </span>
-            <span className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold text-indigo-700 uppercase">
+            <span className="rounded-none bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold text-indigo-700 uppercase">
               Super Admin Console
             </span>
           </div>
@@ -656,7 +656,7 @@ export default function PlatformAdminPage() {
         <button
           type="button"
           onClick={() => void loadData(search.trim())}
-          className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-none bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-sm">refresh</span>
           {refreshing ? "Refreshing..." : "Refresh"}
@@ -707,7 +707,7 @@ export default function PlatformAdminPage() {
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <section className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
+          <section className="rounded-none border border-slate-200/80 bg-white p-6 shadow-xs">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
@@ -718,7 +718,7 @@ export default function PlatformAdminPage() {
                 </h2>
               </div>
               {pricingCatalog ? (
-                <div className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                <div className="rounded-none bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
                   {pricingCatalog.paidCustomers} paid ·{" "}
                   {pricingCatalog.founderSlotsRemaining} slots left
                 </div>
@@ -729,7 +729,7 @@ export default function PlatformAdminPage() {
               {growthMilestones.map((milestone) => (
                 <div
                   key={milestone.key}
-                  className="rounded-lg border border-slate-200/80 bg-slate-50 px-4 py-4"
+                  className="rounded-none border border-slate-200/80 bg-slate-50 px-4 py-4"
                 >
                   <p className="text-[11px] font-black uppercase tracking-[0.16em] text-indigo-600">
                     {milestone.title}
@@ -743,7 +743,7 @@ export default function PlatformAdminPage() {
                         key={signal}
                         className="flex items-start gap-2 text-xs text-slate-500"
                       >
-                        <span className="mt-1 inline-block h-2 w-2 rounded-full bg-primary" />
+                        <span className="mt-1 inline-block h-2 w-2 rounded-none bg-primary" />
                         <span>{signal}</span>
                       </li>
                     ))}
@@ -753,7 +753,7 @@ export default function PlatformAdminPage() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
+          <section className="rounded-none border border-slate-200/80 bg-white p-6 shadow-xs">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
               Shipping Phases
             </p>
@@ -764,10 +764,10 @@ export default function PlatformAdminPage() {
               {executionPhases.map((phase, index) => (
                 <div
                   key={phase.key}
-                  className="rounded-lg border border-slate-200/80 bg-slate-50 px-4 py-4"
+                  className="rounded-none border border-slate-200/80 bg-slate-50 px-4 py-4"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 text-xs font-black text-indigo-600">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-none bg-indigo-50 text-indigo-700 text-xs font-black text-indigo-600">
                       {index + 1}
                     </span>
                     <p className="text-sm font-bold text-slate-900">
@@ -783,7 +783,7 @@ export default function PlatformAdminPage() {
           </section>
         </div>
 
-        <section className="mt-8 rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
+        <section className="mt-8 rounded-none border border-slate-200/80 bg-white p-6 shadow-xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
@@ -799,7 +799,7 @@ export default function PlatformAdminPage() {
               </p>
             </div>
             {pricingCatalog ? (
-              <div className="rounded bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+              <div className="rounded-none bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
                 {pricingCatalog.founderSlotsRemaining} founder slots still visible
               </div>
             ) : null}
@@ -809,7 +809,7 @@ export default function PlatformAdminPage() {
             {(pricingCatalog?.publicPlans ?? []).filter((plan) => plan.slug !== "free").map((plan) => (
               <div
                 key={plan.slug}
-                className="rounded-lg border border-slate-200/80 bg-slate-50 px-4 py-4"
+                className="rounded-none border border-slate-200/80 bg-slate-50 px-4 py-4"
               >
                 <p className="text-sm font-black text-slate-900">{plan.name}</p>
                 <p className="mt-1 text-xs text-slate-500">
@@ -818,7 +818,7 @@ export default function PlatformAdminPage() {
                 <p className="mt-1 text-xs text-slate-500">
                   New users later: {getPlanPrice(plan.slug, "yearly", "next")}/year
                 </p>
-                <div className="mt-3 rounded-md bg-indigo-50/50 px-3 py-3 text-xs font-medium text-indigo-600">
+                <div className="mt-3 rounded-none bg-indigo-50/50 px-3 py-3 text-xs font-medium text-indigo-600">
                   Yearly saves commitment friction and keeps pricing simple during
                   the first 1,000 paid-workspace push.
                 </div>
@@ -827,7 +827,7 @@ export default function PlatformAdminPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
+        <section className="mt-8 rounded-none border border-slate-200/80 bg-white p-6 shadow-xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
@@ -842,7 +842,7 @@ export default function PlatformAdminPage() {
                 without leaving the control center.
               </p>
             </div>
-            <div className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+            <div className="rounded-none bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
               Billing admin visibility
             </div>
           </div>
@@ -888,7 +888,7 @@ export default function PlatformAdminPage() {
 
           {billingMessage ? (
             <div
-              className={`mt-5 rounded-lg px-4 py-3 text-sm font-medium ${
+              className={`mt-5 rounded-none px-4 py-3 text-sm font-medium ${
                 billingTone === "success"
                   ? "bg-emerald-500/10 text-emerald-700"
                   : billingTone === "error"
@@ -902,7 +902,7 @@ export default function PlatformAdminPage() {
 
           <div className="mt-6 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
             <div className="space-y-6">
-              <div className="rounded-lg border border-slate-200/80 bg-slate-50 p-5">
+              <div className="rounded-none border border-slate-200/80 bg-slate-50 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-bold text-slate-900">Plan records</h3>
@@ -913,7 +913,7 @@ export default function PlatformAdminPage() {
                   <button
                     type="button"
                     onClick={startNewPlan}
-                    className="rounded-md border border-slate-200/80 bg-white px-3 py-2 text-xs font-semibold text-indigo-600"
+                    className="rounded-none border border-slate-200/80 bg-white px-3 py-2 text-xs font-semibold text-indigo-600"
                   >
                     New plan
                   </button>
@@ -930,7 +930,7 @@ export default function PlatformAdminPage() {
                           setPlanForm(createPlanFormState(plan));
                           setBillingMessage(null);
                         }}
-                        className={`w-full rounded-lg border px-4 py-3 text-left ${
+                        className={`w-full rounded-none border px-4 py-3 text-left ${
                           selectedPlanId === plan.id
                             ? "border-indigo-600 bg-indigo-50 text-indigo-700"
                             : "border-slate-200/80 bg-white"
@@ -957,7 +957,7 @@ export default function PlatformAdminPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-200/80 bg-slate-50 p-5">
+              <div className="rounded-none border border-slate-200/80 bg-slate-50 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-bold text-slate-900">
@@ -970,7 +970,7 @@ export default function PlatformAdminPage() {
                   <button
                     type="button"
                     onClick={startNewSubscription}
-                    className="rounded-md border border-slate-200/80 bg-white px-3 py-2 text-xs font-semibold text-indigo-600"
+                    className="rounded-none border border-slate-200/80 bg-white px-3 py-2 text-xs font-semibold text-indigo-600"
                   >
                     New subscription
                   </button>
@@ -987,7 +987,7 @@ export default function PlatformAdminPage() {
                           setSubscriptionForm(createSubscriptionFormState(subscription));
                           setBillingMessage(null);
                         }}
-                        className={`w-full rounded-lg border px-4 py-3 text-left ${
+                        className={`w-full rounded-none border px-4 py-3 text-left ${
                           selectedSubscriptionId === subscription.id
                             ? "border-indigo-600 bg-indigo-50 text-indigo-700"
                             : "border-slate-200/80 bg-white"
@@ -1019,7 +1019,7 @@ export default function PlatformAdminPage() {
             <div className="space-y-6">
               <form
                 onSubmit={handlePlanSave}
-                className="rounded-lg border border-slate-200/80 bg-slate-50 p-5"
+                className="rounded-none border border-slate-200/80 bg-slate-50 p-5"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -1040,7 +1040,7 @@ export default function PlatformAdminPage() {
                     <input
                       value={planForm.key}
                       onChange={(event) => updatePlanForm("key", event.target.value)}
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1050,7 +1050,7 @@ export default function PlatformAdminPage() {
                     <input
                       value={planForm.name}
                       onChange={(event) => updatePlanForm("name", event.target.value)}
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1062,7 +1062,7 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updatePlanForm("billing_cycle", event.target.value)
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1073,7 +1073,7 @@ export default function PlatformAdminPage() {
                       value={planForm.price}
                       onChange={(event) => updatePlanForm("price", event.target.value)}
                       inputMode="decimal"
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1085,7 +1085,7 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updatePlanForm("currency", event.target.value)
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1098,7 +1098,7 @@ export default function PlatformAdminPage() {
                         updatePlanForm("trial_days", event.target.value)
                       }
                       inputMode="numeric"
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                 </div>
@@ -1110,7 +1110,7 @@ export default function PlatformAdminPage() {
                   <select
                     value={planForm.status}
                     onChange={(event) => updatePlanForm("status", event.target.value)}
-                    className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                    className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                   >
                     {PLAN_STATUS_OPTIONS.map((status) => (
                       <option key={status} value={status}>
@@ -1123,7 +1123,7 @@ export default function PlatformAdminPage() {
                 <button
                   type="submit"
                   disabled={savingPlan}
-                  className="mt-5 w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  className="mt-5 w-full rounded-none bg-indigo-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {savingPlan
                     ? "Saving plan..."
@@ -1135,7 +1135,7 @@ export default function PlatformAdminPage() {
 
               <form
                 onSubmit={handleSubscriptionSave}
-                className="rounded-lg border border-slate-200/80 bg-slate-50 p-5"
+                className="rounded-none border border-slate-200/80 bg-slate-50 p-5"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -1158,7 +1158,7 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("company_id", event.target.value)
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     >
                       <option value="">Select company</option>
                       {organizations.map((organization) => (
@@ -1177,7 +1177,7 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("product_key", event.target.value)
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     >
                       {PRODUCT_KEY_OPTIONS.map((product) => (
                         <option key={product} value={product}>
@@ -1195,7 +1195,7 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("plan_name", event.target.value)
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1208,7 +1208,7 @@ export default function PlatformAdminPage() {
                         updateSubscriptionForm("months", event.target.value)
                       }
                       inputMode="numeric"
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1221,7 +1221,7 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("starts_at", event.target.value)
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1234,7 +1234,7 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("expires_at", event.target.value)
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1247,7 +1247,7 @@ export default function PlatformAdminPage() {
                         updateSubscriptionForm("amount_paid", event.target.value)
                       }
                       inputMode="decimal"
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
@@ -1259,12 +1259,12 @@ export default function PlatformAdminPage() {
                       onChange={(event) =>
                         updateSubscriptionForm("payment_id", event.target.value)
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </label>
                 </div>
 
-                <label className="mt-4 flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-4 py-3">
+                <label className="mt-4 flex items-center gap-3 rounded-none border border-slate-200/80 bg-white px-4 py-3">
                   <input
                     type="checkbox"
                     checked={subscriptionForm.is_active}
@@ -1281,7 +1281,7 @@ export default function PlatformAdminPage() {
                 <button
                   type="submit"
                   disabled={savingSubscription}
-                  className="mt-5 w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  className="mt-5 w-full rounded-none bg-indigo-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {savingSubscription
                     ? "Saving subscription..."
@@ -1294,7 +1294,7 @@ export default function PlatformAdminPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
+        <section className="mt-8 rounded-none border border-slate-200/80 bg-white p-6 shadow-xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
@@ -1309,7 +1309,7 @@ export default function PlatformAdminPage() {
                 be exported to CSV for review outside the dashboard.
               </p>
             </div>
-            <div className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+            <div className="rounded-none bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
               Live admin reports
             </div>
           </div>
@@ -1410,7 +1410,7 @@ export default function PlatformAdminPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-lg border border-slate-200/80 bg-white p-6 shadow-xs">
+        <section className="mt-8 rounded-none border border-slate-200/80 bg-white p-6 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
@@ -1428,11 +1428,11 @@ export default function PlatformAdminPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search organization, email, phone..."
-                className="w-72 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
+                className="w-72 rounded-none border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
               />
               <button
                 type="submit"
-                className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold"
+                className="rounded-none border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold"
               >
                 Search
               </button>
@@ -1441,7 +1441,7 @@ export default function PlatformAdminPage() {
 
           <div className="mt-5 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
             <div className="overflow-x-auto">
-              <table className="min-w-full border-separate border-spacing-0 overflow-hidden rounded-lg border border-slate-200/80">
+              <table className="min-w-full border-separate border-spacing-0 overflow-hidden rounded-none border border-slate-200/80">
                 <thead>
                   <tr className="bg-slate-50">
                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
@@ -1523,7 +1523,7 @@ export default function PlatformAdminPage() {
               </table>
             </div>
 
-            <div className="rounded-lg border border-slate-200/80 bg-slate-50 p-5">
+            <div className="rounded-none border border-slate-200/80 bg-slate-50 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">
@@ -1539,7 +1539,7 @@ export default function PlatformAdminPage() {
                   </p>
                 </div>
                 {selectedOrganization?.founder_pricing_locked_at ? (
-                  <span className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                  <span className="rounded-none bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
                     Founder locked
                   </span>
                 ) : null}
@@ -1547,7 +1547,7 @@ export default function PlatformAdminPage() {
 
               {statusMessage ? (
                 <div
-                  className={`mt-4 rounded-lg px-4 py-3 text-sm font-medium ${
+                  className={`mt-4 rounded-none px-4 py-3 text-sm font-medium ${
                     statusTone === "success"
                       ? "bg-emerald-500/10 text-emerald-700"
                       : statusTone === "error"
@@ -1570,7 +1570,7 @@ export default function PlatformAdminPage() {
                       updateFormValue("plan_type", event.target.value)
                     }
                     disabled={!selectedOrganization}
-                    className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
+                    className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                   >
                     {PLAN_OPTIONS.map((plan) => (
                       <option key={plan} value={plan}>
@@ -1594,7 +1594,7 @@ export default function PlatformAdminPage() {
                         )
                       }
                       disabled={!selectedOrganization}
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                     >
                       {BILLING_OPTIONS.map((cycle) => (
                         <option key={cycle} value={cycle}>
@@ -1614,7 +1614,7 @@ export default function PlatformAdminPage() {
                         updateFormValue("account_state", event.target.value)
                       }
                       disabled={!selectedOrganization}
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                     >
                       {ACCOUNT_STATE_OPTIONS.map((state) => (
                         <option key={state} value={state}>
@@ -1625,7 +1625,7 @@ export default function PlatformAdminPage() {
                   </label>
                 </div>
 
-                <label className="flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-4 py-3">
+                <label className="flex items-center gap-3 rounded-none border border-slate-200/80 bg-white px-4 py-3">
                   <input
                     type="checkbox"
                     checked={formState.is_active}
@@ -1640,7 +1640,7 @@ export default function PlatformAdminPage() {
                   </span>
                 </label>
 
-                <label className="flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-4 py-3">
+                <label className="flex items-center gap-3 rounded-none border border-slate-200/80 bg-white px-4 py-3">
                   <input
                     type="checkbox"
                     checked={formState.founder_pricing_locked}
@@ -1674,7 +1674,7 @@ export default function PlatformAdminPage() {
                       disabled={
                         !selectedOrganization || !formState.founder_pricing_locked
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                     >
                       {PLAN_OPTIONS.filter((plan) => plan !== "free").map((plan) => (
                         <option key={plan} value={plan}>
@@ -1699,7 +1699,7 @@ export default function PlatformAdminPage() {
                       disabled={
                         !selectedOrganization || !formState.founder_pricing_locked
                       }
-                      className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
+                      className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                     >
                       {BILLING_OPTIONS.map((cycle) => (
                         <option key={cycle} value={cycle}>
@@ -1727,11 +1727,11 @@ export default function PlatformAdminPage() {
                     disabled={
                       !selectedOrganization || !formState.founder_pricing_locked
                     }
-                    className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
+                    className="w-full rounded-none border border-slate-200 bg-white px-4 py-3 text-sm outline-none disabled:opacity-50"
                   />
                 </label>
 
-                <div className="rounded-lg bg-indigo-50/50 px-4 py-4 text-sm text-slate-500">
+                <div className="rounded-none bg-indigo-50/50 px-4 py-4 text-sm text-slate-500">
                   Founder lock preserves the selected plan and billing cycle for this
                   workspace even after public pricing changes.
                 </div>
@@ -1739,7 +1739,7 @@ export default function PlatformAdminPage() {
                 <button
                   type="submit"
                   disabled={!selectedOrganization || saving}
-                  className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  className="w-full rounded-none bg-indigo-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {saving ? "Saving changes..." : "Save workspace settings"}
                 </button>
@@ -1761,7 +1761,7 @@ function MetricCard({
   hint: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+    <div className="rounded-none border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
       <p className="text-[10px] font-bold tracking-wider uppercase text-slate-400 mb-1">
         {label}
       </p>
@@ -1791,7 +1791,7 @@ function ReportCard({
   chart?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
+    <div className="rounded-none border border-slate-200/80 bg-white p-6 shadow-2xs">
       <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
           <h3 className="text-base font-bold text-slate-900 tracking-tight">{title}</h3>
@@ -1800,7 +1800,7 @@ function ReportCard({
         <button
           type="button"
           onClick={onAction}
-          className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-none border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-xs">download</span>
           {actionLabel}
@@ -1813,7 +1813,7 @@ function ReportCard({
         </div>
       )}
 
-      <div className="mt-3 overflow-hidden rounded-md border border-slate-200/70">
+      <div className="mt-3 overflow-hidden rounded-none border border-slate-200/70">
         <div className="grid grid-cols-2 bg-slate-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
           <span>{headers[0]}</span>
           <span className="text-right">{headers[1]}</span>

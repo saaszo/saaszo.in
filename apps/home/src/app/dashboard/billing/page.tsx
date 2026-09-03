@@ -173,14 +173,14 @@ export default function BillingPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
-      <div className="rounded-lg border border-slate-200/80 bg-white p-6 sm:p-8 shadow-2xs">
+      <div className="rounded-none border border-slate-200/80 bg-white p-6 sm:p-8 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-slate-100">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                 Subscription & Plans
               </span>
-              <span className="rounded bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold text-emerald-700 uppercase">
+              <span className="rounded-none bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold text-emerald-700 uppercase">
                 {subscription.status}
               </span>
             </div>
@@ -195,7 +195,7 @@ export default function BillingPage() {
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <Link
               href="/#pricing"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-xs hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-none border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-xs hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
             >
               <span>Public Pricing</span>
               <span className="material-symbols-outlined text-xs">north_east</span>
@@ -204,10 +204,10 @@ export default function BillingPage() {
         </div>
 
         {/* Founder Pricing Progress Bar */}
-        <div className="mt-6 p-5 rounded-lg bg-indigo-50/50 border border-indigo-100/80">
+        <div className="mt-6 p-5 rounded-none bg-indigo-50/50 border border-indigo-100/80">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-xs bg-indigo-600" />
+              <span className="w-2 h-2 rounded-none bg-indigo-600" />
               <p className="text-xs font-bold uppercase tracking-wider text-indigo-900">
                 Founder Pricing Target Progress
               </p>
@@ -217,9 +217,9 @@ export default function BillingPage() {
             </span>
           </div>
 
-          <div className="h-2.5 w-full overflow-hidden rounded-sm bg-indigo-100">
+          <div className="h-2.5 w-full overflow-hidden rounded-none bg-indigo-100">
             <div
-              className="h-full rounded-xs bg-indigo-600 transition-all duration-500"
+              className="h-full rounded-none bg-indigo-600 transition-all duration-500"
               style={{
                 width: `${Math.max(
                   Math.min(
@@ -261,7 +261,7 @@ export default function BillingPage() {
           />
         </div>
 
-        <div className="mt-6 rounded-md bg-slate-50 p-4 border border-slate-200/70">
+        <div className="mt-6 rounded-none bg-slate-50 p-4 border border-slate-200/70">
           <p className="text-xs text-slate-600 font-medium">
             {subscription.currentPeriodEnd
               ? `Your renewal date is ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`
@@ -274,7 +274,7 @@ export default function BillingPage() {
             {growthMilestones.map((milestone) => (
               <div
                 key={milestone.key}
-                className="rounded-lg border border-slate-200/80 bg-slate-50 px-5 py-5"
+                className="rounded-none border border-slate-200/80 bg-slate-50 px-5 py-5"
               >
                 <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
                   {milestone.title}
@@ -288,7 +288,7 @@ export default function BillingPage() {
                       key={signal}
                       className="flex items-start gap-2 text-xs text-slate-500"
                     >
-                      <span className="mt-1 inline-block h-2 w-2 rounded-full bg-primary" />
+                      <span className="mt-1 inline-block h-2 w-2 rounded-none bg-primary" />
                       <span>{signal}</span>
                     </li>
                   ))}
@@ -297,7 +297,7 @@ export default function BillingPage() {
             ))}
           </div>
 
-          <div className="mt-6 rounded-lg border border-slate-200/80 bg-slate-50 p-5">
+          <div className="mt-6 rounded-none border border-slate-200/80 bg-slate-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
               Included in this plan
             </p>
@@ -308,7 +308,7 @@ export default function BillingPage() {
               {(subscription.includedFeatures ?? []).map((feature) => (
                 <span
                   key={feature}
-                  className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600"
+                  className="rounded-none border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600"
                 >
                   {feature}
                 </span>
@@ -316,7 +316,7 @@ export default function BillingPage() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-lg border border-slate-200/80 bg-slate-50 p-5">
+          <div className="mt-6 rounded-none border border-slate-200/80 bg-slate-50 p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
@@ -329,7 +329,7 @@ export default function BillingPage() {
                 </p>
               </div>
               {nextPlanKey ? (
-                <span className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="rounded-none bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                   Next: {getPlanDisplayName(nextPlanKey)}
                 </span>
               ) : null}
@@ -340,7 +340,7 @@ export default function BillingPage() {
                 {nextPlanLockedCapabilities.map((capability) => (
                   <span
                     key={capability.key}
-                    className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600"
+                    className="rounded-none border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600"
                   >
                     {capability.label}
                   </span>
@@ -365,7 +365,7 @@ export default function BillingPage() {
               </div>
               <Link
                 href="/#pricing"
-                className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold hover:border-primary/40 hover:text-primary transition-colors"
+                className="inline-flex items-center gap-2 rounded-none border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold hover:border-primary/40 hover:text-primary transition-colors"
               >
                 View public pricing
                 <span className="material-symbols-outlined text-sm">
@@ -374,7 +374,7 @@ export default function BillingPage() {
               </Link>
             </div>
 
-            <div className="mt-5 rounded-lg border border-slate-200/80 bg-slate-50 px-5 py-5">
+            <div className="mt-5 rounded-none border border-slate-200/80 bg-slate-50 px-5 py-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
@@ -386,7 +386,7 @@ export default function BillingPage() {
                     founder pricing tracking.
                   </p>
                 </div>
-                <div className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <div className="rounded-none bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                   Current: {subscription.planName}
                 </div>
               </div>
@@ -408,7 +408,7 @@ export default function BillingPage() {
                         setSaveMessage("");
                         setSaveError("");
                       }}
-                      className={`rounded-md border px-4 py-3 text-left transition-colors ${
+                      className={`rounded-none border px-4 py-3 text-left transition-colors ${
                         active
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-slate-200/80 bg-white text-slate-900"
@@ -417,7 +417,7 @@ export default function BillingPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold">{plan.name}</span>
                         {current ? (
-                          <span className="rounded bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
+                          <span className="rounded-none bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
                             Saved
                           </span>
                         ) : null}
@@ -448,7 +448,7 @@ export default function BillingPage() {
                         setSaveMessage("");
                         setSaveError("");
                       }}
-                      className={`rounded-md border px-4 py-3 text-left transition-colors ${
+                      className={`rounded-none border px-4 py-3 text-left transition-colors ${
                         active
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-slate-200/80 bg-white text-slate-900"
@@ -472,7 +472,7 @@ export default function BillingPage() {
                   type="button"
                   onClick={handleSavePlan}
                   disabled={!hasPlanChanged || saving}
-                  className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center rounded-none bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save workspace plan"}
                 </button>
@@ -504,7 +504,7 @@ export default function BillingPage() {
               {visiblePlans.map((plan) => (
                 <div
                   key={plan.name}
-                  className={`rounded-lg border px-5 py-5 ${
+                  className={`rounded-none border px-5 py-5 ${
                     plan.highlighted
                       ? "border-primary/30 bg-primary/5"
                       : "border-slate-200/80 bg-slate-50"
@@ -518,13 +518,13 @@ export default function BillingPage() {
                       </p>
                     </div>
                     {plan.badge ? (
-                      <span className="rounded-full bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white">
+                      <span className="rounded-none bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white">
                         {plan.badge}
                       </span>
                     ) : null}
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    <div className="rounded-md border border-slate-200/80 bg-white px-4 py-3">
+                    <div className="rounded-none border border-slate-200/80 bg-white px-4 py-3">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
                         Founder price
                       </p>
@@ -539,7 +539,7 @@ export default function BillingPage() {
                           : `${plan.founderYearly}/year`}
                       </p>
                     </div>
-                    <div className="rounded-md border border-slate-200/80 bg-white px-4 py-3">
+                    <div className="rounded-none border border-slate-200/80 bg-white px-4 py-3">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-tertiary">
                         Later new-user price
                       </p>
@@ -559,7 +559,7 @@ export default function BillingPage() {
               ))}
             </div>
 
-            <div className="mt-6 rounded-lg border border-slate-200/80 bg-slate-50 px-5 py-5">
+            <div className="mt-6 rounded-none border border-slate-200/80 bg-slate-50 px-5 py-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                 Shipping roadmap
               </p>
@@ -570,7 +570,7 @@ export default function BillingPage() {
                 {executionPhases.map((phase) => (
                   <div
                     key={phase.key}
-                    className="rounded-lg border border-slate-200/80 bg-white px-4 py-4"
+                    className="rounded-none border border-slate-200/80 bg-white px-4 py-4"
                   >
                     <p className="text-sm font-bold text-slate-900">{phase.title}</p>
                     <p className="mt-2 text-sm text-slate-500">
@@ -580,7 +580,7 @@ export default function BillingPage() {
                       {phase.scope.slice(0, 3).map((item) => (
                         <span
                           key={item}
-                          className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-semibold text-primary"
+                          className="rounded-none bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-semibold text-primary"
                         >
                           {item}
                         </span>
@@ -597,7 +597,7 @@ export default function BillingPage() {
 
 function BillingCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-slate-200/80 bg-slate-50/70 p-4 transition-all">
+    <div className="rounded-none border border-slate-200/80 bg-slate-50/70 p-4 transition-all">
       <p className="text-[11px] font-bold tracking-wider uppercase text-slate-400 mb-1.5">
         {label}
       </p>

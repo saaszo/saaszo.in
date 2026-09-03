@@ -425,7 +425,7 @@ export default function DashboardPage() {
   if (loading || (authenticated && requiresSetupCompletion)) {
     return (
       <div className="min-h-screen bg-background text-slate-900 flex items-center justify-center px-6">
-        <div className="rounded-lg border border-slate-200 bg-white px-8 py-6 shadow-xs">
+        <div className="rounded-none border border-slate-200 bg-white px-8 py-6 shadow-xs">
           <p className="text-lg font-semibold">Loading your workspace...</p>
         </div>
       </div>
@@ -571,7 +571,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Tab Switcher Pills */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-lg border border-slate-200/70 overflow-x-auto self-start sm:self-auto shrink-0 shadow-2xs">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-none border border-slate-200/70 overflow-x-auto self-start sm:self-auto shrink-0 shadow-2xs">
           <TabButton
             active={activeTab === "overview"}
             onClick={() => navigateToTab("overview")}
@@ -665,7 +665,7 @@ export default function DashboardPage() {
 
               {/* ── Live Sales & Activity Pulse (SVG Charts) ────────────────── */}
               <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <div className="rounded-none border border-slate-200/80 bg-white p-6 shadow-2xs">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 tracking-tight">
@@ -675,7 +675,7 @@ export default function DashboardPage() {
                         Daily invoice & POS counter transactions
                       </p>
                     </div>
-                    <span className="rounded bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                    <span className="rounded-none bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
                       +18.4% this week
                     </span>
                   </div>
@@ -694,7 +694,7 @@ export default function DashboardPage() {
                   />
                 </div>
 
-                <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <div className="rounded-none border border-slate-200/80 bg-white p-6 shadow-2xs">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 tracking-tight">
@@ -704,7 +704,7 @@ export default function DashboardPage() {
                         Estimated collection & retail receivables
                       </p>
                     </div>
-                    <span className="rounded bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold text-indigo-700 uppercase tracking-wider">
+                    <span className="rounded-none bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold text-indigo-700 uppercase tracking-wider">
                       Live Pulse
                     </span>
                   </div>
@@ -723,7 +723,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
+              <div className="mt-6 rounded-none border border-slate-200/80 bg-white p-6 shadow-2xs">
                 <p className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                   Included In Your Plan
                 </p>
@@ -734,7 +734,7 @@ export default function DashboardPage() {
                   {(subscription.includedFeatures ?? []).map((feature) => (
                     <span
                       key={feature}
-                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700"
+                      className="rounded-none border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700"
                     >
                       {feature}
                     </span>
@@ -743,7 +743,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <div className="rounded-none border border-slate-200/80 bg-white p-6 shadow-2xs">
                   <p className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                     Founder Milestones
                   </p>
@@ -754,7 +754,7 @@ export default function DashboardPage() {
                     {growthMilestones.map((milestone) => (
                       <div
                         key={milestone.key}
-                        className="rounded-md border border-slate-200/70 bg-slate-50 p-3.5"
+                        className="rounded-none border border-slate-200/70 bg-slate-50 p-3.5"
                       >
                         <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">
                           {milestone.title}
@@ -767,7 +767,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <div className="rounded-none border border-slate-200/80 bg-white p-6 shadow-2xs">
                   <p className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                     Shipping Phases
                   </p>
@@ -778,10 +778,10 @@ export default function DashboardPage() {
                     {executionPhases.map((phase, index) => (
                       <div
                         key={phase.key}
-                        className="rounded-md border border-slate-200/70 bg-slate-50 p-3.5"
+                        className="rounded-none border border-slate-200/70 bg-slate-50 p-3.5"
                       >
                         <div className="flex items-center gap-2.5">
-                          <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-indigo-100 text-[11px] font-bold text-indigo-700">
+                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-none bg-indigo-100 text-[11px] font-bold text-indigo-700">
                             {index + 1}
                           </span>
                           <p className="text-xs font-bold text-slate-900">
@@ -813,7 +813,7 @@ export default function DashboardPage() {
               </div>
 
               {launchError && (
-                <div className="mb-8 p-6 rounded-[2rem] bg-error/10 border border-error/20 text-error font-bold flex items-center gap-3 animate-in slide-in-from-top-4">
+                <div className="mb-8 p-6 rounded-none bg-error/10 border border-error/20 text-error font-bold flex items-center gap-3 animate-in slide-in-from-top-4">
                   <span className="material-symbols-outlined">error</span>
                   {launchError}
                 </div>
@@ -893,7 +893,7 @@ export default function DashboardPage() {
             </section>
 
             <section className="grid gap-8 xl:grid-cols-[1.2fr,0.8fr]">
-              <div className="rounded-lg border border-slate-200/80 bg-white p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+              <div className="rounded-none border border-slate-200/80 bg-white p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-black tracking-tight">
@@ -906,7 +906,7 @@ export default function DashboardPage() {
                   </div>
                   <button
                     onClick={() => navigateToTab("team")}
-                    className="rounded-lg border border-slate-200/80 px-5 py-3 text-xs font-black uppercase tracking-wider text-primary transition-colors hover:bg-primary/5"
+                    className="rounded-none border border-slate-200/80 px-5 py-3 text-xs font-black uppercase tracking-wider text-primary transition-colors hover:bg-primary/5"
                   >
                     Manage Team
                   </button>
@@ -962,7 +962,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-200/80 bg-white p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+              <div className="rounded-none border border-slate-200/80 bg-white p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
                 <h2 className="text-2xl font-black tracking-tight">
                   Workspace Guardrails
                 </h2>
@@ -1047,7 +1047,7 @@ export default function DashboardPage() {
                   invoices and documents.
                 </p>
 
-                <div className="mt-8 p-8 rounded-lg bg-primary/5 border border-primary/10">
+                <div className="mt-8 p-8 rounded-none bg-primary/5 border border-primary/10">
                   <div className="flex items-center gap-3 text-primary mb-4">
                     <span className="material-symbols-outlined text-2xl font-bold">
                       verified
@@ -1076,7 +1076,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-2 bg-white rounded-[3rem] p-8 md:p-12 border border-slate-200/80 shadow-[0_24px_64px_rgba(25,28,30,0.04)]">
+              <div className="lg:col-span-2 bg-white rounded-none p-8 md:p-12 border border-slate-200/80 shadow-[0_24px_64px_rgba(25,28,30,0.04)]">
                 <form className="space-y-8" onSubmit={handleProfileSubmit}>
                   <div className="grid md:grid-cols-2 gap-8">
                     <Field
@@ -1115,7 +1115,7 @@ export default function DashboardPage() {
 
                   {profileNotice && (
                     <div
-                      className={`p-6 rounded-[1.5rem] text-sm font-bold animate-in zoom-in-95 duration-300 ${profileNotice.includes("successfully") ? "bg-primary/10 text-primary border border-primary/20" : "bg-error/10 text-error border border-error/20"}`}
+                      className={`p-6 rounded-none text-sm font-bold animate-in zoom-in-95 duration-300 ${profileNotice.includes("successfully") ? "bg-primary/10 text-primary border border-primary/20" : "bg-error/10 text-error border border-error/20"}`}
                     >
                       {profileNotice}
                     </div>
@@ -1124,7 +1124,7 @@ export default function DashboardPage() {
                   <button
                     type="submit"
                     disabled={isSavingProfile}
-                    className="w-full md:w-auto px-12 py-5 rounded-[1.5rem] text-white font-bold text-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 shadow-lg shadow-primary/20"
+                    className="w-full md:w-auto px-12 py-5 rounded-none text-white font-bold text-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 shadow-lg shadow-primary/20"
                     style={{
                       background:
                         "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
@@ -1148,8 +1148,8 @@ export default function DashboardPage() {
                 </p>
 
                 <div className="mt-8 space-y-4">
-                  <div className="flex items-center gap-4 p-5 rounded-lg bg-slate-50/50 border border-slate-100">
-                    <div className="h-10 w-10 rounded-md bg-tertiary/10 text-tertiary flex items-center justify-center">
+                  <div className="flex items-center gap-4 p-5 rounded-none bg-slate-50/50 border border-slate-100">
+                    <div className="h-10 w-10 rounded-none bg-tertiary/10 text-tertiary flex items-center justify-center">
                       <span className="material-symbols-outlined text-xl">
                         vibration
                       </span>
@@ -1160,10 +1160,10 @@ export default function DashboardPage() {
                         Recommended
                       </p>
                     </div>
-                    <div className="h-2 w-2 rounded-full bg-outline-variant/30" />
+                    <div className="h-2 w-2 rounded-none bg-outline-variant/30" />
                   </div>
-                  <div className="flex items-center gap-4 p-5 rounded-lg bg-slate-50/50 border border-slate-100">
-                    <div className="h-10 w-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+                  <div className="flex items-center gap-4 p-5 rounded-none bg-slate-50/50 border border-slate-100">
+                    <div className="h-10 w-10 rounded-none bg-primary/10 text-primary flex items-center justify-center">
                       <span className="material-symbols-outlined text-xl">
                         history
                       </span>
@@ -1178,7 +1178,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-2 bg-white rounded-[3rem] p-8 md:p-12 border border-slate-200/80 shadow-[0_24px_64px_rgba(25,28,30,0.04)]">
+              <div className="lg:col-span-2 bg-white rounded-none p-8 md:p-12 border border-slate-200/80 shadow-[0_24px_64px_rgba(25,28,30,0.04)]">
                 {auth.canChangePassword ? (
                   <form className="space-y-6" onSubmit={handlePasswordSubmit}>
                     <Field
@@ -1201,7 +1201,7 @@ export default function DashboardPage() {
                     />
                     {passwordNotice && (
                       <div
-                        className={`p-6 rounded-[1.5rem] text-sm font-bold animate-in zoom-in-95 duration-300 ${passwordNotice.includes("success") ? "bg-primary/10 text-primary border border-primary/20" : "bg-error/10 text-error border border-error/20"}`}
+                        className={`p-6 rounded-none text-sm font-bold animate-in zoom-in-95 duration-300 ${passwordNotice.includes("success") ? "bg-primary/10 text-primary border border-primary/20" : "bg-error/10 text-error border border-error/20"}`}
                       >
                         {passwordNotice}
                       </div>
@@ -1209,7 +1209,7 @@ export default function DashboardPage() {
                     <button
                       type="submit"
                       disabled={isSavingPassword}
-                      className="w-full py-5 rounded-[1.5rem] border border-slate-200/40 bg-slate-50 hover:bg-slate-50-high transition-all font-bold text-lg disabled:opacity-70 shadow-sm"
+                      className="w-full py-5 rounded-none border border-slate-200/40 bg-slate-50 hover:bg-slate-50-high transition-all font-bold text-lg disabled:opacity-70 shadow-sm"
                     >
                       {isSavingPassword
                         ? "Updating Password..."
@@ -1217,9 +1217,9 @@ export default function DashboardPage() {
                     </button>
                   </form>
                 ) : (
-                  <div className="rounded-lg bg-slate-50 p-10 border border-slate-200/80 shadow-inner">
+                  <div className="rounded-none bg-slate-50 p-10 border border-slate-200/80 shadow-inner">
                     <div className="flex items-start gap-6">
-                      <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      <div className="h-16 w-16 rounded-none bg-primary/10 flex items-center justify-center text-primary shrink-0">
                         <span className="material-symbols-outlined text-4xl">
                           verified_user
                         </span>
@@ -1243,9 +1243,9 @@ export default function DashboardPage() {
               </div>
 
               <div className="lg:col-span-3 grid md:grid-cols-2 gap-8 mt-4">
-                <div className="bg-white rounded-lg p-8 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                <div className="bg-white rounded-none p-8 border border-slate-200/80 shadow-sm flex flex-col justify-between">
                   <div>
-                    <div className="h-12 w-12 rounded-md bg-error/10 text-error flex items-center justify-center mb-6">
+                    <div className="h-12 w-12 rounded-none bg-error/10 text-error flex items-center justify-center mb-6">
                       <span className="material-symbols-outlined text-2xl">
                         devices
                       </span>
@@ -1256,21 +1256,21 @@ export default function DashboardPage() {
                       and devices to secure your account.
                     </p>
                   </div>
-                  <button className="w-full py-4 rounded-md font-bold text-error border border-error/20 hover:bg-error/10 transition-colors">
+                  <button className="w-full py-4 rounded-none font-bold text-error border border-error/20 hover:bg-error/10 transition-colors">
                     Sign Out All Devices
                   </button>
                 </div>
 
-                <div className="bg-white rounded-lg p-8 border border-slate-200/80 shadow-sm">
+                <div className="bg-white rounded-none p-8 border border-slate-200/80 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-black">Security Audit</h3>
-                    <span className="text-xs font-bold text-primary uppercase tracking-wider border border-primary/20 px-2 py-1 rounded-md bg-primary/5">
+                    <span className="text-xs font-bold text-primary uppercase tracking-wider border border-primary/20 px-2 py-1 rounded-none bg-primary/5">
                       Log
                     </span>
                   </div>
                   <div className="space-y-5">
                     <div className="flex items-start gap-4">
-                      <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0 mt-1">
+                      <div className="h-8 w-8 rounded-none bg-slate-50 flex items-center justify-center shrink-0 mt-1">
                         <span className="material-symbols-outlined text-[16px] text-slate-500">
                           login
                         </span>
@@ -1286,7 +1286,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="flex items-start gap-4 opacity-70">
-                      <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0 mt-1">
+                      <div className="h-8 w-8 rounded-none bg-slate-50 flex items-center justify-center shrink-0 mt-1">
                         <span className="material-symbols-outlined text-[16px] text-slate-500">
                           shield_person
                         </span>
@@ -1349,7 +1349,7 @@ function BranchesView({
               setEditingBranch(null);
               setIsModalOpen(true);
             }}
-            className="flex items-center gap-2 px-6 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="flex items-center gap-2 px-6 py-4 rounded-none text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             style={{
               background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
             }}
@@ -1358,7 +1358,7 @@ function BranchesView({
             Add New Branch
           </button>
         ) : (
-          <div className="rounded-lg border border-slate-200/80 bg-slate-50 px-5 py-4 text-sm font-semibold text-slate-500">
+          <div className="rounded-none border border-slate-200/80 bg-slate-50 px-5 py-4 text-sm font-semibold text-slate-500">
             View-only branch access
           </div>
         )}
@@ -1372,8 +1372,8 @@ function BranchesView({
           </p>
         </div>
       ) : branches.length === 0 ? (
-        <div className="py-20 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center px-6">
-          <div className="h-20 w-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 mb-6">
+        <div className="py-20 rounded-none border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center px-6">
+          <div className="h-20 w-20 rounded-none bg-slate-50 flex items-center justify-center text-slate-500 mb-6">
             <span className="material-symbols-outlined text-4xl">
               storefront
             </span>
@@ -1389,11 +1389,11 @@ function BranchesView({
           {branches.map((branch) => (
             <div
               key={branch.id}
-              className="group rounded-lg border border-slate-200/80 bg-white p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)] hover:shadow-[0_24px_64px_rgba(25,28,30,0.08)] transition-all"
+              className="group rounded-none border border-slate-200/80 bg-white p-8 shadow-[0_12px_32px_rgba(25,28,30,0.04)] hover:shadow-[0_24px_64px_rgba(25,28,30,0.08)] transition-all"
             >
               <div className="flex items-start justify-between mb-6">
                 <div
-                  className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                  className={`px-2 py-0.5 rounded-none text-[10px] font-bold uppercase tracking-wider ${
                     branch.branch_type === "Main Branch"
                       ? "bg-primary/10 text-primary"
                       : "bg-tertiary/10 text-tertiary"
@@ -1409,7 +1409,7 @@ function BranchesView({
                           setEditingBranch(branch);
                           setIsModalOpen(true);
                         }}
-                        className="h-8 w-8 rounded-full hover:bg-slate-50 flex items-center justify-center text-slate-500 transition-colors"
+                        className="h-8 w-8 rounded-none hover:bg-slate-50 flex items-center justify-center text-slate-500 transition-colors"
                       >
                         <span className="material-symbols-outlined text-sm">
                           edit
@@ -1426,7 +1426,7 @@ function BranchesView({
                             onRefresh();
                           }
                         }}
-                        className="h-8 w-8 rounded-full hover:bg-error/10 hover:text-error flex items-center justify-center text-slate-500 transition-colors"
+                        className="h-8 w-8 rounded-none hover:bg-error/10 hover:text-error flex items-center justify-center text-slate-500 transition-colors"
                       >
                         <span className="material-symbols-outlined text-sm">
                           delete
@@ -1469,12 +1469,12 @@ function BranchesView({
                     setEditingBranch(branch);
                     setIsModalOpen(true);
                   }}
-                  className="mt-8 w-full py-4 rounded-lg bg-slate-50 font-bold text-sm hover:bg-slate-50-high transition-colors"
+                  className="mt-8 w-full py-4 rounded-none bg-slate-50 font-bold text-sm hover:bg-slate-50-high transition-colors"
                 >
                   Manage Branch
                 </button>
               ) : (
-                <div className="mt-8 w-full rounded-lg border border-slate-200/80 bg-surface px-4 py-4 text-center text-sm font-semibold text-slate-500">
+                <div className="mt-8 w-full rounded-none border border-slate-200/80 bg-surface px-4 py-4 text-center text-sm font-semibold text-slate-500">
                   Branch details locked for your role
                 </div>
               )}
@@ -1553,7 +1553,7 @@ function TeamView({
           <select
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
-            className="px-4 py-4 rounded-lg border border-slate-200 bg-surface outline-none focus:border-primary font-bold text-sm shadow-sm"
+            className="px-4 py-4 rounded-none border border-slate-200 bg-surface outline-none focus:border-primary font-bold text-sm shadow-sm"
           >
             <option value="all">All Branches</option>
             {branches.map((b) => (
@@ -1568,7 +1568,7 @@ function TeamView({
                 setEditingStaff(null);
                 setIsModalOpen(true);
               }}
-              className="flex items-center gap-2 px-6 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="flex items-center gap-2 px-6 py-4 rounded-none text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               style={{
                 background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
               }}
@@ -1577,7 +1577,7 @@ function TeamView({
               Add Employee
             </button>
           ) : (
-            <div className="rounded-lg border border-slate-200/80 bg-slate-50 px-5 py-4 text-sm font-semibold text-slate-500">
+            <div className="rounded-none border border-slate-200/80 bg-slate-50 px-5 py-4 text-sm font-semibold text-slate-500">
               View-only team access
             </div>
           )}
@@ -1592,8 +1592,8 @@ function TeamView({
           </p>
         </div>
       ) : filteredStaff.length === 0 ? (
-        <div className="py-20 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center px-6">
-          <div className="h-20 w-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 mb-6">
+        <div className="py-20 rounded-none border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center px-6">
+          <div className="h-20 w-20 rounded-none bg-slate-50 flex items-center justify-center text-slate-500 mb-6">
             <span className="material-symbols-outlined text-4xl">groups</span>
           </div>
           <h3 className="text-xl font-bold">No employees found</h3>
@@ -1604,7 +1604,7 @@ function TeamView({
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-slate-200/80 shadow-[0_12px_32px_rgba(25,28,30,0.04)] overflow-hidden">
+        <div className="bg-white rounded-none border border-slate-200/80 shadow-[0_12px_32px_rgba(25,28,30,0.04)] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -1631,7 +1631,7 @@ function TeamView({
                   >
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black text-lg">
+                        <div className="h-12 w-12 rounded-none bg-primary/10 text-primary flex items-center justify-center font-black text-lg">
                           {member.name[0]}
                         </div>
                         <div>
@@ -1645,7 +1645,7 @@ function TeamView({
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <div className="px-2 py-1 inline-block rounded-lg bg-slate-50 text-[10px] font-black uppercase tracking-wider mb-1">
+                      <div className="px-2 py-1 inline-block rounded-none bg-slate-50 text-[10px] font-black uppercase tracking-wider mb-1">
                         {templates?.roles[member.role]?.name ||
                           member.role.replace("_", " ")}
                       </div>
@@ -1664,7 +1664,7 @@ function TeamView({
                           member.tool_access.map((tool) => (
                             <span
                               key={tool}
-                              className="px-2 py-0.5 rounded-md bg-primary/5 text-primary text-[10px] font-bold uppercase"
+                              className="px-2 py-0.5 rounded-none bg-primary/5 text-primary text-[10px] font-bold uppercase"
                             >
                               {tool}
                             </span>
@@ -1685,7 +1685,7 @@ function TeamView({
                                 setEditingStaff(member);
                                 setIsPermissionModalOpen(true);
                               }}
-                              className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                              className="h-10 w-10 rounded-none bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
                               title="Manage Permissions"
                             >
                               <span className="material-symbols-outlined text-lg">
@@ -1697,7 +1697,7 @@ function TeamView({
                                 setEditingStaff(member);
                                 setIsModalOpen(true);
                               }}
-                              className="h-10 w-10 rounded-md bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+                              className="h-10 w-10 rounded-none bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
                             >
                               <span className="material-symbols-outlined text-lg">
                                 edit
@@ -1714,7 +1714,7 @@ function TeamView({
                                   onRefresh();
                                 }
                               }}
-                              className="h-10 w-10 rounded-md bg-slate-50 flex items-center justify-center text-slate-500 hover:text-error transition-colors"
+                              className="h-10 w-10 rounded-none bg-slate-50 flex items-center justify-center text-slate-500 hover:text-error transition-colors"
                             >
                               <span className="material-symbols-outlined text-lg">
                                 delete
@@ -1799,7 +1799,7 @@ function BranchModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-2xl bg-white rounded-[3rem] border border-slate-200 shadow-[0_40px_120px_rgba(25,28,30,0.2)] overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="w-full max-w-2xl bg-white rounded-none border border-slate-200 shadow-[0_40px_120px_rgba(25,28,30,0.2)] overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="px-8 py-8 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h3 className="text-2xl font-black tracking-tight">
@@ -1811,7 +1811,7 @@ function BranchModal({
           </div>
           <button
             onClick={onClose}
-            className="h-12 w-12 rounded-lg hover:bg-slate-50 flex items-center justify-center transition-colors"
+            className="h-12 w-12 rounded-none hover:bg-slate-50 flex items-center justify-center transition-colors"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -1841,7 +1841,7 @@ function BranchModal({
                 onChange={(e) =>
                   setValues((c) => ({ ...c, branch_type: e.target.value }))
                 }
-                className="mt-2 w-full rounded-lg border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
+                className="mt-2 w-full rounded-none border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
               >
                 <option value="Main Branch">Main Branch</option>
                 <option value="Sub Branch">Sub Branch</option>
@@ -1885,13 +1885,13 @@ function BranchModal({
         <div className="px-8 py-8 bg-slate-50/30 border-t border-slate-100 flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="px-8 py-4 rounded-lg font-bold text-sm hover:bg-slate-50 transition-colors"
+            className="px-8 py-4 rounded-none font-bold text-sm hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => onSave({ ...values, id: branch?.id })}
-            className="px-10 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="px-10 py-4 rounded-none text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             style={{
               background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
             }}
@@ -1950,7 +1950,7 @@ function StaffModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-3xl bg-white rounded-[3rem] border border-slate-200 shadow-[0_40px_120px_rgba(25,28,30,0.2)] overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="w-full max-w-3xl bg-white rounded-none border border-slate-200 shadow-[0_40px_120px_rgba(25,28,30,0.2)] overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="px-8 py-8 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h3 className="text-2xl font-black tracking-tight">
@@ -1962,7 +1962,7 @@ function StaffModal({
           </div>
           <button
             onClick={onClose}
-            className="h-12 w-12 rounded-lg hover:bg-slate-50 flex items-center justify-center transition-colors"
+            className="h-12 w-12 rounded-none hover:bg-slate-50 flex items-center justify-center transition-colors"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -2005,7 +2005,7 @@ function StaffModal({
                 onChange={(e) =>
                   setValues((c) => ({ ...c, branch_id: e.target.value }))
                 }
-                className="mt-2 w-full rounded-lg border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
+                className="mt-2 w-full rounded-none border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
               >
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -2027,7 +2027,7 @@ function StaffModal({
                     branch_scope: e.target.value as "all" | "single",
                   }))
                 }
-                className="mt-2 w-full rounded-lg border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
+                className="mt-2 w-full rounded-none border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary transition-all"
               >
                 <option value="single">This Branch Only</option>
                 <option value="all">All Branches</option>
@@ -2057,7 +2057,7 @@ function StaffModal({
                 <button
                   key={tool}
                   onClick={() => toggleTool(tool)}
-                  className={`px-6 py-3 rounded-md border font-bold text-xs transition-all ${
+                  className={`px-6 py-3 rounded-none border font-bold text-xs transition-all ${
                     values.tool_access?.includes(tool)
                       ? "bg-primary border-primary text-white shadow-md"
                       : "bg-surface border-slate-200 text-slate-500 hover:border-primary/30"
@@ -2073,13 +2073,13 @@ function StaffModal({
         <div className="px-8 py-8 bg-slate-50/30 border-t border-slate-100 flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="px-8 py-4 rounded-lg font-bold text-sm hover:bg-slate-50 transition-colors"
+            className="px-8 py-4 rounded-none font-bold text-sm hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => onSave({ ...values, id: staff?.id })}
-            className="px-10 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="px-10 py-4 rounded-none text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             style={{
               background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
             }}
@@ -2137,7 +2137,7 @@ function PermissionModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-6xl bg-white rounded-[3rem] border border-slate-200 shadow-[0_40px_120px_rgba(25,28,30,0.2)] flex flex-col md:flex-row h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="w-full max-w-6xl bg-white rounded-none border border-slate-200 shadow-[0_40px_120px_rgba(25,28,30,0.2)] flex flex-col md:flex-row h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300">
         {/* Left Sidebar: Role Presets */}
         <div className="w-full md:w-80 border-r border-slate-100 flex flex-col bg-slate-50/20">
           <div className="p-8 border-b border-slate-100">
@@ -2151,7 +2151,7 @@ function PermissionModal({
               <button
                 key={key}
                 onClick={() => applyPreset(key)}
-                className={`w-full text-left p-4 rounded-lg transition-all border ${
+                className={`w-full text-left p-4 rounded-none transition-all border ${
                   selectedRole === key
                     ? "bg-primary/10 border-primary/20 ring-1 ring-primary/20"
                     : "hover:bg-slate-50 border-transparent"
@@ -2174,7 +2174,7 @@ function PermissionModal({
         <div className="flex-1 flex flex-col min-w-0">
           <div className="p-8 border-b border-slate-100 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black">
+              <div className="h-12 w-12 rounded-none bg-primary/10 text-primary flex items-center justify-center font-black">
                 {staff.name[0]}
               </div>
               <div>
@@ -2188,7 +2188,7 @@ function PermissionModal({
             </div>
             <button
               onClick={onClose}
-              className="h-12 w-12 rounded-lg hover:bg-slate-50 flex items-center justify-center transition-colors"
+              className="h-12 w-12 rounded-none hover:bg-slate-50 flex items-center justify-center transition-colors"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
@@ -2198,7 +2198,7 @@ function PermissionModal({
             {/* Tool Access Grid */}
             <section>
               <div className="flex items-center gap-2 mb-6">
-                <span className="h-1 w-4 rounded-full bg-primary" />
+                <span className="h-1 w-4 rounded-none bg-primary" />
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">
                   Tool Access
                 </h4>
@@ -2208,7 +2208,7 @@ function PermissionModal({
                   <button
                     key={tool}
                     onClick={() => toggleTool(tool)}
-                    className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${
+                    className={`flex items-center gap-3 p-4 rounded-none border transition-all ${
                       toolAccess.includes(tool)
                         ? "bg-primary text-white border-primary shadow-md"
                         : "bg-surface border-slate-200 text-slate-500"
@@ -2236,21 +2236,21 @@ function PermissionModal({
             {/* Branch Scope */}
             <section>
               <div className="flex items-center gap-2 mb-6">
-                <span className="h-1 w-4 rounded-full bg-tertiary" />
+                <span className="h-1 w-4 rounded-none bg-tertiary" />
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">
                   Branch Scope
                 </h4>
               </div>
-              <div className="flex gap-4 p-2 bg-slate-50/30 rounded-lg border border-slate-100 max-w-sm">
+              <div className="flex gap-4 p-2 bg-slate-50/30 rounded-none border border-slate-100 max-w-sm">
                 <button
                   onClick={() => setBranchScope("single")}
-                  className={`flex-1 py-3 px-4 rounded-md text-xs font-bold transition-all ${branchScope === "single" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:bg-white/50"}`}
+                  className={`flex-1 py-3 px-4 rounded-none text-xs font-bold transition-all ${branchScope === "single" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:bg-white/50"}`}
                 >
                   Assigned Branch
                 </button>
                 <button
                   onClick={() => setBranchScope("all")}
-                  className={`flex-1 py-3 px-4 rounded-md text-xs font-bold transition-all ${branchScope === "all" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:bg-white/50"}`}
+                  className={`flex-1 py-3 px-4 rounded-none text-xs font-bold transition-all ${branchScope === "all" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:bg-white/50"}`}
                 >
                   All Branches
                 </button>
@@ -2265,7 +2265,7 @@ function PermissionModal({
             {/* Grouped Permissions */}
             <section className="space-y-8">
               <div className="flex items-center gap-2 mb-2">
-                <span className="h-1 w-4 rounded-full bg-primary" />
+                <span className="h-1 w-4 rounded-none bg-primary" />
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">
                   Detailed Permissions
                 </h4>
@@ -2275,11 +2275,11 @@ function PermissionModal({
                 {Object.entries(groups).map(([toolKey, group]) => (
                   <div
                     key={toolKey}
-                    className={`rounded-lg border p-6 ${toolAccess.includes(toolKey) ? "border-slate-200 bg-slate-50/50" : "border-slate-100 opacity-40 grayscale pointer-events-none"}`}
+                    className={`rounded-none border p-6 ${toolAccess.includes(toolKey) ? "border-slate-200 bg-slate-50/50" : "border-slate-100 opacity-40 grayscale pointer-events-none"}`}
                   >
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+                        <div className="h-8 w-8 rounded-none bg-primary/10 text-primary flex items-center justify-center">
                           <span className="material-symbols-outlined text-lg">
                             {toolKey === "invoice" ? "receipt_long" : "apps"}
                           </span>
@@ -2298,16 +2298,16 @@ function PermissionModal({
                         <button
                           key={permKey}
                           onClick={() => togglePermission(permKey)}
-                          className="w-full flex items-center justify-between p-3 rounded-md hover:bg-slate-50 transition-colors group"
+                          className="w-full flex items-center justify-between p-3 rounded-none hover:bg-slate-50 transition-colors group"
                         >
                           <span className="text-xs font-medium text-slate-500 group-hover:text-slate-900">
                             {label}
                           </span>
                           <div
-                            className={`h-5 w-9 rounded-full relative transition-colors duration-200 ${overrides[permKey] ? "bg-primary" : "bg-outline-variant/30"}`}
+                            className={`h-5 w-9 rounded-none relative transition-colors duration-200 ${overrides[permKey] ? "bg-primary" : "bg-outline-variant/30"}`}
                           >
                             <div
-                              className={`absolute top-1 h-3 w-3 rounded-full bg-white transition-all duration-200 ${overrides[permKey] ? "left-5" : "left-1"}`}
+                              className={`absolute top-1 h-3 w-3 rounded-none bg-white transition-all duration-200 ${overrides[permKey] ? "left-5" : "left-1"}`}
                             />
                           </div>
                         </button>
@@ -2322,7 +2322,7 @@ function PermissionModal({
           <div className="p-8 bg-slate-50/30 border-t border-slate-100 flex justify-end gap-4 shrink-0">
             <button
               onClick={onClose}
-              className="px-8 py-4 rounded-lg font-bold text-sm hover:bg-slate-50 transition-colors"
+              className="px-8 py-4 rounded-none font-bold text-sm hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
@@ -2335,7 +2335,7 @@ function PermissionModal({
                   branch_scope: branchScope,
                 })
               }
-              className="px-10 py-4 rounded-lg text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="px-10 py-4 rounded-none text-white font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               style={{
                 background: "linear-gradient(135deg, #4648d4 0%, #6b38d4 100%)",
               }}
@@ -2369,7 +2369,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none active:scale-[0.98]",
+        "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none active:scale-[0.98]",
         active
           ? "bg-white text-indigo-700 shadow-xs ring-1 ring-slate-200/80 font-bold"
           : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50",
@@ -2382,7 +2382,7 @@ function TabButton({
       {count !== undefined && (
         <span
           className={cn(
-            "text-[10px] px-1.5 py-0.5 rounded font-bold",
+            "text-[10px] px-1.5 py-0.5 rounded-none font-bold",
             active
               ? "bg-indigo-100 text-indigo-700"
               : "bg-slate-200 text-slate-600",
@@ -2420,7 +2420,7 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col rounded-lg border bg-white p-6 shadow-2xs transition-all duration-200",
+        "relative flex flex-col rounded-none border bg-white p-6 shadow-2xs transition-all duration-200",
         isActive
           ? "border-slate-200/80 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5"
           : "border-slate-200/50 bg-slate-50/70 opacity-90",
@@ -2428,22 +2428,22 @@ function ProductCard({
     >
       {/* Badge */}
       {accessState === "locked_inactive" && (
-        <span className="absolute top-5 right-5 rounded bg-rose-50 text-rose-700 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-rose-200/60">
+        <span className="absolute top-5 right-5 rounded-none bg-rose-50 text-rose-700 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-rose-200/60">
           Locked
         </span>
       )}
       {accessState === "no_access" && (
-        <span className="absolute top-5 right-5 rounded bg-slate-100 text-slate-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-slate-200">
+        <span className="absolute top-5 right-5 rounded-none bg-slate-100 text-slate-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-slate-200">
           No Access
         </span>
       )}
       {accessState === "upgrade_plan" && (
-        <span className="absolute top-5 right-5 rounded bg-indigo-50 text-indigo-700 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-indigo-200/60">
+        <span className="absolute top-5 right-5 rounded-none bg-indigo-50 text-indigo-700 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-indigo-200/60">
           Premium
         </span>
       )}
       {accessState === "coming_soon" && product.badge && (
-        <span className="absolute top-5 right-5 rounded bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600 border border-slate-200">
+        <span className="absolute top-5 right-5 rounded-none bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600 border border-slate-200">
           {product.badge}
         </span>
       )}
@@ -2451,7 +2451,7 @@ function ProductCard({
       {/* Icon */}
       <div
         className={cn(
-          "mb-5 flex h-12 w-12 items-center justify-center rounded-md shadow-xs text-white",
+          "mb-5 flex h-12 w-12 items-center justify-center rounded-none shadow-xs text-white",
           !isActive && accessState !== "coming_soon" && "grayscale opacity-70",
         )}
         style={{ background: product.color }}
@@ -2495,7 +2495,7 @@ function ProductCard({
             isLaunching || (!isActionable && accessState !== "coming_soon")
           }
           className={cn(
-            "w-full py-2.5 px-4 rounded-md font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]",
+            "w-full py-2.5 px-4 rounded-none font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]",
             isActive
               ? "text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs hover:shadow-sm hover:-translate-y-0.5"
               : accessState === "upgrade_plan" ||
@@ -2560,9 +2560,9 @@ function ReadOnlyCard({
   helper: string;
 }) {
   return (
-    <div className="rounded-[2rem] border border-slate-200/80 bg-slate-50 p-5 shadow-sm">
+    <div className="rounded-none border border-slate-200/80 bg-slate-50 p-5 shadow-sm">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex h-11 w-11 items-center justify-center rounded-none bg-primary/10 text-primary">
           <span className="material-symbols-rounded text-2xl">{icon}</span>
         </div>
         <div className="min-w-0">
@@ -2600,10 +2600,10 @@ function GuardrailItem({
         : "bg-primary/10 text-primary";
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-[1.75rem] border border-slate-200/80 bg-slate-50 p-4 shadow-sm">
+    <div className="flex items-center justify-between gap-4 rounded-none border border-slate-200/80 bg-slate-50 p-4 shadow-sm">
       <div className="flex items-center gap-3">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-lg ${toneClasses}`}
+          className={`flex h-10 w-10 items-center justify-center rounded-none ${toneClasses}`}
         >
           <span className="material-symbols-rounded text-xl">{icon}</span>
         </div>
@@ -2615,7 +2615,7 @@ function GuardrailItem({
         </div>
       </div>
       <span
-        className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${toneClasses}`}
+        className={`rounded-none px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${toneClasses}`}
       >
         {tone === "good" ? "Healthy" : tone === "warn" ? "Review" : "Info"}
       </span>
@@ -2637,9 +2637,9 @@ function StatCard({
   trend?: "up" | "down" | "neutral";
 }) {
   return (
-    <div className="rounded-lg border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+    <div className="rounded-none border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
       <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+        <div className="w-10 h-10 rounded-none bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
           <span className="material-symbols-rounded text-xl font-bold">
             {icon}
           </span>
@@ -2647,7 +2647,7 @@ function StatCard({
         {trend && (
           <div
             className={cn(
-              "flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
+              "flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-none",
               trend === "up"
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
                 : trend === "down"
@@ -2700,7 +2700,7 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="mt-2 w-full rounded-lg border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--color-primary-container)] transition-all"
+        className="mt-2 w-full rounded-none border border-slate-200 bg-surface px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--color-primary-container)] transition-all"
       />
     </label>
   );
@@ -2724,7 +2724,7 @@ function QuickActionCard({
   const content = (
     <div
       className={cn(
-        "flex flex-col items-center justify-center p-5 rounded-lg border transition-all duration-200 select-none",
+        "flex flex-col items-center justify-center p-5 rounded-none border transition-all duration-200 select-none",
         disabled
           ? "cursor-not-allowed opacity-50 grayscale bg-slate-50 border-slate-200"
           : "hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer",
@@ -2777,8 +2777,8 @@ function ProfileInfoItem({
   icon: string;
 }) {
   return (
-    <div className="flex items-start gap-4 p-4 rounded-lg bg-slate-50/30 border border-slate-100">
-      <div className="h-10 w-10 rounded-md bg-primary/5 flex items-center justify-center text-primary">
+    <div className="flex items-start gap-4 p-4 rounded-none bg-slate-50/30 border border-slate-100">
+      <div className="h-10 w-10 rounded-none bg-primary/5 flex items-center justify-center text-primary">
         <span className="material-symbols-outlined text-xl">{icon}</span>
       </div>
       <div>

@@ -132,7 +132,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             href="/"
             className="flex items-center gap-2.5 group cursor-pointer"
           >
-            <div className="h-8 w-8 rounded-md bg-indigo-600 text-white flex items-center justify-center shadow-xs shadow-indigo-200 group-hover:scale-105 transition-transform duration-200">
+            <div className="h-8 w-8 rounded-none bg-indigo-600 text-white flex items-center justify-center shadow-xs shadow-indigo-200 group-hover:scale-105 transition-transform duration-200">
               <Sparkles className="h-4 w-4 fill-white" />
             </div>
             <div className="flex flex-col">
@@ -146,9 +146,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
           </Link>
 
           {/* Active Workspace Pill */}
-          <div className="flex items-center justify-between p-2 rounded-md bg-slate-50 border border-slate-200/80">
+          <div className="flex items-center justify-between p-2 rounded-none bg-slate-50 border border-slate-200/80">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="h-6 w-6 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 font-bold text-xs">
+              <div className="h-6 w-6 rounded-none bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 font-bold text-xs">
                 <Building2 className="h-3 w-3" />
               </div>
               <div className="min-w-0">
@@ -156,14 +156,14 @@ export function DashboardShell({ children }: DashboardShellProps) {
                   {companyName}
                 </p>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-none bg-emerald-500 shrink-0" />
                   <span className="text-[10px] font-medium text-slate-500 capitalize truncate">
                     {planName} Plan
                   </span>
                 </div>
               </div>
             </div>
-            <span className="rounded bg-white border border-slate-200 px-1.5 py-0.5 text-[9px] font-bold text-slate-600 shrink-0 shadow-2xs">
+            <span className="rounded-none bg-white border border-slate-200 px-1.5 py-0.5 text-[9px] font-bold text-slate-600 shrink-0 shadow-2xs">
               Live
             </span>
           </div>
@@ -185,7 +185,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
                       className={cn(
-                        "flex items-center justify-between px-2.5 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer active:scale-[0.98]",
+                        "flex items-center justify-between px-2.5 py-2 rounded-none text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer active:scale-[0.98]",
                         item.active
                           ? "bg-indigo-50 text-indigo-700 font-semibold ring-1 ring-indigo-600/30 shadow-2xs"
                           : "text-slate-600 hover:text-slate-900 hover:bg-slate-50",
@@ -203,7 +203,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                       {item.badge && (
                         <span
                           className={cn(
-                            "text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider shrink-0",
+                            "text-[10px] px-1.5 py-0.5 rounded-none font-bold uppercase tracking-wider shrink-0",
                             item.active
                               ? "bg-indigo-100 text-indigo-700"
                               : "bg-slate-100 text-slate-600",
@@ -221,12 +221,12 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
           {/* Featured Tool Launcher: Invoice & POS */}
           <div className="pt-2 px-0.5">
-            <div className="rounded-lg p-3.5 bg-slate-50 border border-slate-200/80 shadow-2xs">
+            <div className="rounded-none p-3.5 bg-slate-50 border border-slate-200/80 shadow-2xs">
               <div className="flex items-center justify-between mb-2">
-                <div className="h-7 w-7 rounded-md bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                <div className="h-7 w-7 rounded-none bg-indigo-600 text-white flex items-center justify-center shadow-xs">
                   <Receipt className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-[9px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
+                <span className="text-[9px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-none">
                   Main POS App
                 </span>
               </div>
@@ -240,7 +240,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 href="https://invoice.saaszo.in/dashboard"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 hover:shadow-sm active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-none bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 hover:shadow-sm active:scale-[0.98] transition-all duration-150 cursor-pointer"
               >
                 <span>Open POS App</span>
                 <ExternalLink className="h-3 w-3" />
@@ -253,7 +253,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <div className="p-2.5 border-t border-slate-100 bg-slate-50/50 shrink-0 space-y-2">
           <div className="flex items-center justify-between gap-2 px-1.5 py-1">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="h-7 w-7 rounded-md bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+              <div className="h-7 w-7 rounded-none bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                 {profile?.fullName
                   ? profile.fullName.charAt(0).toUpperCase()
                   : "U"}
@@ -274,7 +274,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             onClick={() => {
               void signOut();
             }}
-            className="w-full flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200/80 bg-white shadow-2xs hover:border-rose-200 transition-all duration-150 cursor-pointer active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-none text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200/80 bg-white shadow-2xs hover:border-rose-200 transition-all duration-150 cursor-pointer active:scale-[0.98]"
           >
             <LogOut className="h-3.5 w-3.5" />
             <span>Sign Out</span>
@@ -305,7 +305,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="absolute top-4 right-3 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 z-20 cursor-pointer"
+              className="absolute top-4 right-3 rounded-none p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 z-20 cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -323,7 +323,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden p-1.5 -ml-1.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-900 cursor-pointer transition-colors"
+              className="lg:hidden p-1.5 -ml-1.5 rounded-none text-slate-600 hover:bg-slate-100 hover:text-slate-900 cursor-pointer transition-colors"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -340,7 +340,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
           <div className="flex items-center gap-3 shrink-0">
             {/* Live Workspace Status */}
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200/60 text-[11px] font-bold text-emerald-700 shadow-2xs">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-emerald-50 border border-emerald-200/60 text-[11px] font-bold text-emerald-700 shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>Live Workspace</span>
             </div>
@@ -350,7 +350,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               href="https://invoice.saaszo.in/dashboard"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-xs sm:text-sm shadow-xs active:scale-[0.98] transition-all duration-150 cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-none bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-xs sm:text-sm shadow-xs active:scale-[0.98] transition-all duration-150 cursor-pointer"
             >
               <Receipt className="h-4 w-4" />
               <span className="hidden sm:inline">Open Invoice POS</span>
