@@ -172,68 +172,103 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-on-surface px-6 py-12">
-      <div className="max-w-4xl mx-auto">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-2 text-primary font-semibold hover:text-tertiary transition-colors"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
-          Back to dashboard
-        </Link>
+    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-slate-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold tracking-wider uppercase text-indigo-600">
+                Subscription & Plans
+              </span>
+              <span className="rounded-full bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 uppercase">
+                {subscription.status}
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+              {subscription.planName} Plan
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+              Manage your workspace plan, active seats, and locked founder pricing benefits.
+            </p>
+          </div>
 
-        <div className="mt-6 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-8 shadow-[0_20px_60px_rgba(25,28,30,0.08)]">
-          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">
-            Billing
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Link
+              href="/#pricing"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-xs hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <span>Public Pricing</span>
+              <span className="material-symbols-outlined text-xs">north_east</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Founder Pricing Progress Bar */}
+        <div className="mt-6 p-5 rounded-2xl bg-indigo-50/50 border border-indigo-100/80">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-600" />
+              <p className="text-xs font-bold uppercase tracking-wider text-indigo-900">
+                Founder Pricing Target Progress
+              </p>
+            </div>
+            <span className="text-xs font-bold text-indigo-700">
+              {subscription.currentPaidCustomers ?? 0} / {founderPricingTarget.toLocaleString()} Slots Claimed
+            </span>
+          </div>
+
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-indigo-100">
+            <div
+              className="h-full rounded-full bg-indigo-600 transition-all duration-500"
+              style={{
+                width: `${Math.max(
+                  Math.min(
+                    (((subscription.currentPaidCustomers ?? 0) / founderPricingTarget) * 100),
+                    100,
+                  ),
+                  3,
+                )}%`,
+              }}
+            />
+          </div>
+
+          <p className="mt-2.5 text-xs text-indigo-800/80 leading-relaxed">
+            {subscription.founderPricingLocked
+              ? `Founder pricing is locked on this account for the ${subscription.founderPricingPlanKey ? normalizePlanSlug(subscription.founderPricingPlanKey).replace(/_/g, " ") : currentPlanKey} plan.`
+              : `${subscription.founderSlotsRemaining ?? 0} founder slots remaining before standard commercial pricing applies.`}
           </p>
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            Subscription details
-          </h1>
-          <p className="text-on-surface-variant mt-3">
-            Your current plan is saved in the database and shown below. Founder
-            pricing remains the best-value launch offer until the first{" "}
-            {founderPricingTarget.toLocaleString()} paid customers are onboarded.
+        </div>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <BillingCard label="Current Plan" value={subscription.planName} />
+          <BillingCard label="Account Status" value={subscription.status} />
+          <BillingCard
+            label="Billing Cycle"
+            value={getBillingCycleDisplayName(currentBillingCycle)}
+          />
+          <BillingCard label="Seats Included" value={`${subscription.seats} Active`} />
+          <BillingCard
+            label="Founder Pricing"
+            value={founderPricingStatus}
+          />
+          <BillingCard
+            label="Renewal Status"
+            value={
+              subscription.currentPeriodEnd
+                ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
+                : "Active Trial"
+            }
+          />
+        </div>
+
+        <div className="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200/70">
+          <p className="text-xs text-slate-600 font-medium">
+            {subscription.currentPeriodEnd
+              ? `Your renewal date is ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`
+              : "This account is currently on a default trial subscription without a renewal date."}
           </p>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <BillingCard label="Plan" value={subscription.planName} />
-            <BillingCard label="Status" value={subscription.status} />
-            <BillingCard
-              label="Billing cycle"
-              value={getBillingCycleDisplayName(currentBillingCycle)}
-            />
-            <BillingCard label="Seats" value={`${subscription.seats}`} />
-            <BillingCard
-              label="Founder pricing"
-              value={founderPricingStatus}
-            />
-            <BillingCard
-              label="Paid customers"
-              value={`${subscription.currentPaidCustomers ?? 0}/${founderPricingTarget}`}
-            />
-          </div>
-
-          <div className="mt-6 rounded-2xl bg-surface-container p-5 border border-outline-variant/20">
-            <p className="text-sm text-on-surface-variant">
-              {subscription.currentPeriodEnd
-                ? `Your renewal date is ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`
-                : "This account is currently on a default trial subscription without a renewal date."}
-            </p>
-          </div>
-
-          <div className="mt-8 rounded-2xl border border-primary/15 bg-primary/5 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Founder pricing policy
-            </p>
-            <p className="mt-2 text-sm text-on-surface-variant">
-              {FOUNDER_PRICING_NOTE}
-            </p>
-            <p className="mt-3 text-sm font-medium text-on-surface">
-              {subscription.founderPricingLocked
-                ? `This workspace has founder pricing locked on the ${subscription.founderPricingPlanKey ? normalizePlanSlug(subscription.founderPricingPlanKey).replace(/_/g, " ") : currentPlanKey} plan with ${subscription.founderPricingBillingCycle ? getBillingCycleDisplayName(normalizeBillingCycle(subscription.founderPricingBillingCycle, subscription.founderPricingPlanKey ?? currentPlanKey)).toLowerCase() : "saved"} billing.`
-                : `${subscription.founderSlotsRemaining ?? 0} founder slots are currently visible before regular pricing takes over.`}
-            </p>
-          </div>
+        </div>
+      </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
             {growthMilestones.map((milestone) => (
@@ -557,18 +592,16 @@ export default function BillingPage() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 function BillingCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-outline-variant/20 bg-surface-container px-5 py-4">
-      <p className="text-xs font-semibold tracking-widest uppercase text-on-surface-variant mb-2">
+    <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 transition-all">
+      <p className="text-[11px] font-bold tracking-wider uppercase text-slate-400 mb-1.5">
         {label}
       </p>
-      <p className="text-lg font-bold text-on-surface">{value}</p>
+      <p className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">{value}</p>
     </div>
   );
 }

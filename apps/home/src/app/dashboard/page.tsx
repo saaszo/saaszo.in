@@ -27,7 +27,9 @@ import {
   meetsPasswordRequirements,
   resolveSafeRedirectTarget,
   toSafeAbsoluteUrl,
+  cn,
 } from "@/lib/utils";
+import { SvgBarChart, SvgAreaChart } from "@/components/dashboard/dashboard-charts";
 
 // ─── Product definitions ───────────────────────────────────────────────────
 type ProductStatus = "active" | "coming_soon";
@@ -556,98 +558,50 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-on-surface">
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden border-b border-outline-variant/20 bg-surface-container-lowest">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-8rem] left-[-5rem] h-80 w-80 rounded-full bg-primary/15 blur-[110px]" />
-          <div className="absolute right-[-4rem] top-8 h-72 w-72 rounded-full bg-tertiary/15 blur-[110px]" />
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* ── Page Header & Tab Pills ──────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Welcome back{profile.fullName ? `, ${profile.fullName.split(" ")[0]}` : ""}.
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+            Manage your store branches, billing operations, team members, and productivity tools.
+          </p>
         </div>
-        <div className="relative max-w-7xl mx-auto px-6 py-12 md:py-16 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-          <div className="animate-in fade-in slide-in-from-left-4 duration-700">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="h-1.5 w-8 rounded-full bg-primary" />
-              <p className="text-[10px] font-black tracking-[0.2em] uppercase text-primary">
-                SaaSzo Control Center
-              </p>
-              <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
-                {roleLabel}
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-tight">
-              Welcome back
-              {profile.fullName ? `, ${profile.fullName.split(" ")[0]}` : ""}.
-            </h1>
-            <p className="mt-4 max-w-2xl text-on-surface-variant text-lg md:text-xl font-medium leading-relaxed opacity-80">
-              Manage your business structure, team members, and productivity
-              tools from one place.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-right-4 duration-700">
-            {workspaceUser?.role === "super_admin" ? (
-              <Link
-                href="/dashboard/platform"
-                className="px-6 py-4 rounded-2xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all font-bold text-sm text-primary shadow-sm"
-              >
-                Platform Admin
-              </Link>
-            ) : null}
-            <Link
-              href="/dashboard/billing"
-              className="px-6 py-4 rounded-2xl border border-outline-variant/40 bg-surface-container hover:bg-surface-container-high transition-all font-bold text-sm shadow-sm"
-            >
-              Subscription
-            </Link>
-            <button
-              onClick={() => {
-                void signOut();
-              }}
-              className="px-6 py-4 rounded-2xl text-white font-bold text-sm transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
-              style={{
-                background: "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
-              }}
-            >
-              Sign Out
-            </button>
-          </div>
+
+        {/* Tab Switcher Pills */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/70 overflow-x-auto self-start sm:self-auto shrink-0 shadow-2xs">
+          <TabButton
+            active={activeTab === "overview"}
+            onClick={() => navigateToTab("overview")}
+            icon="dashboard"
+            label="Overview"
+          />
+          <TabButton
+            active={activeTab === "branches"}
+            onClick={() => navigateToTab("branches")}
+            icon="storefront"
+            label="Branches"
+            count={branches.length || undefined}
+          />
+          <TabButton
+            active={activeTab === "team"}
+            onClick={() => navigateToTab("team")}
+            icon="groups"
+            label="Team"
+            count={staff.length || undefined}
+          />
+          <TabButton
+            active={activeTab === "settings"}
+            onClick={() => navigateToTab("settings")}
+            icon="settings"
+            label="Settings"
+          />
         </div>
       </div>
 
-      {/* ── Tab Navigation ────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-50 border-b border-outline-variant/10 bg-background/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex gap-8 overflow-x-auto no-scrollbar">
-            <TabButton
-              active={activeTab === "overview"}
-              onClick={() => navigateToTab("overview")}
-              icon="dashboard"
-              label="Overview"
-            />
-            <TabButton
-              active={activeTab === "branches"}
-              onClick={() => navigateToTab("branches")}
-              icon="storefront"
-              label="Branches"
-              count={branches.length || undefined}
-            />
-            <TabButton
-              active={activeTab === "team"}
-              onClick={() => navigateToTab("team")}
-              icon="groups"
-              label="Team"
-              count={staff.length || undefined}
-            />
-            <TabButton
-              active={activeTab === "settings"}
-              onClick={() => navigateToTab("settings")}
-              icon="settings"
-              label="Settings"
-            />
-          </div>
-        </div>
-      </div>
-
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <div className="space-y-8">
         {activeTab === "overview" && (
           <div className="space-y-16 animate-in fade-in duration-500">
             {/* ── Section 1: Overview Cards ────────────────────────────────── */}
@@ -709,18 +663,78 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div className="mt-4 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-[0_8px_30px_rgba(25,28,30,0.06)]">
-                <p className="text-xs font-semibold tracking-widest uppercase text-primary">
+              {/* ── Live Sales & Activity Pulse (SVG Charts) ────────────────── */}
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                        Weekly Billing Momentum
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Daily invoice & POS counter transactions
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-emerald-50 border border-emerald-200/60 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
+                      +18.4% this week
+                    </span>
+                  </div>
+                  <SvgBarChart
+                    data={[
+                      { label: "Mon", value: 14 },
+                      { label: "Tue", value: 22 },
+                      { label: "Wed", value: 18 },
+                      { label: "Thu", value: 35 },
+                      { label: "Fri", value: 42 },
+                      { label: "Sat", value: 58 },
+                      { label: "Sun", value: 49 },
+                    ]}
+                    valueSuffix=" bills"
+                    height={190}
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                        Revenue Trajectory
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Estimated collection & retail receivables
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-1 text-[11px] font-bold text-indigo-700">
+                      Live Pulse
+                    </span>
+                  </div>
+                  <SvgAreaChart
+                    data={[
+                      { label: "W1", value: 24000 },
+                      { label: "W2", value: 42000 },
+                      { label: "W3", value: 38000 },
+                      { label: "W4", value: 65000 },
+                      { label: "W5", value: 89000 },
+                      { label: "W6", value: 112000 },
+                    ]}
+                    valuePrefix="₹"
+                    height={190}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <p className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                   Included In Your Plan
                 </p>
-                <p className="mt-2 text-lg font-bold text-on-surface">
+                <p className="mt-1 text-lg font-bold text-slate-900">
                   {subscription.headline ?? "Core workspace access"}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {(subscription.includedFeatures ?? []).map((feature) => (
                     <span
                       key={feature}
-                      className="rounded-full border border-outline-variant/20 bg-surface-container px-3 py-1.5 text-xs font-medium text-on-surface-variant"
+                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700"
                     >
                       {feature}
                     </span>
@@ -728,24 +742,24 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-                <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-[0_8px_30px_rgba(25,28,30,0.06)]">
-                  <p className="text-xs font-semibold tracking-widest uppercase text-primary">
+              <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                  <p className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                     Founder Milestones
                   </p>
-                  <p className="mt-2 text-lg font-bold text-on-surface">
+                  <p className="mt-1 text-base font-bold text-slate-900">
                     Pricing rises only after the product proves retention and trust.
                   </p>
-                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     {growthMilestones.map((milestone) => (
                       <div
                         key={milestone.key}
-                        className="rounded-2xl border border-outline-variant/20 bg-surface-container px-4 py-4"
+                        className="rounded-xl border border-slate-200/70 bg-slate-50 p-3.5"
                       >
-                        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">
                           {milestone.title}
                         </p>
-                        <p className="mt-2 text-sm font-semibold text-on-surface">
+                        <p className="mt-1 text-xs font-semibold text-slate-800">
                           {milestone.goal}
                         </p>
                       </div>
@@ -753,28 +767,28 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-[0_8px_30px_rgba(25,28,30,0.06)]">
-                  <p className="text-xs font-semibold tracking-widest uppercase text-primary">
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                  <p className="text-xs font-bold tracking-wider uppercase text-indigo-600">
                     Shipping Phases
                   </p>
-                  <p className="mt-2 text-lg font-bold text-on-surface">
+                  <p className="mt-1 text-base font-bold text-slate-900">
                     Operational depth expands in a fixed execution order.
                   </p>
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-4 space-y-2.5">
                     {executionPhases.map((phase, index) => (
                       <div
                         key={phase.key}
-                        className="rounded-2xl border border-outline-variant/20 bg-surface-container px-4 py-4"
+                        className="rounded-xl border border-slate-200/70 bg-slate-50 p-3.5"
                       >
-                        <div className="flex items-center gap-3">
-                          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
+                        <div className="flex items-center gap-2.5">
+                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-bold text-indigo-700">
                             {index + 1}
                           </span>
-                          <p className="text-sm font-bold text-on-surface">
+                          <p className="text-xs font-bold text-slate-900">
                             {phase.title}
                           </p>
                         </div>
-                        <p className="mt-2 text-sm text-on-surface-variant">
+                        <p className="mt-1 text-xs text-slate-500">
                           {phase.goal}
                         </p>
                       </div>
@@ -1293,7 +1307,7 @@ export default function DashboardPage() {
             </section>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
@@ -2352,30 +2366,30 @@ function TabButton({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`flex items-center gap-2 py-6 px-4 border-b-2 transition-all relative ${
+      className={cn(
+        "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none active:scale-[0.98]",
         active
-          ? "border-primary text-primary font-bold"
-          : "border-transparent text-on-surface-variant font-medium hover:text-on-surface"
-      }`}
+          ? "bg-white text-indigo-700 shadow-xs ring-1 ring-slate-200/80 font-bold"
+          : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50",
+      )}
     >
-      <span className="material-symbols-rounded text-[20px] font-bold">
+      <span className="material-symbols-rounded text-[18px]">
         {icon}
       </span>
-      <span className="text-sm tracking-tight">{label}</span>
+      <span>{label}</span>
       {count !== undefined && (
         <span
-          className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+          className={cn(
+            "text-[10px] px-1.5 py-0.2 rounded-full font-bold",
             active
-              ? "bg-primary text-white"
-              : "bg-surface-container-highest text-on-surface-variant"
-          }`}
+              ? "bg-indigo-100 text-indigo-700"
+              : "bg-slate-200 text-slate-600",
+          )}
         >
           {count}
         </span>
-      )}
-      {active && (
-        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
       )}
     </button>
   );
@@ -2405,83 +2419,91 @@ function ProductCard({
 
   return (
     <div
-      className={`relative flex flex-col rounded-[2.5rem] border bg-surface-container-lowest p-8 shadow-[0_12px_32px_rgba(25,28,30,0.07)] transition-all duration-300 ${
+      className={cn(
+        "relative flex flex-col rounded-2xl border bg-white p-6 shadow-2xs transition-all duration-200",
         isActive
-          ? "border-outline-variant/20 hover:border-primary/30 hover:-translate-y-2 hover:shadow-[0_40px_100px_rgba(25,28,30,0.15)]"
-          : "border-outline-variant/10 bg-surface-container-low opacity-90"
-      }`}
+          ? "border-slate-200/80 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5"
+          : "border-slate-200/50 bg-slate-50/70 opacity-90",
+      )}
     >
       {/* Badge */}
       {accessState === "locked_inactive" && (
-        <span className="absolute top-6 right-6 rounded-full bg-error/10 text-error px-3 py-1 text-[10px] font-black uppercase tracking-wider border border-error/20">
+        <span className="absolute top-5 right-5 rounded-full bg-rose-50 text-rose-700 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-rose-200/60">
           Locked
         </span>
       )}
       {accessState === "no_access" && (
-        <span className="absolute top-6 right-6 rounded-full bg-outline-variant/20 text-on-surface-variant px-3 py-1 text-[10px] font-black uppercase tracking-wider border border-outline-variant/30">
+        <span className="absolute top-5 right-5 rounded-full bg-slate-100 text-slate-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
           No Access
         </span>
       )}
       {accessState === "upgrade_plan" && (
-        <span className="absolute top-6 right-6 rounded-full bg-tertiary/10 text-tertiary px-3 py-1 text-[10px] font-black uppercase tracking-wider border border-tertiary/20">
+        <span className="absolute top-5 right-5 rounded-full bg-indigo-50 text-indigo-700 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-indigo-200/60">
           Premium
         </span>
       )}
       {accessState === "coming_soon" && product.badge && (
-        <span className="absolute top-6 right-6 rounded-full bg-surface-container px-3 py-1 text-[10px] font-black uppercase tracking-wider text-on-surface-variant border border-outline-variant/30">
+        <span className="absolute top-5 right-5 rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 border border-slate-200">
           {product.badge}
         </span>
       )}
 
       {/* Icon */}
       <div
-        className={`mb-8 flex h-16 w-16 items-center justify-center rounded-[1.5rem] shadow-xl shadow-current/10 ${!isActive && accessState !== "coming_soon" ? "grayscale opacity-70 text-white" : "text-white"}`}
+        className={cn(
+          "mb-5 flex h-12 w-12 items-center justify-center rounded-xl shadow-xs text-white",
+          !isActive && accessState !== "coming_soon" && "grayscale opacity-70",
+        )}
         style={{ background: product.color }}
       >
-        <span className="material-symbols-rounded text-4xl">
+        <span className="material-symbols-rounded text-2xl">
           {product.icon}
         </span>
       </div>
 
       {/* Info */}
-      <h3 className="text-2xl font-black text-on-surface tracking-tight">
+      <h3 className="text-xl font-bold text-slate-900 tracking-tight">
         {product.name}
       </h3>
-      <p className="mt-1 text-xs font-black tracking-[0.1em] uppercase" style={{ color: product.accentColor }}>
+      <p className="mt-1 text-[11px] font-bold tracking-wider uppercase text-indigo-600">
         {product.tagline}
       </p>
-      <p className="mt-4 text-sm text-on-surface-variant font-medium leading-relaxed flex-1">
+      <p className="mt-3 text-xs sm:text-sm text-slate-500 font-normal leading-relaxed flex-1">
         {product.description}
       </p>
 
       {/* Message if any */}
       {message && (
         <p
-          className={`mt-3 text-xs font-bold ${accessState === "locked_inactive" ? "text-error" : accessState === "upgrade_plan" ? "text-tertiary" : "text-on-surface-variant"}`}
+          className={cn(
+            "mt-2 text-xs font-semibold",
+            accessState === "locked_inactive" ? "text-rose-600" : "text-slate-500",
+          )}
         >
           {message}
         </p>
       )}
 
       {/* Action */}
-      <div className="mt-6">
+      <div className="mt-5">
         <button
+          type="button"
           onClick={() => {
             if (isActionable) onLaunch(product);
           }}
           disabled={
             isLaunching || (!isActionable && accessState !== "coming_soon")
           }
-          className={`w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+          className={cn(
+            "w-full py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]",
             isActive
-              ? "text-white shadow-md hover:scale-[1.02] active:scale-[0.98]"
+              ? "text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs hover:shadow-sm hover:-translate-y-0.5"
               : accessState === "upgrade_plan" ||
                   accessState === "setup_required" ||
                   accessState === "login_required"
-                ? "bg-tertiary/10 text-tertiary opacity-100 hover:scale-[1.02] active:scale-[0.98]"
-                : "bg-surface-container text-on-surface-variant opacity-70 cursor-not-allowed"
-          }`}
-          style={isActive ? { background: product.color } : {}}
+                ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200"
+                : "bg-slate-100 text-slate-400 cursor-not-allowed",
+          )}
         >
           {isLaunching ? (
             <>
@@ -2615,22 +2637,23 @@ function StatCard({
   trend?: "up" | "down" | "neutral";
 }) {
   return (
-    <div className="rounded-[2rem] border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-[0_12px_32px_rgba(25,28,30,0.06)] hover:shadow-[0_20px_48px_rgba(25,28,30,0.1)] transition-all group">
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-          <span className="material-symbols-rounded text-2xl font-bold">
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+      <div className="flex items-start justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+          <span className="material-symbols-rounded text-xl font-bold">
             {icon}
           </span>
         </div>
         {trend && (
           <div
-            className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full ${
+            className={cn(
+              "flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
               trend === "up"
-                ? "bg-success/10 text-success"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
                 : trend === "down"
-                  ? "bg-error/10 text-error"
-                  : "bg-surface-container text-on-surface-variant"
-            }`}
+                  ? "bg-rose-50 text-rose-700 border border-rose-200/60"
+                  : "bg-slate-100 text-slate-600",
+            )}
           >
             <span className="material-symbols-rounded text-xs">
               {trend === "up"
@@ -2639,17 +2662,17 @@ function StatCard({
                   ? "trending_down"
                   : "remove"}
             </span>
-            {trend === "up" ? "Good" : trend === "down" ? "Action" : "Stable"}
+            <span>{trend === "up" ? "Good" : trend === "down" ? "Action" : "Stable"}</span>
           </div>
         )}
       </div>
-      <p className="text-[10px] font-black tracking-widest uppercase text-on-surface-variant mb-1">
+      <p className="text-[10px] font-bold tracking-wider uppercase text-slate-400 mb-1">
         {label}
       </p>
-      <p className="text-2xl font-black text-on-surface tracking-tight">
+      <p className="text-2xl font-extrabold text-slate-900 tracking-tight">
         {value}
       </p>
-      <p className="text-xs text-on-surface-variant mt-2 font-medium line-clamp-1">
+      <p className="text-xs text-slate-500 mt-1.5 font-medium line-clamp-1">
         {hint}
       </p>
     </div>
@@ -2700,22 +2723,25 @@ function QuickActionCard({
 }) {
   const content = (
     <div
-      className={`flex flex-col items-center justify-center p-6 rounded-[2rem] border transition-all ${
+      className={cn(
+        "flex flex-col items-center justify-center p-5 rounded-2xl border transition-all duration-200 select-none",
         disabled
-          ? "cursor-not-allowed opacity-50 grayscale"
-          : "hover:scale-[1.02] active:scale-[0.98]"
-      } ${
+          ? "cursor-not-allowed opacity-50 grayscale bg-slate-50 border-slate-200"
+          : "hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer",
         primary
-          ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
-          : "bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30 shadow-sm"
-      }`}
+          ? "bg-indigo-600 text-white border-indigo-600 shadow-xs hover:bg-indigo-700"
+          : "bg-white border-slate-200/80 hover:border-indigo-300 shadow-2xs text-slate-900",
+      )}
     >
       <span
-        className={`material-symbols-rounded text-3xl mb-3 font-bold ${primary ? "text-white" : "text-primary"}`}
+        className={cn(
+          "material-symbols-rounded text-2xl mb-2 font-bold",
+          primary ? "text-white" : "text-indigo-600",
+        )}
       >
         {icon}
       </span>
-      <span className="text-sm font-bold text-center leading-tight">
+      <span className="text-xs sm:text-sm font-bold text-center leading-tight">
         {title}
       </span>
     </div>
@@ -2723,7 +2749,7 @@ function QuickActionCard({
 
   if (href && !disabled) {
     return (
-      <Link href={href} className="block">
+      <Link href={href} className="block cursor-pointer">
         {content}
       </Link>
     );
@@ -2731,8 +2757,9 @@ function QuickActionCard({
 
   return (
     <button
+      type="button"
       onClick={disabled ? undefined : onClick}
-      className="w-full"
+      className="w-full block cursor-pointer"
       disabled={disabled}
     >
       {content}

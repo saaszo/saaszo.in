@@ -9,6 +9,7 @@ import {
   hasSetupRedirectBypass,
 } from "@/lib/auth-client";
 import { appConfig } from "@/lib/config";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 /** Read a browser cookie by name (client-side only). */
 function getCookie(name: string): string | null {
@@ -172,5 +173,9 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
     );
   }
 
-  return <>{children}</>;
+  if (isSetupPage) {
+    return <>{children}</>;
+  }
+
+  return <DashboardShell>{children}</DashboardShell>;
 }

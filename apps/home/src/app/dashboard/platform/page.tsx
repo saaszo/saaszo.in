@@ -24,6 +24,13 @@ import {
   growthMilestones,
   type PricingCatalogSnapshot,
 } from "@/lib/pricing-plans";
+import { cn } from "@/lib/utils";
+import {
+  SvgBarChart,
+  SvgAreaChart,
+  CategoryBreakdown,
+  ToolAdoptionMeter,
+} from "@/components/dashboard/dashboard-charts";
 
 type OrganizationFormState = {
   plan_type: string;
@@ -628,37 +635,33 @@ export default function PlatformAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-on-surface px-6 py-12">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 text-primary font-semibold hover:text-tertiary transition-colors"
-            >
-              <span className="material-symbols-outlined text-sm">arrow_back</span>
-              Back to dashboard
-            </Link>
-            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
               Platform Admin
-            </p>
-            <h1 className="mt-2 text-4xl font-extrabold tracking-tight">
-              Founder pricing and growth control center
-            </h1>
-            <p className="mt-3 max-w-3xl text-sm text-on-surface-variant">
-              Use this view to monitor founder pricing progress, manage workspace
-              billing states, and lock founder offers before public pricing goes up.
-            </p>
+            </span>
+            <span className="rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700 uppercase">
+              Super Admin Console
+            </span>
           </div>
-          <button
-            type="button"
-            onClick={() => void loadData(search.trim())}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white"
-          >
-            <span className="material-symbols-outlined text-sm">refresh</span>
-            {refreshing ? "Refreshing..." : "Refresh"}
-          </button>
+          <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            Founder pricing and growth control center
+          </h1>
+          <p className="mt-1 max-w-3xl text-xs sm:text-sm text-slate-500 font-medium">
+            Monitor founder pricing progress, manage workspace billing states, and lock founder offers across organizations.
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={() => void loadData(search.trim())}
+          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-sm">refresh</span>
+          {refreshing ? "Refreshing..." : "Refresh"}
+        </button>
+      </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
@@ -1311,21 +1314,41 @@ export default function PlatformAdminPage() {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-6 xl:grid-cols-2">
+          <div className="mt-6 grid gap-6 xl:grid-cols-2">
             <ReportCard
-              title="Recent signups"
-              subtitle="Last recorded daily signup counts"
+              title="Recent Signups"
+              subtitle="Daily onboarding activity"
               actionLabel="Export CSV"
               onAction={exportSignupCsv}
+              chart={
+                <SvgBarChart
+                  data={signupReport.slice(0, 7).map((row) => ({
+                    label: row.day.length > 5 ? row.day.slice(5) : row.day,
+                    value: row.total,
+                  }))}
+                  height={150}
+                  valueSuffix=" signups"
+                />
+              }
               rows={signupReport.slice(0, 6).map((row) => [row.day, String(row.total)])}
               headers={["Day", "Users"]}
               emptyText="No signup report data found yet."
             />
             <ReportCard
-              title="Revenue by month"
+              title="Revenue by Month"
               subtitle="Monthly revenue from recorded payments"
               actionLabel="Export CSV"
               onAction={exportRevenueCsv}
+              chart={
+                <SvgAreaChart
+                  data={revenueReport.slice(0, 6).map((row) => ({
+                    label: row.period,
+                    value: row.total,
+                  }))}
+                  height={150}
+                  valuePrefix="₹"
+                />
+              }
               rows={revenueReport.slice(0, 6).map((row) => [
                 row.period,
                 formatCurrency(row.total),
@@ -1334,10 +1357,18 @@ export default function PlatformAdminPage() {
               emptyText="No revenue report data found yet."
             />
             <ReportCard
-              title="Business category mix"
+              title="Business Category Mix"
               subtitle="Which business types are onboarding most"
               actionLabel="Export CSV"
               onAction={exportBusinessTypesCsv}
+              chart={
+                <CategoryBreakdown
+                  categories={businessTypesReport.map((row) => ({
+                    label: row.business_category,
+                    count: row.total,
+                  }))}
+                />
+              }
               rows={businessTypesReport.slice(0, 6).map((row) => [
                 row.business_category,
                 String(row.total),
@@ -1346,10 +1377,23 @@ export default function PlatformAdminPage() {
               emptyText="No business category report data found yet."
             />
             <ReportCard
-              title="Tool adoption"
+              title="Tool Adoption"
               subtitle="Usage events and subscription mix by tool"
               actionLabel="Export CSV"
               onAction={exportToolUsageCsv}
+              chart={
+                <ToolAdoptionMeter
+                  tools={(toolUsageReport?.events ?? []).map((row) => ({
+                    toolKey: row.tool_key,
+                    name: row.tool_key.toUpperCase(),
+                    events: row.events,
+                    subscriptions:
+                      (toolUsageReport?.subscriptions ?? []).find(
+                        (s) => s.tool_key === row.tool_key,
+                      )?.subscriptions || 0,
+                  }))}
+                />
+              }
               rows={[
                 ...(toolUsageReport?.events ?? []).slice(0, 3).map((row) => [
                   `${row.tool_key} events`,
@@ -1704,7 +1748,6 @@ export default function PlatformAdminPage() {
           </div>
         </section>
       </div>
-    </div>
   );
 }
 
@@ -1718,12 +1761,12 @@ function MetricCard({
   hint: string;
 }) {
   return (
-    <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-lowest px-5 py-4 shadow-[0_8px_30px_rgba(25,28,30,0.06)]">
-      <p className="text-xs font-semibold tracking-widest uppercase text-on-surface-variant">
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+      <p className="text-[10px] font-bold tracking-wider uppercase text-slate-400 mb-1">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-black text-on-surface">{value}</p>
-      <p className="mt-2 text-sm text-on-surface-variant">{hint}</p>
+      <p className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{value}</p>
+      <p className="mt-1.5 text-xs text-slate-500 font-medium">{hint}</p>
     </div>
   );
 }
@@ -1736,6 +1779,7 @@ function ReportCard({
   emptyText,
   actionLabel,
   onAction,
+  chart,
 }: {
   title: string;
   subtitle: string;
@@ -1744,42 +1788,51 @@ function ReportCard({
   emptyText: string;
   actionLabel: string;
   onAction: () => void;
+  chart?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-outline-variant/20 bg-surface-container p-5">
-      <div className="flex items-start justify-between gap-3">
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+      <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
-          <h3 className="text-lg font-bold text-on-surface">{title}</h3>
-          <p className="mt-1 text-sm text-on-surface-variant">{subtitle}</p>
+          <h3 className="text-base font-bold text-slate-900 tracking-tight">{title}</h3>
+          <p className="mt-0.5 text-xs text-slate-500 font-medium">{subtitle}</p>
         </div>
         <button
           type="button"
           onClick={onAction}
-          className="rounded-xl border border-outline-variant/20 bg-surface-container-lowest px-3 py-2 text-xs font-semibold text-primary"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer"
         >
+          <span className="material-symbols-outlined text-xs">download</span>
           {actionLabel}
         </button>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-2xl border border-outline-variant/20">
-        <div className="grid grid-cols-2 bg-surface-container-lowest px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant">
+      {chart && (
+        <div className="pt-4 pb-3">
+          {chart}
+        </div>
+      )}
+
+      <div className="mt-3 overflow-hidden rounded-xl border border-slate-200/70">
+        <div className="grid grid-cols-2 bg-slate-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
           <span>{headers[0]}</span>
-          <span>{headers[1]}</span>
+          <span className="text-right">{headers[1]}</span>
         </div>
         {rows.length ? (
           rows.map((row, index) => (
             <div
               key={`${row[0]}-${index}`}
-              className={`grid grid-cols-2 px-4 py-3 text-sm ${
-                index % 2 === 0 ? "bg-surface-container" : "bg-surface-container-lowest"
-              }`}
+              className={cn(
+                "grid grid-cols-2 px-3.5 py-2 text-xs",
+                index % 2 === 0 ? "bg-white" : "bg-slate-50/50",
+              )}
             >
-              <span className="text-on-surface">{row[0]}</span>
-              <span className="font-semibold text-on-surface">{row[1]}</span>
+              <span className="text-slate-700 font-medium">{row[0]}</span>
+              <span className="font-bold text-slate-900 text-right">{row[1]}</span>
             </div>
           ))
         ) : (
-          <div className="px-4 py-8 text-sm text-on-surface-variant">
+          <div className="px-4 py-6 text-center text-xs text-slate-400">
             {emptyText}
           </div>
         )}
