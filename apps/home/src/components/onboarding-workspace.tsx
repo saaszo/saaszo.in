@@ -387,11 +387,11 @@ export function OnboardingWorkspace() {
     shouldFetchLocations,
   );
   const primaryButtonClass =
-    "cursor-pointer bg-indigo-600 text-white shadow-xs hover:bg-indigo-700 transition-colors font-semibold rounded-xl";
+    "cursor-pointer bg-indigo-600 text-white shadow-xs hover:bg-indigo-700 active:bg-indigo-800 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 transition-all duration-200 font-semibold rounded-xl";
   const softButtonClass =
-    "cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors font-semibold rounded-xl";
+    "cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shadow-xs hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 transition-all duration-200 font-semibold rounded-xl";
   const ghostButtonClass =
-    "cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors font-medium rounded-xl";
+    "cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200 hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 transition-all duration-200 font-medium rounded-xl";
 
   function consumePostSetupRedirect(fallback: string) {
     if (typeof window === "undefined") {
@@ -2002,10 +2002,10 @@ export function OnboardingWorkspace() {
               onPick(item);
             }}
             className={cn(
-              "flex items-center justify-center p-3 text-xs sm:text-sm font-semibold rounded-xl border transition-all duration-200 text-center min-h-[44px]",
+              "flex items-center justify-center p-3 text-xs sm:text-sm font-semibold rounded-xl border transition-all duration-200 text-center min-h-[44px] cursor-pointer active:scale-[0.98] select-none",
               activeValue === item
-                ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-xs ring-1 ring-indigo-600"
-                : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+                ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-xs ring-1 ring-indigo-600 font-bold hover:bg-indigo-100/70"
+                : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-indigo-50/40 hover:text-indigo-900 hover:shadow-xs hover:-translate-y-0.5",
             )}
           >
             {item}
@@ -2735,7 +2735,7 @@ export function OnboardingWorkspace() {
                             type="button"
                             onClick={() => void handleSetLoginPassword()}
                             disabled={passwordSaving}
-                            className="w-full sm:w-auto"
+                            className={cn("w-full sm:w-auto", primaryButtonClass)}
                           >
                             {passwordSaving ? "Saving password..." : passwordSaved ? "Password saved" : "Save password"}
                           </Button>
@@ -2756,7 +2756,7 @@ export function OnboardingWorkspace() {
                       }
                       style={getFieldShakeStyle("email_verification")}
                       className={cn(
-                        "rounded-2xl border p-4 text-left transition-all shadow-sm",
+                        "rounded-2xl border p-4 text-left transition-all duration-200 shadow-xs cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99]",
                         emailVerified
                           ? "border-emerald-200 bg-emerald-50"
                           : "border-red-200 bg-red-50 hover:border-red-300",
@@ -2808,7 +2808,7 @@ export function OnboardingWorkspace() {
                       }
                       style={getFieldShakeStyle("phone_verification")}
                       className={cn(
-                        "rounded-2xl border p-4 text-left transition-all shadow-sm",
+                        "rounded-2xl border p-4 text-left transition-all duration-200 shadow-xs cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99]",
                         phoneVerified
                           ? "border-emerald-200 bg-emerald-50"
                           : "border-red-200 bg-red-50 hover:border-red-300",
@@ -3028,7 +3028,7 @@ export function OnboardingWorkspace() {
                             <Button
                               type="button"
                               onClick={() => setGstDetailsModalOpen(true)}
-                              className="mt-auto w-full sm:w-auto"
+                              className={cn("mt-auto w-full sm:w-auto", primaryButtonClass)}
                             >
                               {form.gst_number
                                 ? "Edit GST details"
@@ -3057,7 +3057,7 @@ export function OnboardingWorkspace() {
                         <button
                           type="button"
                           onClick={() => setRegistrationPickerOpen(true)}
-                          className="flex h-12 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                          className="flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm shadow-xs cursor-pointer hover:border-slate-300 hover:bg-slate-50 transition-all duration-200 active:scale-[0.99]"
                         >
                           <span
                             className={
@@ -3086,11 +3086,10 @@ export function OnboardingWorkspace() {
                             </div>
                             <Button
                               type="button"
-                              variant="outline"
                               onClick={() =>
                                 setRegistrationDetailsModalOpen(true)
                               }
-                              className="mt-auto w-full sm:w-auto"
+                              className={cn("mt-auto w-full sm:w-auto", softButtonClass)}
                             >
                               Add registration details
                             </Button>
@@ -3223,7 +3222,7 @@ export function OnboardingWorkspace() {
                       <Button
                         type="button"
                         onClick={() => setReportsModalOpen(true)}
-                        className="w-full sm:w-auto self-start sm:self-auto"
+                        className={cn("w-full sm:w-auto self-start sm:self-auto", primaryButtonClass)}
                       >
                         {(form.required_reports || []).length
                           ? "Edit reports"
@@ -3263,7 +3262,7 @@ export function OnboardingWorkspace() {
                         <Button
                           type="button"
                           onClick={() => setPaymentMethodsModalOpen(true)}
-                          className="mt-auto w-full sm:w-auto"
+                          className={cn("mt-auto w-full sm:w-auto", primaryButtonClass)}
                         >
                           {(form.payment_methods || []).length
                             ? "Edit payment methods"
@@ -3348,7 +3347,7 @@ export function OnboardingWorkspace() {
                       <Button
                         type="button"
                         onClick={() => setBankDetailsModalOpen(true)}
-                        className="w-full sm:w-auto"
+                        className={cn("w-full sm:w-auto", primaryButtonClass)}
                       >
                         {form.bank_name ||
                         form.bank_account_number ||
@@ -3387,7 +3386,7 @@ export function OnboardingWorkspace() {
                           </p>
                           <Label
                             htmlFor="logo-upload"
-                            className="inline-flex cursor-pointer rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs transition-colors"
+                            className="inline-flex cursor-pointer rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 active:bg-indigo-800 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] shadow-xs transition-all duration-200"
                           >
                             {uploading
                               ? "Uploading..."
@@ -3462,7 +3461,7 @@ export function OnboardingWorkspace() {
                       <Button
                         type="button"
                         onClick={() => setShowOnInvoiceModalOpen(true)}
-                        className="w-full sm:w-auto"
+                        className={cn("w-full sm:w-auto", primaryButtonClass)}
                       >
                         {(form.show_on_invoice || []).length
                           ? "Edit invoice fields"
@@ -3568,7 +3567,7 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setVerificationModal(null)}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -3733,7 +3732,7 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setGstDetailsModalOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -3837,7 +3836,7 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setRegistrationDetailsModalOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -3883,7 +3882,7 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setReportsModalOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -3946,7 +3945,7 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setPaymentMethodsModalOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -4010,7 +4009,7 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setBankDetailsModalOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -4209,7 +4208,7 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setShowOnInvoiceModalOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -4272,7 +4271,7 @@ export function OnboardingWorkspace() {
               <button
                 type="button"
                 onClick={() => setRegistrationPickerOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>

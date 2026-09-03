@@ -9,14 +9,14 @@
   /* Fonts */
   --font-sans: "Inter", system-ui, sans-serif;
 
-  /* Primary (Electric Cyan — matches saaszo.in auth) */
-  --color-primary: #06b6d4;
+  /* Primary (Electric Indigo — matches new brand theme) */
+  --color-primary: #4f46e5;
   --color-on-primary: #ffffff;
-  --color-primary-container: #cff8ff;
-  --color-on-primary-container: #00363d;
-  --color-primary-fixed-dim: #82d9e8;
-  --color-on-primary-fixed: #00363d;
-  --color-inverse-primary: #82d9e8;
+  --color-primary-container: #e0e7ff;
+  --color-on-primary-container: #312e81;
+  --color-primary-fixed-dim: #818cf8;
+  --color-on-primary-fixed: #312e81;
+  --color-inverse-primary: #818cf8;
 
   /* Secondary */
   --color-secondary: #565e74;
@@ -74,10 +74,10 @@
     --color-on-surface: #e2e2e9;
     --color-on-surface-variant: #c5c4d6;
     --color-on-background: #e2e2e9;
-    --color-primary: #82d9e8;
-    --color-on-primary: #00363d;
-    --color-primary-container: #004e5a;
-    --color-on-primary-container: #cff8ff;
+    --color-primary: #818cf8;
+    --color-on-primary: #1e1b4b;
+    --color-primary-container: #3730a3;
+    --color-on-primary-container: #e0e7ff;
     --color-secondary: #c2caed;
     --color-on-secondary: #2c3347;
     --color-secondary-container: #434b61;
@@ -101,6 +101,14 @@ html {
 body {
   @apply bg-background text-on-surface antialiased;
   font-family: var(--font-sans);
+}
+
+button, [role="button"], input[type="button"], input[type="submit"] {
+  cursor: pointer;
+}
+
+button:disabled, [role="button"][aria-disabled="true"], input[type="button"]:disabled, input[type="submit"]:disabled {
+  cursor: not-allowed;
 }
 
 /* =============================================
