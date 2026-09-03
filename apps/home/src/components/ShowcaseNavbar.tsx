@@ -12,7 +12,7 @@ export function ShowcaseNavbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-xs">
+          <div className="w-7 h-7 rounded-none bg-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-xs">
             S
           </div>
           <span className="font-extrabold text-slate-900 text-lg tracking-tight">
@@ -41,15 +41,9 @@ export function ShowcaseNavbar() {
 
         {/* Right Action Buttons */}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/auth"
-            className="px-3.5 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-50 transition-colors"
-          >
-            Sign In
-          </Link>
           <a
             href="#downloads"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-950 text-white text-sm font-semibold hover:bg-slate-800 transition-colors shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-none bg-slate-950 text-white text-sm font-semibold hover:bg-slate-800 transition-colors shadow-xs"
           >
             <Download className="w-4 h-4 text-emerald-400" />
             <span>Download App</span>
@@ -102,16 +96,10 @@ export function ShowcaseNavbar() {
           </nav>
 
           <div className="pt-4 border-t border-slate-100 flex flex-col gap-2.5">
-            <Link
-              href="/auth"
-              className="w-full text-center py-2.5 rounded-lg border border-slate-200 text-sm font-semibold text-slate-800"
-            >
-              Sign In
-            </Link>
             <a
               href="#downloads"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-slate-950 text-white text-sm font-semibold"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-none bg-slate-950 text-white text-sm font-semibold"
             >
               <Download className="w-4 h-4 text-emerald-400" />
               <span>Download App Free</span>
