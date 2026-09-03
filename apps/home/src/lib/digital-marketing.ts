@@ -389,8 +389,8 @@ export function contentToText(content?: string | null) {
 }
 
 export const marketingContact = {
-  phone: "+91 83680 51069",
-  phoneHref: "tel:+918368051069",
+  phone: "+91 7982417957",
+  phoneHref: "tel:+917982417957",
   whatsappHref: "https://wa.me/917982417957",
   email: "support@saaszo.in",
   address: "OC-1208, Gaur City Center, Noida, Uttar Pradesh 201301, India",
