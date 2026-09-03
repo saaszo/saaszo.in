@@ -53,6 +53,74 @@ const services = [
   { href: "/audit", label: "Growth Audit" },
 ];
 
+const socialLinks = [
+  {
+    href: "https://www.facebook.com/saaszo",
+    icon: "facebook",
+    label: "Facebook",
+  },
+  {
+    href: "https://www.linkedin.com/company/saaszo",
+    icon: "linkedin",
+    label: "LinkedIn",
+  },
+  {
+    href: "https://www.instagram.com/saaszo",
+    icon: "instagram",
+    label: "Instagram",
+  },
+  {
+    href: "https://x.com/saaszo",
+    icon: "x",
+    label: "X",
+  },
+  {
+    href: "https://www.youtube.com/@saaszo",
+    icon: "youtube",
+    label: "YouTube",
+  },
+] as const;
+
+function SocialIcon({ icon }: { icon: (typeof socialLinks)[number]["icon"] }) {
+  if (icon === "facebook") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M14 8.5V6.8c0-.8.2-1.3 1.3-1.3H17V2.1C16.7 2.1 15.6 2 14.5 2 12 2 10.3 3.5 10.3 6.3v2.2H7.5V12h2.8v10h3.5V12h2.9l.4-3.5H14Z" />
+      </svg>
+    );
+  }
+
+  if (icon === "linkedin") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M6.9 8.9H3.4V20h3.5V8.9ZM5.2 7.4A2 2 0 1 0 5.2 3.5a2 2 0 0 0 0 3.9ZM20.6 20v-6.1c0-3-1.6-4.4-3.8-4.4-1.7 0-2.5 1-2.9 1.7h-.1V8.9h-3.3V20H14v-5.5c0-1.5.3-2.9 2.1-2.9 1.7 0 1.8 1.6 1.8 3V20h2.7Z" />
+      </svg>
+    );
+  }
+
+  if (icon === "instagram") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M7.8 2h8.4A5.8 5.8 0 0 1 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8A5.8 5.8 0 0 1 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2Zm0 2A3.8 3.8 0 0 0 4 7.8v8.4A3.8 3.8 0 0 0 7.8 20h8.4a3.8 3.8 0 0 0 3.8-3.8V7.8A3.8 3.8 0 0 0 16.2 4H7.8Zm8.9 2.4a1 1 0 1 1 0 2.1 1 1 0 0 1 0-2.1ZM12 7.2a4.8 4.8 0 1 1 0 9.6 4.8 4.8 0 0 1 0-9.6Zm0 2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" />
+      </svg>
+    );
+  }
+
+  if (icon === "x") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M13.7 10.6 20.4 3h-1.6L13 9.6 8.4 3H3l7 10-7 8h1.6l6.1-7 4.9 7H21l-7.3-10.4Zm-2.2 2.5-.7-1L5.2 4.2h2.4l4.5 6.4.7 1 5.9 8.3h-2.4l-4.8-6.8Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path d="M21.6 7.2s-.2-1.5-.8-2.1c-.8-.8-1.7-.8-2.1-.9C15.8 4 12 4 12 4h0s-3.8 0-6.7.2c-.4.1-1.3.1-2.1.9-.6.6-.8 2.1-.8 2.1S2.2 9 2.2 10.9v1.7c0 1.8.2 3.7.2 3.7s.2 1.5.8 2.1c.8.8 1.9.8 2.4.9 1.8.2 6.4.2 6.4.2s3.8 0 6.7-.3c.4 0 1.3 0 2.1-.8.6-.6.8-2.1.8-2.1s.2-1.9.2-3.7v-1.7c0-1.9-.2-3.7-.2-3.7ZM10.1 14.7V8.4l5.9 3.1-5.9 3.2Z" />
+    </svg>
+  );
+}
+
 function toNavItems(items?: DigitalMenuItem[]) {
   return (items || [])
     .filter((item) => item.title && item.url)
@@ -173,14 +241,19 @@ export async function DigitalMarketingShell({
                 We blend creativity and strategy to help brands grow. Our ideas
                 improve visibility, generate leads, and turn focus into results.
               </p>
-              <div className="mt-5 flex gap-2 text-xs text-slate-400">
-                {["f", "in", "ig", "x", "yt"].map((item) => (
-                  <span
-                    className="grid h-8 w-8 place-items-center rounded-full bg-white/5"
-                    key={item}
+              <div className="mt-5 flex gap-2 text-slate-400">
+                {socialLinks.map((item) => (
+                  <a
+                    aria-label={item.label}
+                    className="digital-social-link"
+                    href={item.href}
+                    key={item.label}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    title={item.label}
                   >
-                    {item}
-                  </span>
+                    <SocialIcon icon={item.icon} />
+                  </a>
                 ))}
               </div>
             </div>
