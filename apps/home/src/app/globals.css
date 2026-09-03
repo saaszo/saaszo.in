@@ -363,6 +363,7 @@ body {
 
 .digital-primary-compact {
   min-height: 38px;
+  min-width: 140px;
   padding: 0.75rem 1rem;
 }
 
@@ -500,6 +501,7 @@ body {
   justify-content: center;
   gap: 0.35rem;
   min-height: 38px;
+  min-width: 140px;
   border-radius: 8px;
   background: #18c464;
   padding: 0.75rem 1rem;

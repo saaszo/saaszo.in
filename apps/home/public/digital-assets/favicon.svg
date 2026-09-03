@@ -1,4 +1,1 @@
-<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg">
- <rect width="32" height="32" rx="4" fill="#6366f1"/>
- <text x="50%" y="50%" font-family="Arial" font-size="20" fill="white" text-anchor="middle" dominant-baseline="central">A</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="64" zoomAndPan="magnify" viewBox="0 0 48 48" height="64" preserveAspectRatio="xMidYMid meet" version="1.0"><defs><clipPath id="6afed08c99"><path d="M 6.742188 0 L 41.273438 0 L 41.273438 47.019531 L 6.742188 47.019531 Z M 6.742188 0 " clip-rule="nonzero"/></clipPath></defs><g clip-path="url(#6afed08c99)"><path fill="#6366f1" d="M 23.996094 0.0117188 L 6.742188 9.875 L 6.742188 37.148438 L 23.996094 47.011719 L 41.25 37.148438 L 41.25 9.875 Z M 37.09375 19.769531 L 23.996094 12.285156 L 17.449219 16.027344 L 37.09375 27.253906 L 37.09375 34.734375 L 23.996094 42.21875 L 10.902344 34.734375 L 10.902344 27.253906 L 23.996094 34.734375 L 30.546875 30.992188 L 10.902344 19.769531 L 10.902344 12.285156 L 23.996094 4.800781 L 37.09375 12.285156 Z M 37.09375 19.769531 " fill-opacity="1" fill-rule="evenodd"/></g></svg>
