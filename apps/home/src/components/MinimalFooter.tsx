@@ -89,10 +89,10 @@ export function MinimalFooter() {
             </ul>
           </div>
 
-          {/* Col 4: Legal & Support */}
+          {/* Col 4: Legal & Policies */}
           <div>
             <div className="font-semibold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
-              Support &amp; Legal
+              Legal &amp; Policies
             </div>
             <ul className="space-y-2.5">
               <li>
@@ -103,6 +103,30 @@ export function MinimalFooter() {
               <li>
                 <Link href="/terms" className="hover:text-slate-950 transition-colors">
                   Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/cookies" className="hover:text-slate-950 transition-colors">
+                  Cookie Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/refund" className="hover:text-slate-950 transition-colors">
+                  Refund &amp; Cancellation
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 5: Company & Support */}
+          <div>
+            <div className="font-semibold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
+              Company
+            </div>
+            <ul className="space-y-2.5">
+              <li>
+                <Link href="/about" className="hover:text-slate-950 transition-colors">
+                  About SaaSzo
                 </Link>
               </li>
               <li>

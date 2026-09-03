@@ -2,63 +2,71 @@ import type { Metadata } from "next";
 import LegalDocument from "@/components/LegalDocument";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | SaaSzo",
+  title: "Terms of Service | SaaSzo Invoice & POS",
   description:
-    "Review the terms governing access to the SaaSzo platform and related services.",
+    "Review the software license terms, usage conditions, tax compliance responsibilities, and service agreement for SaaSzo Invoice & POS.",
 };
 
 const sections = [
   {
-    id: "acceptance",
-    title: "Acceptance of these terms",
+    id: "license-grant",
+    title: "1. Software License Grant",
     paragraphs: [
-      "By accessing or using SaaSzo, you agree to these Terms and Conditions. If you do not agree, you should not use the platform.",
-      "You are responsible for ensuring that the information you provide is accurate and that your use of the service complies with applicable laws.",
+      "Subject to these Terms of Service, SaaSzo Technologies grants you a revocable, non-exclusive, non-transferable license to install, download, and operate SaaSzo Invoice & POS on your compatible Android, Windows PC, macOS, and iOS hardware for internal business billing and inventory operations.",
+      "You agree not to reverse engineer, decompile, disassemble, or attempt to derive the source code of the binary applications, nor create unauthorized derivative works.",
     ],
   },
   {
-    id: "accounts-and-security",
-    title: "Accounts and security",
+    id: "account-and-counters",
+    title: "2. Account Registration & Terminal Security",
     paragraphs: [
-      "You are responsible for maintaining the confidentiality of your account credentials and for all activity that happens under your account.",
-      "If you believe your account has been compromised, contact us immediately so we can help secure access.",
+      "When creating a SaaSzo account, you agree to provide authentic and accurate business information, including your registered business name, authorized contact details, and applicable GSTIN.",
+      "You are responsible for safeguarding all terminal login credentials, device PINs, and session tokens across your counter registers. Any action taken under your authenticated merchant profile is deemed your authorized business activity.",
+    ],
+  },
+  {
+    id: "offline-data-and-tax",
+    title: "3. Offline Billing & GST Tax Compliance",
+    paragraphs: [
+      "SaaSzo Invoice & POS includes an offline SQLite billing engine designed to maintain counter sales during network outages. Merchants are responsible for reconnecting devices periodically to allow cloud ledger synchronization and central backup.",
+      "While SaaSzo provides automated tax computation tables (CGST, SGST, IGST, and cess), you are solely responsible for ensuring the correctness of HSN/SAC codes, tax rates, and regulatory compliance of invoices submitted to government tax portals.",
     ],
     bullets: [
-      "Use accurate business and contact information.",
-      "Do not share credentials with unauthorized users.",
-      "Notify us promptly if you suspect misuse or unauthorized access.",
+      "Merchants must verify applicable tax slabs before generating final customer tax invoices.",
+      "SaaSzo does not act as a tax consultant or government filing intermediary.",
+      "Exported GSTR-1 and GSTR-3B summaries should be reviewed by your licensed accountant before statutory filing.",
     ],
   },
   {
-    id: "service-usage",
-    title: "Permitted use of the service",
+    id: "hardware-compatibility",
+    title: "4. Hardware & Thermal Printer Compatibility",
     paragraphs: [
-      "SaaSzo is provided to help teams manage operations, workflows, data, and communication. You may not use the service for unlawful activity, abuse, fraud, or attempts to disrupt the platform.",
-      "We may suspend or restrict access if we detect behavior that threatens platform integrity, security, or other users.",
+      "SaaSzo supports ESC/POS protocol thermal receipt printers (58mm and 80mm) via Bluetooth and USB, as well as optical barcode scanners. We do not manufacture physical printer hardware, paper rolls, or laser scanner devices.",
+      "Hardware warranties, printer firmware defects, and mechanical repair remain the sole responsibility of the respective hardware manufacturer.",
     ],
   },
   {
-    id: "subscriptions-and-billing",
-    title: "Subscriptions and billing",
+    id: "service-availability",
+    title: "5. Service Availability & Backups",
     paragraphs: [
-      "Paid features, plan limits, and billing cycles are governed by the subscription details shown in your workspace or order flow.",
-      "Unless otherwise stated in a separate agreement, fees are non-refundable once a billing period has started.",
+      "We strive to maintain high availability (99.9% target) for our cloud sync servers (api.saaszo.in). Because our applications operate offline-first, temporary cloud downtime will not disrupt local counter billing or receipt printing.",
+      "We perform routine, automated database backups; however, merchants are also encouraged to periodically export Excel or PDF copies of their sales ledgers for internal disaster recovery.",
     ],
   },
   {
-    id: "content-and-liability",
-    title: "Content, availability, and liability",
+    id: "termination",
+    title: "6. Termination & Acceptable Use",
     paragraphs: [
-      "You retain responsibility for the data you upload or manage through the platform. We may remove content that violates these terms or applicable law.",
-      "SaaSzo is provided on an as-is and as-available basis. To the fullest extent permitted by law, we limit liability for indirect, incidental, or consequential damages.",
+      "You may terminate your account at any time from your account settings. We reserve the right to suspend or terminate accounts that engage in fraudulent billing, unlawful commercial trade, distribution of malicious software, or violation of applicable commercial laws.",
+      "Upon termination, your local offline database remains on your device until uninstalled, while cloud synchronized backups are deleted in accordance with our Privacy Policy.",
     ],
   },
   {
-    id: "updates-and-contact",
-    title: "Updates and contact",
+    id: "governing-law",
+    title: "7. Governing Law & Dispute Resolution",
     paragraphs: [
-      "We may update these terms from time to time to reflect product, legal, or operational changes. Continued use after updates means you accept the revised terms.",
-      "For questions about these terms, contact saaszo.in@gmail.com.",
+      "These Terms shall be governed by and construed in accordance with the laws of India. Any disputes or claims arising under these terms shall be subject to the exclusive jurisdiction of the courts in India.",
+      "For legal notices or questions regarding these terms, contact saaszo.in@gmail.com.",
     ],
   },
 ] as const;
@@ -66,11 +74,11 @@ const sections = [
 export default function TermsPage() {
   return (
     <LegalDocument
-      eyebrow="Legal"
-      title="Terms & Conditions"
-      summary="These terms explain the rules for using SaaSzo, managing your account, and accessing platform features and subscriptions."
-      lastUpdated="April 22, 2026"
-      sections={[...sections]}
+      eyebrow="Commercial License Agreement"
+      title="Terms of Service"
+      summary="Please read these software license terms and service conditions carefully before installing, downloading, or operating SaaSzo Invoice & POS across your devices."
+      lastUpdated="September 2026"
+      sections={sections}
     />
   );
 }

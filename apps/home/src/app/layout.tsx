@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
+import { CookieConsent } from "@/components/CookieConsent";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -11,12 +12,12 @@ const inter = Inter({
 export const metadata: Metadata = {
   applicationName: "SaaSzo",
   title: {
-    default: "SaaSzo — The Operating System for Modern Business",
+    default: "SaaSzo — Smart Invoicing & Counter POS",
     template: "%s | SaaSzo",
   },
   description:
-    "Unify your workflow across invoicing, tasks, commerce, HR, and engagement automations from one business platform.",
-  keywords: ["SaaS", "HRMS", "Seller", "Engage", "Business Platform", "SaaSzo"],
+    "Offline & online GST invoicing, Bluetooth thermal printing, and barcode POS software for Android, Windows PC, Mac, and iOS.",
+  keywords: ["POS Software", "GST Billing", "Thermal Printing", "SaaSzo Invoice", "Offline POS"],
   icons: {
     icon: [
       { url: "/digital-assets/favicon.svg", type: "image/svg+xml" },
@@ -52,7 +53,10 @@ export default function RootLayout({
         suppressHydrationWarning
         className="bg-background text-on-surface overflow-x-hidden min-h-screen flex flex-col antialiased"
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <CookieConsent />
+        </AuthProvider>
       </body>
     </html>
   );

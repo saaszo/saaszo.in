@@ -2,55 +2,72 @@ import type { Metadata } from "next";
 import LegalDocument from "@/components/LegalDocument";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | SaaSzo",
+  title: "Privacy Policy | SaaSzo Invoice & POS",
   description:
-    "Read how SaaSzo collects, uses, stores, and protects customer information.",
+    "Learn how SaaSzo protects your business data, local SQLite database, device hardware permissions, and cloud sync.",
 };
 
 const sections = [
   {
     id: "information-we-collect",
-    title: "Information we collect",
+    title: "1. Information We Collect",
     paragraphs: [
-      "We collect the account details you provide when you register for SaaSzo, such as your name, email address, phone number, company details, and profile preferences.",
-      "We also collect operational data needed to deliver the product, including authentication events, account settings, subscription state, uploaded files, and support conversations.",
+      "When you create an account on SaaSzo, we collect necessary business profile details such as your business trade name, registered GSTIN, owner name, contact email address, phone number, and physical billing address.",
+      "To provide point-of-sale functionality, the SaaSzo application processes transaction information including item descriptions, HSN/SAC codes, applicable GST rates, sales amounts, and customer/supplier ledger balances.",
     ],
     bullets: [
-      "Identity and contact details you provide during sign up or profile updates.",
-      "Usage signals such as pages visited, feature usage, and error diagnostics.",
-      "Billing and subscription metadata needed to manage your plan lifecycle.",
+      "Business Profile & Identity: Registered GSTIN, business name, phone number, and login credentials.",
+      "Device Hardware Permissions: Bluetooth access strictly used to discover and send print jobs to thermal receipt printers; Camera access strictly used to scan product barcodes and QR codes.",
+      "Operational Billing Records: Item catalogs, inventory counts, retail sales receipts, and tax computations.",
     ],
   },
   {
-    id: "how-we-use-data",
-    title: "How we use your data",
+    id: "offline-data-ownership",
+    title: "2. Offline-First Architecture & Data Ownership",
     paragraphs: [
-      "We use your information to operate the SaaSzo platform, secure user sessions, personalize the workspace experience, process account actions, and provide customer support.",
-      "We may also use aggregated usage information to improve reliability, understand feature adoption, and prioritize product updates.",
+      "SaaSzo is engineered with a local SQLite database engine. All sales receipts, cash drawer transactions, party balances, and product inventories are stored directly on your local device (Android, Windows PC, macOS, or iOS).",
+      "You retain 100% ownership of your business data. We do not sell, rent, monetize, or share your customer ledgers, sales numbers, or inventory records with any third parties or advertisers.",
     ],
   },
   {
-    id: "sharing-and-processors",
-    title: "Sharing and processors",
+    id: "cloud-sync-security",
+    title: "3. Cloud Synchronization & Encryption",
     paragraphs: [
-      "We do not sell your personal data. We only share information with service providers that help us run the platform, such as hosting, storage, analytics, authentication, and email delivery partners.",
-      "These providers may process data on our behalf under their own security and compliance obligations.",
+      "When your device connects to the internet, SaaSzo performs background synchronization with our secure servers (api.saaszo.in) using industry-standard TLS 1.3 encryption.",
+      "This synchronization ensures multi-device consistency (allowing simultaneous counter billing) and protects your business records in the event of hardware loss, device theft, or physical damage.",
+    ],
+    bullets: [
+      "All network data in transit is encrypted using 256-bit SSL/TLS.",
+      "Cloud database backups are stored in enterprise-grade data centers with strict access controls.",
+      "Sensitive tokens and session keys are secured using native OS secure storage.",
     ],
   },
   {
-    id: "security",
-    title: "Security and retention",
+    id: "device-permissions",
+    title: "4. Device Hardware Permissions Usage",
     paragraphs: [
-      "We use commercially reasonable measures to protect account data, including encrypted transport, access controls, and managed infrastructure services.",
-      "We retain information only for as long as needed to provide the service, meet legal obligations, resolve disputes, and enforce our agreements.",
+      "SaaSzo requests specific hardware permissions exclusively to enable native billing functions:",
+    ],
+    bullets: [
+      "Bluetooth & Nearby Devices: Required solely to communicate with wireless 58mm and 80mm ESC/POS thermal printers.",
+      "Camera: Required solely to recognize optical barcodes and QR codes on physical products and invoices. Camera streams are processed in real time and are never recorded or uploaded.",
+      "Storage & Files: Required to generate and save downloadable PDF tax invoices and Excel accounting reports on your device.",
     ],
   },
   {
-    id: "your-rights",
-    title: "Your rights and choices",
+    id: "data-retention-export",
+    title: "5. Data Retention, Portability & Deletion",
     paragraphs: [
-      "You can update profile details from your SaaSzo dashboard, request account changes, and contact us if you need help accessing, correcting, or deleting personal information.",
-      "If you have a privacy question or request, email saaszo.in@gmail.com and we will review it promptly.",
+      "You can export your complete transaction ledger, customer directory, product inventory, and GSTR tax summaries at any time in standard Excel or PDF formats without lock-in.",
+      "If you choose to delete your SaaSzo account, you may request complete erasure of your cloud-stored data by contacting our team. Once verified, all cloud records are permanently purged within 30 days.",
+    ],
+  },
+  {
+    id: "compliance-contact",
+    title: "6. Indian Legal Compliance & Contact",
+    paragraphs: [
+      "SaaSzo adheres to the Digital Personal Data Protection Act (DPDP) and Indian GST compliance norms. For any privacy queries, grievance redressal, or data assistance, please reach out to our privacy officer:",
+      "Email: saaszo.in@gmail.com | WhatsApp Helpdesk: Available via official website channels.",
     ],
   },
 ] as const;
@@ -58,11 +75,11 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <LegalDocument
-      eyebrow="Trust Center"
+      eyebrow="Compliance & Data Protection"
       title="Privacy Policy"
-      summary="This policy explains what data SaaSzo collects, why we collect it, and how we protect it while delivering the platform."
-      lastUpdated="April 22, 2026"
-      sections={[...sections]}
+      summary="Transparent disclosure on how SaaSzo Invoice & POS secures your business data, local offline database, hardware device permissions, and encrypted cloud synchronization."
+      lastUpdated="September 2026"
+      sections={sections}
     />
   );
 }
