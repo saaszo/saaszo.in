@@ -1,148 +1,87 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
-import { Shield, Smartphone, Monitor, Apple, ArrowUpRight } from "lucide-react";
+import { Shield, Smartphone, Monitor, Apple, ArrowUpRight, Phone, Mail, ChevronUp } from "lucide-react";
 
 export function MinimalFooter() {
+  const scrollToTop = () => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
     <footer className="border-t border-slate-200 bg-white text-slate-600 text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12">
-          {/* Col 1: Brand & Identity (2 cols on md) */}
+          {/* Col 1: Brand & Identity */}
           <div className="col-span-2 space-y-4">
-            <div className="flex items-center gap-2 font-black text-slate-900 text-base tracking-tight">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block" />
-              SaaSzo
+            <div className="flex items-center gap-2 font-black text-slate-950 text-xl tracking-tight">
+              <span className="w-3 h-3 rounded-full bg-red-600 inline-block" />
+              SAASZO <span className="text-red-600 font-bold">POS</span>
             </div>
-            <p className="text-slate-500 leading-relaxed max-w-sm">
-              Modern, offline-first GST Invoicing, Point of Sale, and inventory management for Indian retailers, wholesalers, and businesses.
+            <p className="text-slate-500 leading-relaxed max-w-sm text-xs">
+              Modern, offline-first GST Invoicing, Point of Sale, and smart inventory management for 1,50,000+ Indian retailers, restaurants, and wholesalers.
             </p>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-medium">
-              <Shield className="w-3.5 h-3.5 text-emerald-600" />
-              <span>256-Bit Encrypted &amp; GST Ready</span>
+            <div className="space-y-1 text-slate-500 text-[11px]">
+              <div className="font-bold text-slate-800">SaaSzo Technologies Private Limited</div>
+              <div>Tower-A, 4th Floor, Tech Park, Outer Ring Road, Bengaluru, Karnataka – 560103</div>
             </div>
           </div>
 
           {/* Col 2: Product */}
           <div>
-            <div className="font-semibold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
+            <div className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
               Product
             </div>
             <ul className="space-y-2.5">
-              <li>
-                <a href="#features" className="hover:text-slate-950 transition-colors">
-                  Counter POS
-                </a>
-              </li>
-              <li>
-                <a href="#features" className="hover:text-slate-950 transition-colors">
-                  Offline SQLite Engine
-                </a>
-              </li>
-              <li>
-                <a href="#features" className="hover:text-slate-950 transition-colors">
-                  Thermal Printing (ESC/POS)
-                </a>
-              </li>
-              <li>
-                <a href="#features" className="hover:text-slate-950 transition-colors">
-                  Barcode Scanner
-                </a>
-              </li>
-              <li>
-                <a href="#comparison" className="hover:text-slate-950 transition-colors">
-                  Feature Comparison
-                </a>
-              </li>
+              <li><a href="#features" className="hover:text-red-600 transition-colors">Counter POS</a></li>
+              <li><a href="#features" className="hover:text-red-600 transition-colors">100% Offline SQLite</a></li>
+              <li><a href="#features" className="hover:text-red-600 transition-colors">Thermal Printing (ESC/POS)</a></li>
+              <li><a href="#features" className="hover:text-red-600 transition-colors">Barcode Scanning</a></li>
+              <li><a href="#comparison" className="hover:text-red-600 transition-colors">Feature Comparison</a></li>
             </ul>
           </div>
 
-          {/* Col 3: Platforms */}
+          {/* Col 3: Solutions */}
           <div>
-            <div className="font-semibold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
-              Platforms
+            <div className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
+              Solutions
             </div>
             <ul className="space-y-2.5">
-              <li>
-                <a href="#downloads" className="flex items-center gap-1.5 hover:text-slate-950 transition-colors">
-                  <Smartphone className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Android (.apk)</span>
-                </a>
-              </li>
-              <li>
-                <a href="#downloads" className="flex items-center gap-1.5 hover:text-slate-950 transition-colors">
-                  <Monitor className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Windows (.exe)</span>
-                </a>
-              </li>
-              <li>
-                <a href="#downloads" className="flex items-center gap-1.5 hover:text-slate-950 transition-colors">
-                  <Apple className="w-3.5 h-3.5 text-slate-400" />
-                  <span>macOS (.dmg)</span>
-                </a>
-              </li>
-              <li>
-                <a href="#downloads" className="flex items-center gap-1.5 hover:text-slate-950 transition-colors">
-                  <Apple className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Apple iOS</span>
-                </a>
-              </li>
+              <li><a href="#solutions" className="hover:text-red-600 transition-colors">Retail &amp; Supermarket</a></li>
+              <li><a href="#solutions" className="hover:text-red-600 transition-colors">Wholesale &amp; Distribution</a></li>
+              <li><a href="#solutions" className="hover:text-red-600 transition-colors">Pharmacy &amp; Chemist</a></li>
+              <li><a href="#solutions" className="hover:text-red-600 transition-colors">Electronics &amp; Hardware</a></li>
+              <li><a href="#solutions" className="hover:text-red-600 transition-colors">Services &amp; Agencies</a></li>
             </ul>
           </div>
 
-          {/* Col 4: Legal & Policies */}
+          {/* Col 4: Contact & CTA */}
           <div>
-            <div className="font-semibold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
-              Legal &amp; Policies
+            <div className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
+              Direct Contact
             </div>
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               <li>
-                <Link href="/privacy" className="hover:text-slate-950 transition-colors">
-                  Privacy Policy
-                </Link>
+                <a href="tel:+919104369797" className="flex items-center gap-2 text-slate-900 font-bold hover:text-red-600 transition-colors">
+                  <Phone className="w-3.5 h-3.5 text-red-600" />
+                  <span>+91 91043 69797</span>
+                </a>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-slate-950 transition-colors">
-                  Terms of Service
-                </Link>
+                <a href="mailto:getposs@saaszo.in" className="flex items-center gap-2 text-slate-600 hover:text-red-600 transition-colors">
+                  <Mail className="w-3.5 h-3.5 text-red-600" />
+                  <span>getposs@saaszo.in</span>
+                </a>
               </li>
-              <li>
-                <Link href="/cookies" className="hover:text-slate-950 transition-colors">
-                  Cookie Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/refund" className="hover:text-slate-950 transition-colors">
-                  Refund &amp; Cancellation
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 5: Company & Support */}
-          <div>
-            <div className="font-semibold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
-              Company
-            </div>
-            <ul className="space-y-2.5">
-              <li>
-                <Link href="/about" className="hover:text-slate-950 transition-colors">
-                  About SaaSzo
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-slate-950 transition-colors">
-                  Contact Support
-                </Link>
-              </li>
-              <li>
+              <li className="pt-2">
                 <a
-                  href="https://wa.me/919999999999"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 hover:text-slate-950 transition-colors"
+                  href="#demo"
+                  className="inline-block px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-red-600 transition-colors shadow-xs"
                 >
-                  <span>WhatsApp Helpdesk</span>
-                  <ArrowUpRight className="w-3 h-3 text-slate-400" />
+                  Take a Free Demo
                 </a>
               </li>
             </ul>
@@ -150,12 +89,23 @@ export function MinimalFooter() {
         </div>
 
         {/* Bottom Strip */}
-        <div className="mt-12 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500">
+        <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
           <div>
-            &copy; {new Date().getFullYear()} SaaSzo Technologies. All rights reserved.
+            COPYRIGHT &copy; 2026 &mdash; SaaSzo Technologies Pvt. Ltd., India. All Rights Reserved.
           </div>
-          <div className="flex items-center gap-2">
-            <span>Engineered with precision in India</span>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/privacy" className="hover:text-slate-900 transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-slate-900 transition-colors">Terms</Link>
+            <Link href="/cookies" className="hover:text-slate-900 transition-colors">Cookie Settings</Link>
+            <Link href="/refund" className="hover:text-slate-900 transition-colors">Cancellation &amp; Refund</Link>
+            <button
+              onClick={scrollToTop}
+              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+              title="Scroll to Top"
+            >
+              <ChevronUp className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>

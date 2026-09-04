@@ -24,12 +24,12 @@ import Image from "next/image";
 import { HeroMerchantIllustration } from "./illustrations/VectorIllustrations";
 
 type TemplateType = "a4-gst" | "thermal" | "challan";
-type IllustrationView = "3d-terminal" | "2d-merchant";
+type IllustrationView = "lineart-counter" | "3d-terminal" | "2d-merchant";
 
 export function AppShowcaseHero() {
   const [detectedOs, setDetectedOs] = useState<"android" | "windows" | "mac" | "ios">("android");
   const [activeTemplate, setActiveTemplate] = useState<TemplateType>("a4-gst");
-  const [activeIllustration, setActiveIllustration] = useState<IllustrationView>("3d-terminal");
+  const [activeIllustration, setActiveIllustration] = useState<IllustrationView>("lineart-counter");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -174,6 +174,16 @@ export function AppShowcaseHero() {
                 </div>
                 <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold">
                   <button
+                    onClick={() => setActiveIllustration("lineart-counter")}
+                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                      activeIllustration === "lineart-counter"
+                        ? "bg-red-600 text-white shadow-xs font-bold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    SaaSzo Line Art
+                  </button>
+                  <button
                     onClick={() => setActiveIllustration("3d-terminal")}
                     className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                       activeIllustration === "3d-terminal"
@@ -183,34 +193,24 @@ export function AppShowcaseHero() {
                   >
                     3D Smart Terminal
                   </button>
-                  <button
-                    onClick={() => setActiveIllustration("2d-merchant")}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                      activeIllustration === "2d-merchant"
-                        ? "bg-indigo-600 text-white shadow-xs font-bold"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    2D Store Counter
-                  </button>
                 </div>
               </div>
 
               {/* Main Illustration Display Container */}
-              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-50/50 via-slate-50 to-blue-50/30 border border-slate-200/80 shadow-md group">
-                {activeIllustration === "3d-terminal" ? (
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white border-2 border-slate-200 shadow-md group">
+                {activeIllustration === "lineart-counter" ? (
                   <Image
-                    src="/illustrations/hero-pos-terminal-3d.jpg"
-                    alt="SaaSzo 3D Smart POS Terminal and GST Invoicing System"
+                    src="/illustrations/hero-counter-lineart.jpg"
+                    alt="SaaSzo Invoice Retail Store Counter Line Art Illustration"
                     fill
                     sizes="(max-width: 768px) 100vw, 550px"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
                     priority
                   />
                 ) : (
                   <Image
-                    src="/illustrations/merchant-counter-vector.jpg"
-                    alt="SaaSzo Indian Retail Merchant with Barcode Scanner POS"
+                    src="/illustrations/hero-pos-terminal-3d.jpg"
+                    alt="SaaSzo 3D Smart POS Terminal and GST Invoicing System"
                     fill
                     sizes="(max-width: 768px) 100vw, 550px"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
