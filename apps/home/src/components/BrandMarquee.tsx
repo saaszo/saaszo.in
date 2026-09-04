@@ -25,13 +25,13 @@ export function BrandMarquee() {
   return (
     <section className="py-20 md:py-28 bg-slate-50/60 overflow-hidden border-y border-slate-200/70">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="inline-block text-xs font-black tracking-widest text-red-600 uppercase mb-3">
+        <div className="inline-block text-xs font-black tracking-widest text-amber-500 uppercase mb-3">
           TRUSTED BY THE BEST
         </div>
 
         <h2 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight leading-tight">
           Trusted by the biggest names{" "}
-          <span className="text-red-600 block sm:inline">in the business</span>
+          <span className="text-amber-500 block sm:inline">in the business</span>
         </h2>
         <p className="mt-4 text-slate-600 max-w-2xl mx-auto text-base sm:text-lg">
           From single checkout retail shops to multi-outlet enterprise chains processing thousands of bills daily.
@@ -42,13 +42,13 @@ export function BrandMarquee() {
       <div className="mt-14 max-w-6xl mx-auto px-4 relative">
         {/* Center Glowing SaaSzo Badge */}
         <div className="relative flex justify-center mb-8">
-          <div className="relative inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white border-2 border-red-500 shadow-2xl shadow-red-500/20 z-10">
-            <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-black text-sm shadow-md">
+          <div className="relative inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white border-2 border-yellow-400 shadow-2xl shadow-yellow-400/20 z-10">
+            <div className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center text-slate-950 font-black text-sm shadow-md">
               S
             </div>
             <div className="text-left">
               <div className="text-lg font-black tracking-tight text-slate-950">
-                SAASZO <span className="text-red-600">POS</span>
+                SAASZO <span className="text-amber-500">POS</span>
               </div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Core Engine
@@ -62,10 +62,10 @@ export function BrandMarquee() {
           {brandsRow1.map((b) => (
             <div
               key={b.name}
-              className="flex items-center gap-3 px-5 py-3 rounded-full bg-white border border-slate-200 shadow-xs hover:border-red-300 hover:shadow-md transition-all duration-200 group cursor-default"
+              className="flex items-center gap-3 px-5 py-3 rounded-full bg-white border border-slate-200 shadow-xs hover:border-yellow-400 hover:shadow-md transition-all duration-200 group cursor-default"
             >
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500 group-hover:scale-125 transition-transform" />
-              <div className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-400 group-hover:scale-125 transition-transform" />
+              <div className="text-sm font-bold text-slate-900 group-hover:text-amber-600 transition-colors">
                 {b.name}
               </div>
               <span className="text-slate-300 font-light">|</span>
@@ -82,10 +82,10 @@ export function BrandMarquee() {
           {brandsRow2.map((b) => (
             <div
               key={b.name}
-              className="flex items-center gap-3 px-5 py-3 rounded-full bg-white border border-slate-200 shadow-xs hover:border-red-300 hover:shadow-md transition-all duration-200 group cursor-default"
+              className="flex items-center gap-3 px-5 py-3 rounded-full bg-white border border-slate-200 shadow-xs hover:border-yellow-400 hover:shadow-md transition-all duration-200 group cursor-default"
             >
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 group-hover:scale-125 transition-transform" />
-              <div className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
+              <div className="text-sm font-bold text-slate-900 group-hover:text-amber-600 transition-colors">
                 {b.name}
               </div>
               <span className="text-slate-300 font-light">|</span>

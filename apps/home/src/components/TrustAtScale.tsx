@@ -11,13 +11,13 @@ export function TrustAtScale() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Column: Typography & Narrative */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="inline-block text-xs font-black tracking-widest text-red-600 uppercase">
+            <div className="inline-block text-xs font-black tracking-widest text-amber-500 uppercase">
               TRUST AT SCALE
             </div>
 
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.15]">
               Trust earned across{" "}
-              <span className="text-red-600">1,50,000+ businesses</span>
+              <span className="text-amber-500">1,50,000+ businesses</span>
             </h2>
 
             <p className="text-base sm:text-xl text-slate-600 font-normal leading-relaxed">
@@ -27,8 +27,8 @@ export function TrustAtScale() {
             {/* Trust Pillars */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
               <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                <div className="p-2 rounded-xl bg-red-50 text-red-600">
-                  <ShieldCheck className="w-5 h-5" />
+                <div className="p-2 rounded-xl bg-yellow-100 text-slate-900">
+                  <ShieldCheck className="w-5 h-5 text-amber-500" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-slate-900">99.99% Offline Uptime</div>
@@ -37,8 +37,8 @@ export function TrustAtScale() {
               </div>
 
               <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                <div className="p-2 rounded-xl bg-red-50 text-red-600">
-                  <TrendingUp className="w-5 h-5" />
+                <div className="p-2 rounded-xl bg-yellow-100 text-slate-900">
+                  <TrendingUp className="w-5 h-5 text-amber-500" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-slate-900">₹500+ Cr Invoiced</div>
@@ -59,8 +59,8 @@ export function TrustAtScale() {
                 className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
               />
               {/* Floating Verified Pill */}
-              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-red-200 shadow-md flex items-center gap-1.5 text-xs font-bold text-red-600">
-                <CheckCircle2 className="w-4 h-4 text-red-600" />
+              <div className="absolute top-4 right-4 bg-yellow-400 text-slate-950 px-3.5 py-1.5 rounded-full border border-yellow-300 shadow-md flex items-center gap-1.5 text-xs font-black">
+                <CheckCircle2 className="w-4 h-4 text-slate-950" />
                 <span>Verified Retail Partner</span>
               </div>
             </div>

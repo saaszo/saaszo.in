@@ -58,7 +58,7 @@ export function BookDemoSection() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Name<span className="text-red-500">*</span>
+                      Name<span className="text-amber-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -66,13 +66,13 @@ export function BookDemoSection() {
                       placeholder="e.g. Rahul Sharma"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-xs"
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 shadow-xs"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Email<span className="text-red-500">*</span>
+                      Email<span className="text-amber-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -80,7 +80,7 @@ export function BookDemoSection() {
                       placeholder="e.g. rahul@shreeganesh.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-xs"
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 shadow-xs"
                     />
                   </div>
                 </div>
@@ -88,7 +88,7 @@ export function BookDemoSection() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Phone number<span className="text-red-500">*</span>
+                      Phone number<span className="text-amber-500">*</span>
                     </label>
                     <div className="flex">
                       <span className="inline-flex items-center px-3.5 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-xs font-bold text-slate-600">
@@ -100,14 +100,14 @@ export function BookDemoSection() {
                         placeholder="98765 43210"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-4 py-3 rounded-r-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-xs"
+                        className="w-full px-4 py-3 rounded-r-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 shadow-xs"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      City<span className="text-red-500">*</span>
+                      City<span className="text-amber-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -115,14 +115,14 @@ export function BookDemoSection() {
                       placeholder="Start typing your city"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-xs"
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 shadow-xs"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Business Name<span className="text-red-500">*</span>
+                    Business Name<span className="text-amber-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -130,14 +130,14 @@ export function BookDemoSection() {
                     placeholder="e.g. Shree Ganesh Supermarket"
                     value={formData.businessName}
                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-xs"
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 shadow-xs"
                   />
                 </div>
 
                 {/* Product Interest Pills */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-2">
-                    Which product are you interested in?<span className="text-red-500">*</span>
+                    Which product are you interested in?<span className="text-amber-500">*</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {products.map((p) => (
@@ -160,7 +160,7 @@ export function BookDemoSection() {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-sm tracking-wide shadow-lg shadow-red-600/30 transition-all duration-200 cursor-pointer"
+                    className="w-full py-4 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-yellow-400/30 transition-all duration-200 cursor-pointer"
                   >
                     Submit
                   </button>
@@ -181,7 +181,7 @@ export function BookDemoSection() {
               />
             </div>
             <div className="mt-4 flex items-center gap-2 text-xs font-bold text-slate-600">
-              <Headphones className="w-4 h-4 text-red-600" />
+              <Headphones className="w-4 h-4 text-amber-500" />
               <span>Dedicated 24/7 Onboarding &amp; Training Support</span>
             </div>
           </div>

@@ -55,7 +55,7 @@ export function CustomerStories() {
         <div className="text-center max-w-3xl mx-auto">
           <h2 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight leading-tight">
             Businesses that switched{" "}
-            <span className="text-red-600 block sm:inline">never looked back</span>
+            <span className="text-amber-500 block sm:inline">never looked back</span>
           </h2>
           <p className="mt-4 text-base sm:text-lg text-slate-600">
             Real stories from business owners who transformed their counter billing and cash flow with SaaSzo.
@@ -74,8 +74,8 @@ export function CustomerStories() {
                 {/* Top Video Controls Bar */}
                 <div className="flex items-center justify-between z-10">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-red-400">
+                    <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
                       Story #{idx + 1}
                     </span>
                   </div>
@@ -89,12 +89,12 @@ export function CustomerStories() {
                 <div className="my-auto flex flex-col items-center justify-center z-10">
                   <button
                     onClick={() => setPlayingIndex(isPlaying ? null : idx)}
-                    className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white shadow-2xl group-hover:scale-110 group-hover:bg-red-600 group-hover:border-red-500 transition-all duration-300 cursor-pointer"
+                    className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white shadow-2xl group-hover:scale-110 group-hover:bg-yellow-400 group-hover:text-slate-950 group-hover:border-yellow-400 transition-all duration-300 cursor-pointer"
                   >
                     {isPlaying ? (
-                      <Pause className="w-6 h-6 fill-white" />
+                      <Pause className="w-6 h-6 fill-current" />
                     ) : (
-                      <Play className="w-6 h-6 fill-white ml-0.5" />
+                      <Play className="w-6 h-6 fill-current ml-0.5" />
                     )}
                   </button>
                   <span className="text-[11px] font-bold text-white/80 mt-3 px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm border border-white/10">
@@ -107,7 +107,7 @@ export function CustomerStories() {
                   <div className="text-xs font-bold text-white line-clamp-2 leading-snug">
                     {s.title}
                   </div>
-                  <div className="text-[10px] text-red-300 mt-1 font-semibold">
+                  <div className="text-[10px] text-amber-300 mt-1 font-semibold">
                     {s.subtitle}
                   </div>
                   <p className="text-[10px] text-slate-300 mt-2 line-clamp-2 italic">

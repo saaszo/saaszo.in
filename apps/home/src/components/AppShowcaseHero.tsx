@@ -177,7 +177,7 @@ export function AppShowcaseHero() {
                     onClick={() => setActiveIllustration("lineart-counter")}
                     className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                       activeIllustration === "lineart-counter"
-                        ? "bg-red-600 text-white shadow-xs font-bold"
+                        ? "bg-yellow-400 text-slate-950 shadow-xs font-black"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >

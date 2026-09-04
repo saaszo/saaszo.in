@@ -75,7 +75,7 @@ const JSON_LD_SCHEMA = {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white text-slate-900 selection:bg-red-600 selection:text-white antialiased">
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-yellow-400 selection:text-slate-950 antialiased">
       {/* Structured SEO Schema */}
       <script
         type="application/ld+json"
