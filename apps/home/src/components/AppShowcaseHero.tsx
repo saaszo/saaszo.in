@@ -13,10 +13,20 @@ import {
   Barcode,
   ArrowRight,
   Sparkles,
+  Zap,
+  FileText,
+  Receipt,
+  Truck,
+  QrCode,
+  ShieldCheck,
 } from "lucide-react";
+import { HeroMerchantIllustration } from "./illustrations/VectorIllustrations";
+
+type TemplateType = "a4-gst" | "thermal" | "challan";
 
 export function AppShowcaseHero() {
   const [detectedOs, setDetectedOs] = useState<"android" | "windows" | "mac" | "ios">("android");
+  const [activeTemplate, setActiveTemplate] = useState<TemplateType>("a4-gst");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -65,12 +75,12 @@ export function AppShowcaseHero() {
   const PrimaryIcon = primaryDownload.icon;
 
   return (
-    <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-white">
+    <section className="relative pt-28 pb-20 md:pt-36 md:pb-28 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50">
       {/* Background Soft Glow & Grid */}
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-indigo-50/70 via-blue-50/40 to-transparent blur-3xl opacity-70" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[500px] bg-gradient-to-b from-indigo-100/60 via-blue-50/40 to-transparent blur-3xl opacity-75" />
         <div
-          className="absolute inset-0 opacity-[0.025]"
+          className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage:
               "linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)",
@@ -82,228 +92,293 @@ export function AppShowcaseHero() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Kicker Badge */}
         <div className="flex justify-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100/90 border border-slate-200/80 text-slate-800 text-xs font-semibold shadow-xs hover:border-slate-300 transition-colors">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50/90 border border-indigo-200/80 text-indigo-900 text-xs font-semibold shadow-xs hover:border-indigo-300 transition-colors">
             <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Native Cross-Platform Billing Suite</span>
+            <span>India’s Most Trusted GST Billing &amp; Counter POS</span>
             <span className="text-slate-400 font-normal">|</span>
-            <span className="text-indigo-600 font-medium">Free to Download</span>
+            <span className="text-indigo-600 font-bold">100% Offline Ready</span>
           </div>
         </div>
 
         {/* Main Title & Subtitle */}
         <div className="text-center max-w-4xl mx-auto mt-6">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-950 tracking-tight leading-[1.1]">
-            Smart Invoicing &amp; Counter POS.{" "}
-            <span className="bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 bg-clip-text text-transparent">
-              Works 100% Offline.
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-950 tracking-tight leading-[1.12]">
+            Billing &amp; Accounting Software{" "}
+            <span className="bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent">
+              Built for Speed.
             </span>
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            Generate GST invoices in seconds, scan barcodes with your camera, and print to Bluetooth thermal printers. Never pause sales when internet disconnects.
+          <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
+            Create professional GST bills in <strong>8 seconds</strong>, scan barcodes with your camera, manage inventory with batch expiry, and print to Bluetooth thermal printers.
           </p>
         </div>
 
-        {/* Primary Download CTAs */}
+        {/* Quick Feature Pillars Strip */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-semibold text-slate-700">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200/80 shadow-xs">
+            <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
+            <span>8s Instant Bill</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200/80 shadow-xs">
+            <WifiOff className="w-4 h-4 text-indigo-600" />
+            <span>Works 100% Offline</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200/80 shadow-xs">
+            <Printer className="w-4 h-4 text-emerald-600" />
+            <span>Thermal &amp; A4 Print</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200/80 shadow-xs">
+            <QrCode className="w-4 h-4 text-purple-600" />
+            <span>WhatsApp UPI Links</span>
+          </div>
+        </div>
+
+        {/* Primary Action Buttons */}
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
           <a
             href={primaryDownload.href}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-slate-950 text-white font-semibold text-sm shadow-md hover:bg-slate-800 hover:shadow-lg transition-all duration-200 group"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl bg-slate-950 text-white font-semibold text-sm shadow-md hover:bg-slate-800 hover:shadow-lg transition-all duration-200 group cursor-pointer"
           >
             <PrimaryIcon className="w-4 h-4 text-emerald-400 transition-transform group-hover:scale-110" />
             <span>{primaryDownload.label}</span>
           </a>
 
           <a
-            href="#downloads"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-colors shadow-xs"
+            href="https://invoice.saaszo.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-white border border-slate-300 text-slate-800 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-colors shadow-xs"
           >
-            <Download className="w-4 h-4 text-slate-500" />
-            <span>All Platforms</span>
+            <span>Open Web Cloud App</span>
+            <ArrowRight className="w-4 h-4 text-slate-500" />
           </a>
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-3 font-medium">
-          {primaryDownload.hint} • No credit card required
+          {primaryDownload.hint} • Free download • No credit card needed
         </p>
 
-        {/* Platform Quick Strip */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
-          <a href="#downloads" className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
-            <Smartphone className="w-3.5 h-3.5 text-slate-600" /> Android
-          </a>
-          <span className="text-slate-300">•</span>
-          <a href="#downloads" className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
-            <Monitor className="w-3.5 h-3.5 text-slate-600" /> Windows PC
-          </a>
-          <span className="text-slate-300">•</span>
-          <a href="#downloads" className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
-            <Apple className="w-3.5 h-3.5 text-slate-600" /> macOS
-          </a>
-          <span className="text-slate-300">•</span>
-          <a href="#downloads" className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
-            <Apple className="w-3.5 h-3.5 text-slate-600" /> iOS
-          </a>
-        </div>
+        {/* Hero Visual Section: 2D Vector Illustration + Live Interactive Bill Template Switcher */}
+        <div className="mt-14 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white rounded-3xl p-4 sm:p-8 border border-slate-200/90 shadow-2xl">
+            {/* Left Column: 2D Flat Vector Retail Merchant Illustration */}
+            <div className="lg:col-span-6 flex flex-col items-center justify-center p-2">
+              <div className="w-full max-w-md">
+                <HeroMerchantIllustration className="w-full h-auto drop-shadow-md" />
+              </div>
+              <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Zero Cloud Dependency for Offline Sales • Instant Sync</span>
+              </div>
+            </div>
 
-        {/* Realistic Flutter App Interactive Showcase Frame */}
-        <div className="mt-16 max-w-5xl mx-auto">
-          <div className="relative rounded-2xl p-2 sm:p-3 bg-slate-900/5 border border-slate-200/80 shadow-2xl backdrop-blur-xs">
-            {/* Desktop Mockup Window */}
-            <div className="rounded-xl bg-white border border-slate-200/90 overflow-hidden shadow-sm">
-              {/* Window Controls & Bar */}
-              <div className="h-10 bg-slate-50 border-b border-slate-200/80 px-4 flex items-center justify-between">
+            {/* Right Column: Live Interactive Invoice Template Preview */}
+            <div className="lg:col-span-6 bg-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-200/80">
+              {/* Template Switcher Tabs */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Live Bill Templates:
+                </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                  <span className="ml-3 text-xs font-medium text-slate-600 tracking-tight">
-                    SaaSzo Invoice &amp; POS — Counter Register #01
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                    <CheckCircle2 className="w-3 h-3" />
-                    Local SQLite: Synced
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200/60">
-                    <Printer className="w-3 h-3" />
-                    Thermal 80mm: Ready
-                  </span>
-                </div>
-              </div>
+                  <button
+                    onClick={() => setActiveTemplate("a4-gst")}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      activeTemplate === "a4-gst"
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "bg-white text-slate-600 hover:bg-slate-200 border border-slate-200"
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>A4 GST Invoice</span>
+                  </button>
 
-              {/* POS App Screen Representation */}
-              <div className="grid grid-cols-1 md:grid-cols-12 min-h-[440px]">
-                {/* Left Area: Product Categories & Quick Catalog (7 cols) */}
-                <div className="md:col-span-7 p-5 border-r border-slate-200/80 bg-slate-50/40">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Barcode className="w-4 h-4 text-indigo-600" />
-                      <span className="text-xs font-semibold uppercase text-slate-500 tracking-wider">
-                        Quick Items &amp; Barcode Ready
-                      </span>
-                    </div>
-                    <span className="text-xs text-slate-400 font-mono">Press F2 for Search</span>
-                  </div>
+                  <button
+                    onClick={() => setActiveTemplate("thermal")}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      activeTemplate === "thermal"
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "bg-white text-slate-600 hover:bg-slate-200 border border-slate-200"
+                    }`}
+                  >
+                    <Receipt className="w-3.5 h-3.5" />
+                    <span>3&quot; Thermal Slip</span>
+                  </button>
 
-                  {/* Category Filter Pills */}
-                  <div className="flex gap-2 overflow-x-auto pb-2 text-xs font-medium text-slate-600">
-                    <span className="px-3 py-1 rounded-lg bg-indigo-600 text-white font-semibold shadow-xs">
-                      All Items
-                    </span>
-                    <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700">
-                      Groceries
-                    </span>
-                    <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700">
-                      Electronics
-                    </span>
-                    <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700">
-                      Beverages
-                    </span>
-                  </div>
-
-                  {/* Item Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
-                    {[
-                      { name: "Organic Basmati Rice", price: "185.00", tax: "5% GST", code: "890123" },
-                      { name: "Cold Pressed Mustard Oil", price: "210.00", tax: "5% GST", code: "890124" },
-                      { name: "Wheat Flour 5kg", price: "245.00", tax: "0% GST", code: "890125" },
-                      { name: "USB Thermal Paper Rolls", price: "90.00", tax: "18% GST", code: "890126" },
-                      { name: "Premium Green Tea 250g", price: "160.00", tax: "12% GST", code: "890127" },
-                      { name: "Packaged Mineral Water 1L", price: "20.00", tax: "18% GST", code: "890128" },
-                    ].map((item) => (
-                      <div
-                        key={item.code}
-                        className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-xs hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group"
-                      >
-                        <div className="text-[11px] font-mono text-slate-400">{item.code}</div>
-                        <div className="font-semibold text-slate-900 text-xs mt-1 line-clamp-1 group-hover:text-indigo-600 transition-colors">
-                          {item.name}
-                        </div>
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
-                          <span className="text-xs font-bold text-slate-900">₹{item.price}</span>
-                          <span className="text-[10px] text-slate-500 font-medium">{item.tax}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Quick Feature Strip Inside Mockup */}
-                  <div className="mt-5 p-3 rounded-lg bg-white border border-slate-200/70 flex items-center justify-between text-xs text-slate-600">
-                    <span className="flex items-center gap-1.5 font-medium">
-                      <WifiOff className="w-3.5 h-3.5 text-slate-500" />
-                      Offline Engine: Ready without internet
-                    </span>
-                    <span className="text-indigo-600 font-semibold cursor-pointer hover:underline">
-                      Camera Barcode Scanner Active
-                    </span>
-                  </div>
-                </div>
-
-                {/* Right Area: Active Cart & Checkout (5 cols) */}
-                <div className="md:col-span-5 p-5 bg-white flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <div>
-                        <div className="text-xs font-semibold text-slate-900">Current Sale</div>
-                        <div className="text-[11px] text-slate-500">Walk-in Retail Customer</div>
-                      </div>
-                      <span className="font-mono text-xs text-slate-400">#INV-2026-0841</span>
-                    </div>
-
-                    {/* Cart Items */}
-                    <div className="divide-y divide-slate-100 my-3 text-xs">
-                      <div className="py-2.5 flex items-center justify-between">
-                        <div>
-                          <div className="font-semibold text-slate-800">Organic Basmati Rice (1kg)</div>
-                          <div className="text-slate-400 text-[11px]">2 × ₹185.00</div>
-                        </div>
-                        <div className="font-bold text-slate-900">₹370.00</div>
-                      </div>
-                      <div className="py-2.5 flex items-center justify-between">
-                        <div>
-                          <div className="font-semibold text-slate-800">Wheat Flour 5kg</div>
-                          <div className="text-slate-400 text-[11px]">1 × ₹245.00</div>
-                        </div>
-                        <div className="font-bold text-slate-900">₹245.00</div>
-                      </div>
-                      <div className="py-2.5 flex items-center justify-between">
-                        <div>
-                          <div className="font-semibold text-slate-800">USB Thermal Paper Rolls</div>
-                          <div className="text-slate-400 text-[11px]">3 × ₹90.00 (18% GST)</div>
-                        </div>
-                        <div className="font-bold text-slate-900">₹270.00</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Calculations & Print Button */}
-                  <div className="pt-3 border-t border-slate-200">
-                    <div className="space-y-1.5 text-xs text-slate-600 mb-3">
-                      <div className="flex justify-between">
-                        <span>Subtotal</span>
-                        <span className="font-medium">₹885.00</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Total GST (CGST + SGST)</span>
-                        <span className="font-medium">₹67.10</span>
-                      </div>
-                      <div className="flex justify-between text-sm font-bold text-slate-950 pt-1.5 border-t border-slate-100">
-                        <span>Net Payable</span>
-                        <span className="text-base text-indigo-600">₹952.10</span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-sm transition-colors"
-                    >
-                      <Printer className="w-4 h-4" />
-                      <span>Print Thermal Bill (F10)</span>
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => setActiveTemplate("challan")}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      activeTemplate === "challan"
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "bg-white text-slate-600 hover:bg-slate-200 border border-slate-200"
+                    }`}
+                  >
+                    <Truck className="w-3.5 h-3.5" />
+                    <span>Challan</span>
+                  </button>
                 </div>
               </div>
+
+              {/* Template Rendering */}
+              {activeTemplate === "a4-gst" && (
+                <div className="mt-4 bg-white rounded-xl p-5 shadow-sm border border-slate-200 space-y-4 font-sans text-xs">
+                  {/* Invoice Header */}
+                  <div className="flex justify-between items-start pb-3 border-b border-slate-100">
+                    <div>
+                      <div className="text-base font-black text-slate-950">SHREE GANESH ENTERPRISES</div>
+                      <div className="text-[11px] text-slate-500">GSTIN: 27AABCS1429B1Z8 • Mumbai, MH</div>
+                      <div className="text-[10px] text-slate-400">Phone: +91 98765 43210 • info@shreeganesh.com</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="inline-block px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px] tracking-wider uppercase">
+                        TAX INVOICE
+                      </div>
+                      <div className="text-[11px] font-bold text-slate-800 mt-1">INV #2026/0412</div>
+                      <div className="text-[10px] text-slate-400">Date: 05-Sep-2026</div>
+                    </div>
+                  </div>
+
+                  {/* Bill To */}
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-[11px] flex justify-between">
+                    <div>
+                      <span className="text-slate-400 font-medium">Billed To:</span>{" "}
+                      <span className="font-bold text-slate-800">Apex Traders &amp; Retail Ltd</span>
+                      <div className="text-slate-500 text-[10px]">GSTIN: 27ABCDE1234F1Z5 • Place of Supply: 27-Maharashtra</div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-slate-400">Due Date:</span> <span className="font-semibold text-slate-700">Immediate</span>
+                    </div>
+                  </div>
+
+                  {/* Line items Table */}
+                  <div className="space-y-1.5">
+                    <div className="grid grid-cols-12 text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-100">
+                      <div className="col-span-6">Item Description</div>
+                      <div className="col-span-2 text-center">HSN</div>
+                      <div className="col-span-1 text-center">Qty</div>
+                      <div className="col-span-3 text-right">Amount (₹)</div>
+                    </div>
+
+                    <div className="grid grid-cols-12 text-[11px] text-slate-800 py-1">
+                      <div className="col-span-6 font-medium">Smart WiFi Security Camera 4K</div>
+                      <div className="col-span-2 text-center text-slate-400">8525</div>
+                      <div className="col-span-1 text-center font-bold">2</div>
+                      <div className="col-span-3 text-right font-semibold">₹4,998.00</div>
+                    </div>
+
+                    <div className="grid grid-cols-12 text-[11px] text-slate-800 py-1">
+                      <div className="col-span-6 font-medium">Wireless Barcode Scanner USB</div>
+                      <div className="col-span-2 text-center text-slate-400">8471</div>
+                      <div className="col-span-1 text-center font-bold">1</div>
+                      <div className="col-span-3 text-right font-semibold">₹2,450.00</div>
+                    </div>
+                  </div>
+
+                  {/* Totals & GST Split */}
+                  <div className="pt-2 border-t border-slate-100 flex justify-between items-end">
+                    <div className="space-y-1 text-[10px] text-slate-500">
+                      <div>CGST (9%): <span className="font-semibold text-slate-700">₹335.16</span></div>
+                      <div>SGST (9%): <span className="font-semibold text-slate-700">₹335.16</span></div>
+                      <div className="text-emerald-600 font-bold">Total Tax: ₹670.32</div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-[10px] text-slate-400">Total Amount Payable</div>
+                      <div className="text-xl font-black text-slate-950">₹7,448.00</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTemplate === "thermal" && (
+                <div className="mt-4 bg-white rounded-xl p-5 shadow-sm border border-slate-200 max-w-sm mx-auto font-mono text-xs space-y-3">
+                  <div className="text-center space-y-0.5 border-b border-dashed border-slate-300 pb-2">
+                    <div className="font-black text-sm text-slate-900">SAASZO SUPERMART</div>
+                    <div className="text-[10px] text-slate-500">Main Road, Sector 18, Noida</div>
+                    <div className="text-[10px] text-slate-500">GSTIN: 09AAACS1234A1Z1</div>
+                  </div>
+
+                  <div className="flex justify-between text-[11px] text-slate-500">
+                    <span>RCPT #POS-8841</span>
+                    <span>05-Sep 08:30 PM</span>
+                  </div>
+
+                  <div className="space-y-1.5 text-[11px] text-slate-800 border-b border-dashed border-slate-300 pb-2">
+                    <div className="flex justify-between">
+                      <span>Organic Almonds 500g</span>
+                      <span>₹450.00</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Cold Pressed Olive Oil 1L</span>
+                      <span>₹820.00</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Brown Sugar 1Kg</span>
+                      <span>₹110.00</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-slate-600 text-[11px]">
+                    <div className="flex justify-between">
+                      <span>Subtotal (3 Items)</span>
+                      <span>₹1,380.00</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-600 font-semibold">
+                      <span>GST (5% Included)</span>
+                      <span>₹65.71</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-black text-slate-950 pt-1 border-t border-slate-300">
+                      <span>NET AMOUNT</span>
+                      <span>₹1,380.00</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 text-center border-t border-dashed border-slate-300 space-y-1">
+                    <div className="text-[10px] font-bold text-emerald-600">PAID VIA UPI QR CODE</div>
+                    <div className="text-[9px] text-slate-400">Thank you for shopping with us!</div>
+                  </div>
+                </div>
+              )}
+
+              {activeTemplate === "challan" && (
+                <div className="mt-4 bg-white rounded-xl p-5 shadow-sm border border-slate-200 space-y-4 font-sans text-xs">
+                  <div className="flex justify-between items-start pb-3 border-b border-slate-100">
+                    <div>
+                      <div className="text-base font-black text-slate-950">MAHESHWARI LOGISTICS</div>
+                      <div className="text-[11px] text-slate-500">Warehouse Godown #4 • Surat, Gujarat</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="inline-block px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold text-[10px] tracking-wider uppercase">
+                        DELIVERY CHALLAN
+                      </div>
+                      <div className="text-[11px] font-bold text-slate-800 mt-1">DC #DC-2026-901</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-[11px] flex justify-between">
+                    <div>
+                      <span className="text-slate-400 font-medium">Consignee:</span>{" "}
+                      <span className="font-bold text-slate-800">Reliance Digital Warehouse</span>
+                      <div className="text-slate-500 text-[10px]">Vehicle No: GJ-05-BX-4421 • E-Way Bill: 884920194821</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-slate-800 text-[11px]">
+                    <div className="flex justify-between py-1 border-b border-slate-100">
+                      <span>1. Copper Wire Rolls (Heavy Gauge)</span>
+                      <span className="font-bold">50 Rolls (2,500 Kg)</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-100">
+                      <span>2. Industrial Switchgear Panels</span>
+                      <span className="font-bold">12 Units</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 pt-2">
+                    <span>Verified &amp; Dispatched by SaaSzo Inventory</span>
+                    <span className="font-bold text-slate-700">Driver Signature: ____________</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

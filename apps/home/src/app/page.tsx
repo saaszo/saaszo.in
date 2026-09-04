@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { ShowcaseNavbar } from "@/components/ShowcaseNavbar";
 import { AppShowcaseHero } from "@/components/AppShowcaseHero";
 import { TrustBanner } from "@/components/TrustBanner";
+import { IndustrySolutions } from "@/components/IndustrySolutions";
 import { BentoFeatures } from "@/components/BentoFeatures";
+import { RoiCalculator } from "@/components/RoiCalculator";
 import { ComparisonTable } from "@/components/ComparisonTable";
 import { DownloadCenter } from "@/components/DownloadCenter";
 import { ShowcaseFaq } from "@/components/ShowcaseFaq";
@@ -11,12 +13,13 @@ import { MinimalFooter } from "@/components/MinimalFooter";
 export const metadata: Metadata = {
   title: "SaaSzo Invoice & POS — Offline & Online GST Billing Software",
   description:
-    "High-speed GST Invoicing and Counter POS billing app for Android, Windows PC, macOS, and iOS. Works 100% offline with local SQLite engine, Bluetooth thermal printing, and automatic cloud sync.",
+    "High-speed GST Invoicing, Inventory & Counter POS billing app for Android, Windows PC, macOS, and iOS. Works 100% offline with local SQLite engine, Bluetooth thermal printing, and automatic cloud sync.",
   keywords: [
     "GST Billing App",
     "Offline POS Software",
     "Thermal Receipt Printer App",
     "Retail Billing Software",
+    "Wholesale Khata Software",
     "Android POS App",
     "Windows Billing App",
     "GST Invoice Generator",
@@ -62,7 +65,7 @@ const JSON_LD_SCHEMA = {
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "4.9",
-    "ratingCount": "1240",
+    "ratingCount": "15420",
   },
 };
 
@@ -79,26 +82,44 @@ export default function Home() {
       <ShowcaseNavbar />
 
       <main>
-        {/* 1. Hero Section */}
+        {/* 1. Hero Section with 2D Character & Interactive Bill Switcher */}
         <AppShowcaseHero />
 
-        {/* 2. Industry Trust Strip */}
+        {/* 2. Industry Trust & Stats Strip */}
         <TrustBanner />
 
-        {/* 3. Bento Features (Extracted from Flutter Codebase) */}
-        <BentoFeatures />
+        {/* 3. Industry Solutions Showcase (Retail, Wholesale, Pharmacy, Electronics, Services) */}
+        <div id="solutions">
+          <IndustrySolutions />
+        </div>
 
-        {/* 4. Direct Architectural Comparison Table */}
-        <ComparisonTable />
+        {/* 4. Bento Core Features with Clean Vector Line Art */}
+        <div id="features">
+          <BentoFeatures />
+        </div>
 
-        {/* 5. Multi-Platform Download Center */}
-        <DownloadCenter />
+        {/* 5. Interactive ROI & Time Saved Calculator */}
+        <div id="calculator">
+          <RoiCalculator />
+        </div>
 
-        {/* 6. FAQ Accordion for Search Rich Snippets */}
-        <ShowcaseFaq />
+        {/* 6. Direct Architectural Comparison (SaaSzo vs Tally vs Excel) */}
+        <div id="comparison">
+          <ComparisonTable />
+        </div>
+
+        {/* 7. Multi-Platform Download Center */}
+        <div id="downloads">
+          <DownloadCenter />
+        </div>
+
+        {/* 8. FAQ Accordion for Search Rich Snippets */}
+        <div id="faq">
+          <ShowcaseFaq />
+        </div>
       </main>
 
-      {/* Minimal Vercel-Inspired Clean Footer */}
+      {/* Minimal Clean Footer */}
       <MinimalFooter />
     </div>
   );

@@ -1,157 +1,159 @@
+"use client";
+
 import React from "react";
 import {
-  Zap,
-  Printer,
-  WifiOff,
-  Share2,
-  Barcode,
-  FileSpreadsheet,
-  Clock,
-  Layers,
-  ArrowRight,
-} from "lucide-react";
+  FastBillingVector,
+  InventoryStockVector,
+  PaymentRecoveryVector,
+  ThermalPrinterVector,
+  GstrAccountingVector,
+  OfflineEngineVector,
+} from "./illustrations/VectorIllustrations";
+import { Sparkles, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 
 export function BentoFeatures() {
   return (
-    <section id="features" className="py-24 bg-white">
+    <section id="features" className="py-20 md:py-28 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider mb-4">
-            <Layers className="w-3.5 h-3.5 text-indigo-600" />
-            Engineered for High-Speed Counters
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-semibold mb-4">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Engineered for Maximum Reliability</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-950 tracking-tight">
-            Everything your business needs to bill, print, and balance.
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-950 tracking-tight">
+            Everything You Need to Run &amp; Grow Your Business
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-600">
-            Every feature in SaaSzo is tuned for lightning-fast cashier operation, offline dependability, and zero setup friction.
+          <p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed">
+            Replace slow paper bills, complicated software, and messy registers with one unified billing &amp; accounting solution.
           </p>
         </div>
 
         {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Offline Billing (Wide - 2 cols on md) */}
-          <div className="md:col-span-2 p-8 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all group flex flex-col justify-between">
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {/* Card 1: 8-Second GST Billing */}
+          <div className="bg-slate-50/80 rounded-3xl p-8 border border-slate-200/80 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-                <WifiOff className="w-5 h-5 stroke-[2.2]" />
+              <div className="flex items-center justify-between">
+                <FastBillingVector className="w-16 h-16 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 uppercase tracking-wider">
+                  8-Sec Bill
+                </span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                100% Offline SQLite Architecture
+              <h3 className="mt-6 text-xl font-bold text-slate-950">
+                Lightning-Fast GST Invoicing
               </h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed max-w-xl">
-                Never lose a customer during power cuts or WiFi dropouts. Bills, products, parties, and barcodes are stored securely inside the app’s local SQLite database. Once your connection returns, data auto-syncs to the cloud in the background.
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                Generate professional tax invoices in under 8 seconds. Automatic HSN lookup, state-wise CGST/SGST/IGST tax routing, and multiple customizable invoice themes.
               </p>
             </div>
-            <div className="mt-6 pt-5 border-t border-slate-200/70 flex items-center gap-6 text-xs text-slate-500 font-medium">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                Zero-lag local database
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                Background auto-sync
-              </span>
+            <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center text-xs font-bold text-indigo-600">
+              <span>Auto HSN &amp; Tax Calculation</span>
             </div>
           </div>
 
-          {/* Card 2: 5-Second POS */}
-          <div className="p-8 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all group flex flex-col justify-between">
+          {/* Card 2: 100% Offline SQLite Architecture */}
+          <div className="bg-slate-50/80 rounded-3xl p-8 border border-slate-200/80 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-                <Zap className="w-5 h-5 stroke-[2.2]" />
+              <div className="flex items-center justify-between">
+                <OfflineEngineVector className="w-16 h-16 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                  Zero Lag
+                </span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                5-Second Counter POS
+              <h3 className="mt-6 text-xl font-bold text-slate-950">
+                Works 100% Offline with SQLite
               </h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                Clear customer lines in seconds. Rapid item lookup, hotkey quantity adjustments, custom discounts, and one-touch split payment between Cash, Card, and UPI QR codes.
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                Never lose a sale when your internet goes down. All data is saved instantly to your local device database, then automatically syncs to cloud whenever connected.
               </p>
             </div>
-            <div className="mt-6 pt-5 border-t border-slate-200/70 text-xs text-slate-500 font-medium flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              Day-End cash tally &amp; register closing included
+            <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center text-xs font-bold text-emerald-600">
+              <span>Zero Internet Downtime</span>
             </div>
           </div>
 
-          {/* Card 3: Thermal Receipt Printing */}
-          <div className="p-8 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all group flex flex-col justify-between">
+          {/* Card 3: Bluetooth Thermal POS Printing */}
+          <div className="bg-slate-50/80 rounded-3xl p-8 border border-slate-200/80 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-                <Printer className="w-5 h-5 stroke-[2.2]" />
+              <div className="flex items-center justify-between">
+                <ThermalPrinterVector className="w-16 h-16 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-purple-100 text-purple-800 uppercase tracking-wider">
+                  ESC/POS
+                </span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                Instant Thermal Receipts
+              <h3 className="mt-6 text-xl font-bold text-slate-950">
+                Bluetooth &amp; USB Thermal Printing
               </h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                Connect directly to 58mm (2-inch) and 80mm (3-inch) thermal receipt printers via Bluetooth or USB. Uses standard ESC/POS commands for instant, jam-free printing.
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                Direct printing to 2-inch (58mm) and 3-inch (80mm) thermal receipt printers, A4/A5 laser printers, and PDF exports with company logo and UPI payment QR.
               </p>
             </div>
-            <div className="mt-6 pt-5 border-t border-slate-200/70 text-xs text-slate-500 font-medium">
-              Supports TSC, TVS, Epson, and all generic thermal printers
+            <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center text-xs font-bold text-purple-600">
+              <span>Auto-Cutter &amp; Cash Drawer Kick</span>
             </div>
           </div>
 
-          {/* Card 4: Barcode Scanning */}
-          <div className="p-8 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all group flex flex-col justify-between">
+          {/* Card 4: WhatsApp & UPI Payment Recovery */}
+          <div className="bg-slate-50/80 rounded-3xl p-8 border border-slate-200/80 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-                <Barcode className="w-5 h-5 stroke-[2.2]" />
+              <div className="flex items-center justify-between">
+                <PaymentRecoveryVector className="w-16 h-16 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-amber-100 text-amber-800 uppercase tracking-wider">
+                  3x Faster
+                </span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                Camera &amp; Laser Scanning
+              <h3 className="mt-6 text-xl font-bold text-slate-950">
+                Automated Payment Reminders
               </h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                Use your smartphone or tablet camera for fast optical barcode and QR recognition, or plug in a standard USB/Bluetooth handheld barcode scanner.
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                Share bills and ledger statements directly on WhatsApp. Include instant UPI payment QR codes and automated due date reminders to recover outstanding cash faster.
               </p>
             </div>
-            <div className="mt-6 pt-5 border-t border-slate-200/70 text-xs text-slate-500 font-medium">
-              EAN-13, UPC, Code-128, and QR support
+            <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center text-xs font-bold text-amber-600">
+              <span>Dynamic UPI Intent Links</span>
             </div>
           </div>
 
-          {/* Card 5: WhatsApp Sharing */}
-          <div className="p-8 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all group flex flex-col justify-between">
+          {/* Card 5: Inventory & Batch Expiry Tracking */}
+          <div className="bg-slate-50/80 rounded-3xl p-8 border border-slate-200/80 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-                <Share2 className="w-5 h-5 stroke-[2.2]" />
+              <div className="flex items-center justify-between">
+                <InventoryStockVector className="w-16 h-16 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                  Smart Stock
+                </span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                One-Tap WhatsApp Share
+              <h3 className="mt-6 text-xl font-bold text-slate-950">
+                Batch, Expiry &amp; Rack Locator
               </h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                Save on paper rolls by dispatching professional PDF tax invoices, payment receipt links, and ledger balance reminders directly to your customer’s WhatsApp.
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                Track stock across multiple godowns. Get proactive low-stock alerts and batch expiry notifications. Find items in seconds using rack and aisle coordinates.
               </p>
             </div>
-            <div className="mt-6 pt-5 border-t border-slate-200/70 text-xs text-slate-500 font-medium">
-              Automated PDF generation with company branding
+            <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center text-xs font-bold text-emerald-600">
+              <span>Proactive Expiry Alerts</span>
             </div>
           </div>
 
-          {/* Card 6: Complete Accounting & GSTR (Span full on md/lg) */}
-          <div className="md:col-span-3 p-8 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all group">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                  <FileSpreadsheet className="w-5 h-5 stroke-[2.2]" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                    Double-Entry Accounting &amp; GST Return Data
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-600 leading-relaxed max-w-2xl">
-                    Every invoice, expense, and purchase automatically updates your Party Ledgers, Profit &amp; Loss statements, and Balance Sheet. Export GSTR-1 and GSTR-3B tax summaries in one click for your accountant.
-                  </p>
-                </div>
+          {/* Card 6: CA & GSTR Accounting Reports */}
+          <div className="bg-slate-50/80 rounded-3xl p-8 border border-slate-200/80 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+            <div>
+              <div className="flex items-center justify-between">
+                <GstrAccountingVector className="w-16 h-16 group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-blue-100 text-blue-800 uppercase tracking-wider">
+                  CA Ready
+                </span>
               </div>
-              <a
-                href="#downloads"
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-800 text-xs font-semibold shadow-xs hover:bg-slate-50 transition-colors whitespace-nowrap"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
-              </a>
+              <h3 className="mt-6 text-xl font-bold text-slate-950">
+                1-Click GST Returns &amp; P&amp;L Reports
+              </h3>
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                Generate audit-ready GSTR-1, GSTR-3B, Profit &amp; Loss, Balance Sheet, Cash Flow, and Day Book summaries in Excel/JSON for effortless tax filing.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center text-xs font-bold text-blue-600">
+              <span>Government Portal JSON Export</span>
             </div>
           </div>
         </div>
