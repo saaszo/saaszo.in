@@ -414,11 +414,11 @@ export default async function IndustryDetailPage({
                   Start Free Online App
                 </a>
                 <a
-                  href="tel:+919104369797"
+                  href="/contact"
                   className="w-full sm:w-auto px-6 py-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2"
                 >
                   <Phone className="w-4 h-4 text-emerald-400" />
-                  <span>Call +91 91043 69797</span>
+                  <span>Book Setup Demo</span>
                 </a>
               </div>
             </div>

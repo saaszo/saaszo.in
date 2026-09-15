@@ -542,22 +542,6 @@ button:disabled, [role="button"][aria-disabled="true"], input[type="button"]:dis
   font-weight: 700;
 }
 
-.digital-whatsapp {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  min-height: 38px;
-  min-width: 140px;
-  border-radius: 8px;
-  background: #18c464;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-  line-height: 1;
-  color: #ffffff;
-}
-
 .digital-more-menu {
   position: relative;
 }
@@ -1265,21 +1249,6 @@ button:disabled, [role="button"][aria-disabled="true"], input[type="button"]:dis
   text-transform: uppercase;
 }
 
-.footer-contact {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.7rem;
-  align-items: center;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  padding: 0.65rem;
-}
-
-.footer-contact .material-symbols-rounded {
-  color: #6557ff;
-  font-size: 1rem;
-}
-
 .digital-map-card {
   position: relative;
   margin-top: 3rem;
@@ -1374,7 +1343,4 @@ button:disabled, [role="button"][aria-disabled="true"], input[type="button"]:dis
     padding: 4rem 1rem;
   }
 
-  .digital-whatsapp {
-    display: none;
-  }
 }

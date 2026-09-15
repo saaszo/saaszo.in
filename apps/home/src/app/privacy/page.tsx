@@ -67,7 +67,7 @@ const sections = [
     title: "6. Indian Legal Compliance & Contact",
     paragraphs: [
       "SaaSzo adheres to the Digital Personal Data Protection Act (DPDP) and Indian GST compliance norms. For any privacy queries, grievance redressal, or data assistance, please reach out to our privacy officer:",
-      "Email: saaszo.in@gmail.com | WhatsApp Helpdesk: Available via official website channels.",
+      "Email: saaszo.in@gmail.com.",
     ],
   },
 ] as const;

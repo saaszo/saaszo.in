@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, Smartphone, Monitor, Apple, ArrowUpRight, Phone, Mail, ChevronUp } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 
 export function MinimalFooter() {
   const scrollToTop = () => {
@@ -100,18 +100,6 @@ export function MinimalFooter() {
                   </svg>
                 </a>
 
-                {/* WhatsApp */}
-                <a
-                  href="https://wa.me/919104369797?text=Hi%20SaaSzo%20Team%2C%20I%20want%20to%20know%20more%20about%20SaaSzo%20POS%20Software."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Chat with SaaSzo on WhatsApp"
-                  className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 flex items-center justify-center transition-colors border border-slate-200/80"
-                >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.044c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.159.57 4.185 1.564 5.939l-1.564 5.707 5.867-1.539c1.691.928 3.633 1.465 5.703 1.465 6.627 0 12-5.373 12-12s-5.373-12-12-12zm0 22c-1.874 0-3.626-.531-5.115-1.449l-.366-.224-3.799.996 1.014-3.7-.24-.382c-1.026-1.632-1.572-3.526-1.572-5.491 0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/>
-                  </svg>
-                </a>
               </div>
             </div>
           </div>
@@ -145,43 +133,17 @@ export function MinimalFooter() {
             </ul>
           </div>
 
-          {/* Col 4: Contact & CTA */}
+          {/* Col 4: Company */}
           <div>
             <div className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3.5">
-              Direct Contact
+              Company
             </div>
-            <ul className="space-y-3">
-              <li>
-                <a href="tel:+919104369797" className="flex items-center gap-2 text-slate-900 font-bold hover:text-[#6451f1] transition-colors">
-                  <Phone className="w-3.5 h-3.5 text-[#6451f1]" />
-                  <span>+91 91043 69797</span>
-                </a>
-              </li>
-              <li>
-                <a href="mailto:getposs@saaszo.in" className="flex items-center gap-2 text-slate-600 hover:text-[#6451f1] transition-colors">
-                  <Mail className="w-3.5 h-3.5 text-[#6451f1]" />
-                  <span>getposs@saaszo.in</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://wa.me/919104369797"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-emerald-700 font-semibold hover:text-emerald-800 transition-colors"
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>WhatsApp Chat Live</span>
-                </a>
-              </li>
-              <li className="pt-2">
-                <a
-                  href="#demo"
-                  className="inline-block px-4 py-2 rounded-xl bg-[#6451f1] text-white font-bold text-xs hover:bg-[#5340e6] transition-colors shadow-xs"
-                >
-                  Take a Free Demo
-                </a>
-              </li>
+            <ul className="space-y-2.5">
+              <li><Link href="/about" className="hover:text-[#6451f1] transition-colors">About SaaSzo</Link></li>
+              <li><Link href="/contact" className="hover:text-[#6451f1] transition-colors">Support Request</Link></li>
+              <li><Link href="/privacy" className="hover:text-[#6451f1] transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-[#6451f1] transition-colors">Terms of Service</Link></li>
+              <li><Link href="/refund" className="hover:text-[#6451f1] transition-colors">Cancellation &amp; Refund</Link></li>
             </ul>
           </div>
         </div>

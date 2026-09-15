@@ -268,7 +268,6 @@ export function normalizeOldDigitalLink(url?: string | null) {
   }
 
   if (
-    url.startsWith("https://wa.me/") ||
     url.startsWith("tel:") ||
     url.startsWith("mailto:")
   ) {
@@ -389,9 +388,6 @@ export function contentToText(content?: string | null) {
 }
 
 export const marketingContact = {
-  phone: "+91 7982417957",
-  phoneHref: "tel:+917982417957",
-  whatsappHref: "https://wa.me/917982417957",
   email: "support@saaszo.in",
   address: "OC-1208, Gaur City Center, Noida, Uttar Pradesh 201301, India",
   appUrl: appConfig.appUrl,

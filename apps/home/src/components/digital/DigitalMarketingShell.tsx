@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import {
   type DigitalMenuItem,
   getDigitalBootstrap,
-  marketingContact,
   normalizeOldDigitalLink,
 } from "@/lib/digital-marketing";
 
@@ -209,13 +208,6 @@ export async function DigitalMarketingShell({
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <a
-              className="digital-whatsapp"
-              href={marketingContact.whatsappHref}
-            >
-              <span className="material-symbols-rounded text-sm">chat</span>
-              WhatsApp
-            </a>
             <Link
               className="digital-primary digital-primary-compact"
               href="/audit"
@@ -228,7 +220,7 @@ export async function DigitalMarketingShell({
       <main className="flex-1 bg-white text-[#0e172a]">{children}</main>
       <footer className="bg-[#0b1222] text-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_1fr]">
+          <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
             <div>
               <Link className="flex items-center gap-2" href="/">
                 <img
@@ -260,26 +252,6 @@ export async function DigitalMarketingShell({
             <FooterLinks title="Quick Links" items={activeQuickLinks} />
             <FooterLinks title="Important Links" items={activeImportantLinks} />
             <FooterLinks title="Services" items={services} />
-            <div>
-              <h2 className="footer-title">Get In Touch</h2>
-              <div className="mt-5 grid gap-3 text-xs text-slate-300">
-                <a className="footer-contact" href={marketingContact.phoneHref}>
-                  <span className="material-symbols-rounded">call</span>
-                  {marketingContact.phone}
-                </a>
-                <a
-                  className="footer-contact"
-                  href={`mailto:${marketingContact.email}`}
-                >
-                  <span className="material-symbols-rounded">mail</span>
-                  {marketingContact.email}
-                </a>
-                <p className="footer-contact">
-                  <span className="material-symbols-rounded">location_on</span>
-                  Gaur City Center, Noida, U.P. - 201301
-                </p>
-              </div>
-            </div>
           </div>
           <div className="digital-map-card">
             <span className="digital-map-pin">SaaSzo Digital Agency HQ</span>
