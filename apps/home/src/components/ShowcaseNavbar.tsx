@@ -25,22 +25,22 @@ export function ShowcaseNavbar() {
 
         {/* Desktop Nav Links */}
         <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-slate-600">
-          <a href="#features" className="hover:text-indigo-600 transition-colors">
+          <a href="/#features" className="hover:text-indigo-600 transition-colors">
             Features
           </a>
-          <a href="#solutions" className="hover:text-indigo-600 transition-colors">
+          <a href="/#solutions" className="hover:text-indigo-600 transition-colors">
             Industry Solutions
           </a>
-          <a href="#calculator" className="hover:text-indigo-600 transition-colors">
+          <a href="/#calculator" className="hover:text-indigo-600 transition-colors">
             ROI Calculator
           </a>
-          <a href="#comparison" className="hover:text-indigo-600 transition-colors">
+          <a href="/#comparison" className="hover:text-indigo-600 transition-colors">
             Why SaaSzo
           </a>
-          <a href="#downloads" className="hover:text-indigo-600 transition-colors">
+          <a href="/#downloads" className="hover:text-indigo-600 transition-colors">
             Downloads
           </a>
-          <a href="#faq" className="hover:text-indigo-600 transition-colors">
+          <a href="/#faq" className="hover:text-indigo-600 transition-colors">
             FAQ
           </a>
         </nav>
@@ -58,7 +58,7 @@ export function ShowcaseNavbar() {
           </a>
 
           <a
-            href="#downloads"
+            href="/#downloads"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-xs transition-colors"
           >
             <Download className="w-4 h-4 text-emerald-400" />
@@ -82,42 +82,42 @@ export function ShowcaseNavbar() {
         <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-6 space-y-4 shadow-xl">
           <nav className="flex flex-col space-y-3 text-base font-semibold text-slate-800">
             <a
-              href="#features"
+              href="/#features"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1"
             >
               Features
             </a>
             <a
-              href="#solutions"
+              href="/#solutions"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1"
             >
               Industry Solutions
             </a>
             <a
-              href="#calculator"
+              href="/#calculator"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1"
             >
               ROI Calculator
             </a>
             <a
-              href="#comparison"
+              href="/#comparison"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1"
             >
               Why SaaSzo
             </a>
             <a
-              href="#downloads"
+              href="/#downloads"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1"
             >
               Downloads
             </a>
             <a
-              href="#faq"
+              href="/#faq"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1"
             >
@@ -136,7 +136,7 @@ export function ShowcaseNavbar() {
               <span>Open Web App</span>
             </a>
             <a
-              href="#downloads"
+              href="/#downloads"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-950 text-white text-sm font-bold"
             >

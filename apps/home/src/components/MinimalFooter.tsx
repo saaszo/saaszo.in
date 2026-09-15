@@ -110,11 +110,11 @@ export function MinimalFooter() {
               Product
             </div>
             <ul className="space-y-2.5">
-              <li><a href="#features" className="hover:text-[#6451f1] transition-colors">Counter POS</a></li>
-              <li><a href="#features" className="hover:text-[#6451f1] transition-colors">100% Offline SQLite</a></li>
-              <li><a href="#features" className="hover:text-[#6451f1] transition-colors">Thermal Printing (ESC/POS)</a></li>
-              <li><a href="#features" className="hover:text-[#6451f1] transition-colors">Barcode Scanning</a></li>
-              <li><a href="#comparison" className="hover:text-[#6451f1] transition-colors">Feature Comparison</a></li>
+              <li><a href="/#features" className="hover:text-[#6451f1] transition-colors">Counter POS</a></li>
+              <li><a href="/#features" className="hover:text-[#6451f1] transition-colors">100% Offline SQLite</a></li>
+              <li><a href="/#features" className="hover:text-[#6451f1] transition-colors">Thermal Printing (ESC/POS)</a></li>
+              <li><a href="/#features" className="hover:text-[#6451f1] transition-colors">Barcode Scanning</a></li>
+              <li><a href="/#comparison" className="hover:text-[#6451f1] transition-colors">Feature Comparison</a></li>
             </ul>
           </div>
 
