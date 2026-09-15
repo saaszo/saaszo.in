@@ -12,7 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { ShowcaseNavbar } from "@/components/ShowcaseNavbar";
-import Footer from "@/components/Footer";
+import { MinimalFooter } from "@/components/MinimalFooter";
 import { IndustryDirectoryClient } from "@/components/IndustryDirectoryClient";
 
 export const metadata = {
@@ -148,7 +148,7 @@ export default function IndustriesDirectoryPage() {
         </div>
       </main>
 
-      <Footer />
+      <MinimalFooter />
     </div>
   );
 }
