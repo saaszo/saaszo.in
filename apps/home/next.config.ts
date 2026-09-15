@@ -9,6 +9,21 @@ const invoiceAppOrigin = (
   process.env.INVOICE_APP_ORIGIN ??
   (isVercelDeployment ? hostedInvoiceOrigin : localInvoiceOrigin)
 ).replace(/\/$/, "");
+const digitalSiteOrigin = "https://digital.saaszo.in";
+const digitalIndustrySlugs = [
+  "b2b-services",
+  "dental-clinics",
+  "e-commerce",
+  "fitness-coaches",
+  "hair-clinics",
+  "healthcare",
+  "institutes-courses",
+  "ivf-centers",
+  "local-services",
+  "real-estate",
+  "skin-clinics",
+  "travel-tourism",
+];
 const digitalApiOrigin = (() => {
   const configuredUrl =
     process.env.NEXT_PUBLIC_DIGITAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL;
@@ -152,6 +167,86 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
+        source: "/approach",
+        destination: `${digitalSiteOrigin}/approach`,
+        permanent: true,
+      },
+      {
+        source: "/audit",
+        destination: `${digitalSiteOrigin}/audit`,
+        permanent: true,
+      },
+      {
+        source: "/services",
+        destination: `${digitalSiteOrigin}/services`,
+        permanent: true,
+      },
+      {
+        source: "/services/:slug*",
+        destination: `${digitalSiteOrigin}/services/:slug*`,
+        permanent: true,
+      },
+      {
+        source: "/blog",
+        destination: `${digitalSiteOrigin}/blog`,
+        permanent: true,
+      },
+      {
+        source: "/blog/:slug*",
+        destination: `${digitalSiteOrigin}/blog/:slug*`,
+        permanent: true,
+      },
+      {
+        source: "/packages",
+        destination: `${digitalSiteOrigin}/packages`,
+        permanent: true,
+      },
+      {
+        source: "/creator-program",
+        destination: `${digitalSiteOrigin}/creator-program`,
+        permanent: true,
+      },
+      {
+        source: "/team",
+        destination: `${digitalSiteOrigin}/team`,
+        permanent: true,
+      },
+      {
+        source: "/careers",
+        destination: `${digitalSiteOrigin}/careers`,
+        permanent: true,
+      },
+      {
+        source: "/careers/:slug*",
+        destination: `${digitalSiteOrigin}/careers/:slug*`,
+        permanent: true,
+      },
+      {
+        source: "/tools",
+        destination: `${digitalSiteOrigin}/tools`,
+        permanent: true,
+      },
+      {
+        source: "/tools/:slug*",
+        destination: `${digitalSiteOrigin}/tools/:slug*`,
+        permanent: true,
+      },
+      {
+        source: "/bussinsh_tool",
+        destination: `${digitalSiteOrigin}/bussinsh_tool`,
+        permanent: true,
+      },
+      {
+        source: "/rss.xml",
+        destination: `${digitalSiteOrigin}/rss.xml`,
+        permanent: true,
+      },
+      ...digitalIndustrySlugs.map((slug) => ({
+        source: `/industries/${slug}`,
+        destination: `${digitalSiteOrigin}/industries/${slug}`,
+        permanent: true,
+      })),
+      {
         source: "/setup",
         destination: "/dashboard",
         permanent: false,
@@ -178,22 +273,22 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/approach.php",
-        destination: "/approach",
+        destination: `${digitalSiteOrigin}/approach`,
         permanent: true,
       },
       {
         source: "/blog.php",
-        destination: "/blog",
+        destination: `${digitalSiteOrigin}/blog`,
         permanent: true,
       },
       {
         source: "/blog-single.php",
-        destination: "/blog",
+        destination: `${digitalSiteOrigin}/blog`,
         permanent: true,
       },
       {
         source: "/careers.php",
-        destination: "/careers",
+        destination: `${digitalSiteOrigin}/careers`,
         permanent: true,
       },
       {
@@ -203,42 +298,42 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/creator-program.php",
-        destination: "/creator-program",
+        destination: `${digitalSiteOrigin}/creator-program`,
         permanent: true,
       },
       {
         source: "/guest-post.php",
-        destination: "/creator-program",
+        destination: `${digitalSiteOrigin}/creator-program`,
         permanent: true,
       },
       {
         source: "/job.php",
-        destination: "/careers",
+        destination: `${digitalSiteOrigin}/careers`,
         permanent: true,
       },
       {
         source: "/packages.php",
-        destination: "/packages",
+        destination: `${digitalSiteOrigin}/packages`,
         permanent: true,
       },
       {
         source: "/rss.php",
-        destination: "/rss.xml",
+        destination: `${digitalSiteOrigin}/rss.xml`,
         permanent: true,
       },
       {
         source: "/services.php",
-        destination: "/services",
+        destination: `${digitalSiteOrigin}/services`,
         permanent: true,
       },
       {
         source: "/team.php",
-        destination: "/team",
+        destination: `${digitalSiteOrigin}/team`,
         permanent: true,
       },
       {
         source: "/pages/audit.php",
-        destination: "/audit",
+        destination: `${digitalSiteOrigin}/audit`,
         permanent: true,
       },
       {
@@ -258,7 +353,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/pages/services/:slug.php",
-        destination: "/services/:slug",
+        destination: `${digitalSiteOrigin}/services/:slug`,
         permanent: true,
       },
       {
@@ -268,12 +363,12 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/tools/index.php",
-        destination: "/tools",
+        destination: `${digitalSiteOrigin}/tools`,
         permanent: true,
       },
       {
         source: "/tools/:slug.php",
-        destination: "/tools/:slug",
+        destination: `${digitalSiteOrigin}/tools/:slug`,
         permanent: true,
       },
     ];

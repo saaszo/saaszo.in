@@ -24,20 +24,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 
-// Alias mapping for backward compatibility with old marketing slugs
 const SLUG_ALIASES: Record<string, string> = {
-  "b2b-services": "services-agencies",
-  "dental-clinics": "pharmacy-chemist",
-  "e-commerce": "retailers-kirana",
-  "fitness-coaches": "services-agencies",
-  "hair-clinics": "services-agencies",
-  "healthcare": "pharmacy-chemist",
-  "institutes-courses": "services-agencies",
-  "ivf-centers": "pharmacy-chemist",
-  "local-services": "retailers-kirana",
-  "real-estate": "services-agencies",
-  "skin-clinics": "pharmacy-chemist",
-  "travel-tourism": "services-agencies",
   "retail": "retailers-kirana",
   "wholesale": "wholesalers-distributors",
   "manufacturing": "manufacturers",
