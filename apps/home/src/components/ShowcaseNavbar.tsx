@@ -11,16 +11,16 @@ export function ShowcaseNavbar() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-base shadow-xs">
-            S
-          </div>
-          <span className="font-extrabold text-slate-950 text-xl tracking-tight">
-            SaaSzo
-          </span>
-          <span className="text-[10px] uppercase font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 rounded-full ml-1 tracking-wider">
-            Billing &amp; POS
-          </span>
+        <Link
+          href="/"
+          className="inline-flex items-center rounded-xl bg-slate-950 px-3 py-1.5 shadow-xs"
+          aria-label="SaaSzo home"
+        >
+          <img
+            src="/digital-assets/images/Saaszo_Digital_logo.svg"
+            alt="SaaSzo"
+            className="h-8 w-auto"
+          />
         </Link>
 
         {/* Desktop Nav Links */}

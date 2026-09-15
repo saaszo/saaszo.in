@@ -17,10 +17,17 @@ export function MinimalFooter() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12">
           {/* Col 1: Brand & Identity & Socials */}
           <div className="col-span-2 space-y-4">
-            <div className="flex items-center gap-2 font-black text-slate-950 text-xl tracking-tight">
-              <span className="w-3 h-3 rounded-full bg-[#6451f1] inline-block" />
-              SAASZO <span className="text-[#6451f1] font-bold">POS</span>
-            </div>
+            <Link
+              href="/"
+              className="inline-flex items-center rounded-xl bg-slate-950 px-3 py-2 shadow-xs"
+              aria-label="SaaSzo home"
+            >
+              <img
+                src="/digital-assets/images/Saaszo_Digital_logo.svg"
+                alt="SaaSzo"
+                className="h-9 w-auto"
+              />
+            </Link>
             <p className="text-slate-500 leading-relaxed max-w-sm text-xs">
               Modern, offline-first GST Invoicing, Point of Sale, and smart inventory management for 1,50,000+ Indian retailers, restaurants, and wholesalers.
             </p>
