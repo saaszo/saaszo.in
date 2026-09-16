@@ -151,6 +151,7 @@ export function MinimalFooter() {
               <li><Link href="/privacy" className="hover:text-[#6451f1] transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-[#6451f1] transition-colors">Terms of Service</Link></li>
               <li><Link href="/refund" className="hover:text-[#6451f1] transition-colors">Cancellation &amp; Refund</Link></li>
+              <li><Link href="/sitemap" className="hover:text-[#6451f1] transition-colors">Sitemap</Link></li>
             </ul>
           </div>
         </div>
@@ -166,6 +167,7 @@ export function MinimalFooter() {
             <Link href="/terms" className="hover:text-slate-900 transition-colors">Terms</Link>
             <Link href="/cookies" className="hover:text-slate-900 transition-colors">Cookie Settings</Link>
             <Link href="/refund" className="hover:text-slate-900 transition-colors">Cancellation &amp; Refund</Link>
+            <Link href="/sitemap" className="hover:text-slate-900 transition-colors">Sitemap</Link>
             <button
               onClick={scrollToTop}
               className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"

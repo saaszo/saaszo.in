@@ -9,13 +9,11 @@ const footerLinks = {
     { label: "Engage", href: "https://engage.saaszo.in" },
   ],
   Company: [
-    { label: "About", href: "/#why" },
-    { label: "Blog", href: "/#" },
-    { label: "Careers", href: "/#" },
-    { label: "Contact", href: "mailto:hello@saaszo.in" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
+    { label: "Sitemap", href: "/sitemap" },
   ],
   Resources: [
-    { label: "Documentation", href: "/#" },
     { label: "API Reference", href: "https://api.saaszo.in/health" },
     { label: "Status", href: "https://api.saaszo.in/health" },
     { label: "Pricing", href: "/#pricing" },
@@ -23,6 +21,7 @@ const footerLinks = {
   Legal: [
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Terms & Conditions", href: "/terms" },
+    { label: "Cancellation & Refund", href: "/refund" },
     { label: "Security", href: "/privacy#security" },
   ],
 };
