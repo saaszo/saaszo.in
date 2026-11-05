@@ -71,6 +71,17 @@ const PRODUCTS: Product[] = [
     accentColor: "#3b82f6",
     ctaText: "Open App",
   },
+  ...[
+    { id: "pos", name: "POS", tagline: "Counter operations", description: "Open your connected POS workspace.", icon: "point_of_sale" },
+    { id: "task", name: "Task", tagline: "Projects & teamwork", description: "Open tasks and projects with your SaaSzo account.", icon: "task_alt" },
+    { id: "connect", name: "Connect", tagline: "Team communication", description: "Open your company communication workspace.", icon: "forum" },
+    { id: "engage", name: "Engage", tagline: "Messaging & campaigns", description: "Open your messaging automation workspace.", icon: "campaign" },
+    { id: "seller", name: "Seller", tagline: "Seller operations", description: "Open your connected seller workspace.", icon: "storefront" },
+    { id: "hrms", name: "HRMS", tagline: "People & teams", description: "Open your company's HR workspace.", icon: "groups" },
+    { id: "studes", name: "Studes", tagline: "Learning products · Account foundation", description: "Use your shared SaaSzo account. Learning account features are in development.", icon: "school", ctaText: "Open Account" },
+    { id: "mantanes", name: "Mantanes", tagline: "Building management · In development", description: "Your connected account foundation. Property-management features are in development.", icon: "apartment", ctaText: "Open Account" },
+    { id: "admin", name: "Platform Admin", tagline: "Approved administrators only", description: "Central platform administration with restricted account access.", icon: "admin_panel_settings" },
+  ].map((entry): Product => ({ ...entry, tool: entry.id, status: "active", color: "linear-gradient(135deg, #216a50 0%, #308568 100%)", accentColor: "#216a50" })),
 ];
 
 const INVOICE_BRIDGE_FALLBACK_URL =
