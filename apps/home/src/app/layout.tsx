@@ -12,11 +12,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   applicationName: "SaaSzo",
   title: {
-    default: "SaaSzo — Smart Invoicing & Counter POS",
+    default: "SaaSzo — Connected Business Workspaces",
     template: "%s | SaaSzo",
   },
   description:
-    "Offline & online GST invoicing, Bluetooth thermal printing, and barcode POS software for Android, Windows PC, Mac, and iOS.",
+    "Explore SaaSzo business products and manage your account, team and workspace from one central hub.",
   keywords: ["POS Software", "GST Billing", "Thermal Printing", "SaaSzo Invoice", "Offline POS"],
   icons: {
     icon: [
