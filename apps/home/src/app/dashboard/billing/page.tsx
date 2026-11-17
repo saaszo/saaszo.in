@@ -34,7 +34,6 @@ export default function BillingPage() {
     onboarding,
     subscription,
     workspaceUser,
-    saveBillingPlan,
   } =
     useAuthSession();
   const currentPlanKey = useMemo(
@@ -156,17 +155,9 @@ export default function BillingPage() {
     setSaveMessage("");
     setSaveError("");
 
-    const result = await saveBillingPlan(selectedPlan, selectedBillingCycle);
-
-    if (result.success) {
-      setSaveMessage(result.message || "Billing plan updated successfully.");
-      const refreshedCatalog = await getBillingCatalog();
-      if (refreshedCatalog) {
-        setBillingCatalog(refreshedCatalog);
-      }
-    } else {
-      setSaveError(result.message || "Could not update billing plan.");
-    }
+    // A selection is purchase intent; only verified billing grants access.
+    const query = new URLSearchParams({ tab: "billing", requested_plan: selectedPlan, billing_cycle: selectedBillingCycle });
+    router.push(`/dashboard/platform-products?${query}`);
 
     setSaving(false);
   }
@@ -474,7 +465,7 @@ export default function BillingPage() {
                   disabled={!hasPlanChanged || saving}
                   className="inline-flex items-center justify-center rounded-none bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {saving ? "Saving..." : "Save workspace plan"}
+                  {saving ? "Opening..." : "Review plan change"}
                 </button>
                 {hasPlanChanged ? (
                   <p className="text-xs text-slate-500">

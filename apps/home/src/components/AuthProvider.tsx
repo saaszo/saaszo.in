@@ -1,4 +1,5 @@
 "use client";
+import { readPurchaseReturn, resolveSignupReturn } from "@/lib/purchase-intent";
 
 import {
   createContext,
@@ -316,10 +317,13 @@ type AuthContextValue = {
   setOnboardingState: (next: Partial<OnboardingInfo>) => void;
   reloadUser: () => Promise<void>;
   signInWithGoogle: (options?: {
+    intent?: "login" | "signup";
     plan?: string | null;
     companyName?: string | null;
     billingCycle?: string | null;
   }) => Promise<void>;
+  requestEmailCode: (email: string, intent: "login" | "signup") => Promise<string>;
+  completeEmailCode: (email: string, challenge: string, otp: string, intent: "login" | "signup") => Promise<void>;
   signOut: () => Promise<void>;
   setupRecaptcha: (
     containerId: string,
@@ -332,6 +336,7 @@ type AuthContextValue = {
   sendPhoneOtp: (
     phoneNumber: string,
     appVerifier: RecaptchaVerifier,
+    intent?: "login" | "signup",
   ) => Promise<ConfirmationResult>;
   signInWithEmail: (
     email: string,
@@ -444,6 +449,8 @@ type AuthSessionState = Pick<
 >;
 
 type BackendAuthResponse = {
+  exists?: boolean;
+  challenge_id?: string;
   success?: boolean;
   message?: string;
   type?: string;
@@ -495,7 +502,7 @@ const signedOutState = {
   onboarding: null,
 };
 
-function getStoredBackendToken() {
+export function getStoredBackendToken() {
   if (backendTokenCache) {
     return backendTokenCache;
   }
@@ -861,11 +868,9 @@ function resolveAuthRedirectTarget(
   target: string | null | undefined,
   onboarding?: OnboardingInfo | null,
 ) {
-  if (!onboarding?.setup_completed && !onboarding?.setup_skipped) {
-    return "/dashboard/setup";
-  }
-
-  return target ?? "/dashboard";
+  const purchase = readPurchaseReturn();
+  if (purchase && (!target || target.endsWith("/dashboard") || target.includes("/dashboard/setup"))) return purchase;
+  return target && !target.includes('/dashboard/setup') ? target : "/dashboard";
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -910,17 +915,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return token;
   }
 
+  const firebaseSyncRef = useRef<ReturnType<typeof performFirebaseSync> | null>(null);
   async function syncFirebaseUserSession(firebaseUser: FirebaseUser) {
+    if (firebaseSyncRef.current) return firebaseSyncRef.current;
+    const pending = performFirebaseSync(firebaseUser);
+    firebaseSyncRef.current = pending;
+    try { return await pending; } finally { if (firebaseSyncRef.current === pending) firebaseSyncRef.current = null; }
+  }
+  async function performFirebaseSync(firebaseUser: FirebaseUser) {
     const token = await firebaseUser.getIdToken();
     const pendingSignupContext = getPendingSignupContext();
 
     // Pass the ?redirect= URL param to the backend so it can return the
     // correct redirect target (e.g. /dashboard/settings) instead of always
     // defaulting to /dashboard.
-    const urlRedirectParam =
-      typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search).get("redirect")
-        : null;
+    const requestedRedirect = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirect") : null;
+    const urlRedirectParam = typeof window !== "undefined" && window.sessionStorage.getItem("saaszo_auth_intent") === "signup"
+      ? resolveSignupReturn(requestedRedirect || readPurchaseReturn(), appConfig.appUrl)
+      : requestedRedirect;
 
     const response = await fetchWithCsrf(`${API_BASE_URL}/auth/sync`, {
       method: "POST",
@@ -930,6 +942,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       body: JSON.stringify(
         {
+          auth_intent: typeof window !== "undefined" ? window.sessionStorage.getItem("saaszo_auth_intent") ?? "login" : "login",
           ...(urlRedirectParam ? { redirect: urlRedirectParam } : {}),
           ...(pendingSignupContext.plan
             ? { plan: pendingSignupContext.plan }
@@ -949,6 +962,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .json()
         .catch(() => null)) as BackendAuthResponse | null;
 
+      if ((response.status === 404 || response.status === 409) && typeof window !== "undefined") {
+        if (auth) await firebaseSignOut(auth);
+        const target = new URL(response.status === 404 ? "/register" : "/auth", appConfig.appUrl);
+        if (urlRedirectParam) target.searchParams.set("redirect", urlRedirectParam);
+        target.searchParams.set("notice", response.status === 404 ? "create_account" : "account_exists");
+        if (firebaseUser.email) target.searchParams.set("email", firebaseUser.email);
+        if (firebaseUser.phoneNumber) target.searchParams.set("phone", firebaseUser.phoneNumber);
+        window.sessionStorage.setItem("saaszo_auth_intent", "login");
+        window.location.replace(target.toString());
+      }
       throw new Error(
         getErrorMessage(payload, "Failed to sync profile with server."),
       );
@@ -999,6 +1022,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     clearPendingSignupContext();
+    window.sessionStorage.setItem("saaszo_auth_intent", "login");
 
     return data;
   }
@@ -1875,6 +1899,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function signInWithGoogle(options?: {
+    intent?: "login" | "signup";
     plan?: string | null;
     companyName?: string | null;
     billingCycle?: string | null;
@@ -1883,6 +1908,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error("Firebase not initialized");
     }
 
+    if (typeof window !== "undefined") window.sessionStorage.setItem("saaszo_auth_intent", options?.intent ?? "login");
     setPendingSignupContext(options);
 
     const provider = new GoogleAuthProvider();
@@ -1943,11 +1969,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function sendPhoneOtp(
     phoneNumber: string,
     appVerifier: RecaptchaVerifier,
+    intent?: "login" | "signup",
   ) {
     if (!auth) {
       throw new Error("Firebase not initialized");
     }
 
+    const mode = intent ?? "login";
+    const response = await fetchBackendJson("/auth/check-identifier", { method: "POST", body: JSON.stringify({identifier: phoneNumber}) });
+    if ((mode === "login" && !response.exists) || (mode === "signup" && response.exists)) {
+      const target = new URL(response.exists ? "/auth" : "/register", appConfig.appUrl);
+      target.searchParams.set("phone", phoneNumber);
+      target.searchParams.set("notice", response.exists ? "account_exists" : "create_account");
+      const redirect = new URLSearchParams(window.location.search).get("redirect");
+      if (redirect) target.searchParams.set("redirect", redirect);
+      window.location.replace(target.toString());
+      throw new Error(response.exists ? "This mobile number is already connected to an account. Please log in." : "Create your Saaszo account first.");
+    }
+    window.sessionStorage.setItem("saaszo_auth_intent", mode);
     return await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
   }
 
@@ -1967,6 +2006,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!payload.success) {
+      if (payload.type === "NOT_REGISTERED") {
+        const target = new URL("/register", appConfig.appUrl);
+        target.searchParams.set("email", email);
+        if (options?.redirect) target.searchParams.set("redirect", options.redirect);
+        window.location.replace(target.toString());
+        return;
+      }
       if (
         payload.redirect &&
         ["LOCKOUT", "ACCOUNT_RECOVERY"].includes(
@@ -1996,6 +2042,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await hydrateCookieSession();
     }
     navigateAfterAuth(router, redirectUrl);
+  }
+
+  async function requestEmailCode(email: string, intent: "login" | "signup") {
+    const payload = await fetchBackendJson("/auth/simple/request-code", {method:"POST", body:JSON.stringify({email,intent})});
+    if (!payload.success || !payload.challenge_id) throw new Error(payload.message || "Could not send a code.");
+    return String(payload.challenge_id);
+  }
+
+  async function completeEmailCode(email: string, challenge: string, otp: string, intent: "login" | "signup") {
+    const payload = await fetchBackendJson("/auth/simple/verify-code", {method:"POST",body:JSON.stringify({email,challenge_id:challenge,otp,intent})});
+    if (!payload.success || !payload.access_token) throw new Error(payload.message || "Verification failed.");
+    await hydrateBackendSession(String(payload.access_token));
+    setStoredBackendToken(String(payload.access_token));
+    const target = new URLSearchParams(window.location.search).get("redirect");
+    navigateAfterAuth(router, intent === "signup" ? resolveSignupReturn(target || readPurchaseReturn(), appConfig.appUrl) : target || readPurchaseReturn() || "/dashboard");
   }
 
   async function signUpWithEmail(
@@ -2045,7 +2106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Backend wraps token inside a 'data' object: { success, message, data: { access_token } }
     const signupData = (payload as any).data ?? payload;
     const accessToken = signupData.access_token;
-    const redirectUrl = signupData.redirect ?? payload.redirect ?? "/dashboard/setup";
+    const redirectUrl = signupData.redirect ?? payload.redirect ?? "/dashboard";
 
     if (accessToken) {
       await hydrateBackendSession(accessToken);
@@ -2503,6 +2564,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setOnboardingState,
     reloadUser,
     signInWithGoogle,
+    requestEmailCode,
+    completeEmailCode,
     signOut,
     setupRecaptcha,
     sendPhoneOtp,

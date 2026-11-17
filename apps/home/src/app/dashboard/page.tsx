@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -10,10 +10,6 @@ import {
   type RoleTemplate,
   type PermissionGroup,
 } from "@/components/AuthProvider";
-import {
-  clearSetupRedirectBypass,
-  hasSetupRedirectBypass,
-} from "@/lib/auth-client";
 import { appConfig } from "@/lib/config";
 import {
   executionPhases,
@@ -105,7 +101,6 @@ export default function DashboardPage() {
     error,
     loading,
     onboarding,
-    postAuthRedirect,
     profile,
     workspaceUser,
     signOut,
@@ -157,39 +152,12 @@ export default function DashboardPage() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [isBranchesLoading, setIsBranchesLoading] = useState(false);
   const [isStaffLoading, setIsStaffLoading] = useState(false);
-  const [setupRedirectBypass, setSetupRedirectBypass] = useState(false);
-
-  useEffect(() => {
-    setSetupRedirectBypass(hasSetupRedirectBypass());
-  }, []);
-
   const roleLabel = useMemo(() => {
     const role = workspaceUser?.role ?? "owner";
     return role
       .replace(/_/g, " ")
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }, [workspaceUser?.role]);
-
-  const requiresSetupCompletion = useMemo(() => {
-    const role = workspaceUser?.role ?? "";
-    const isPrimaryOwner = role === "owner" || role === "super_admin";
-    const setupComplete =
-      onboarding?.setup_completed || onboarding?.setup_skipped;
-
-    return isPrimaryOwner && !setupComplete && !setupRedirectBypass;
-  }, [
-    onboarding?.setup_completed,
-    onboarding?.setup_skipped,
-    setupRedirectBypass,
-    workspaceUser?.role,
-  ]);
-
-  useEffect(() => {
-    if (onboarding?.setup_completed || onboarding?.setup_skipped) {
-      clearSetupRedirectBypass();
-      setSetupRedirectBypass(false);
-    }
-  }, [onboarding?.setup_completed, onboarding?.setup_skipped]);
 
   const isOwnerOrAdmin = useMemo(
     () =>
@@ -243,33 +211,6 @@ export default function DashboardPage() {
     subscription?.founderSlotsRemaining,
   ]);
   const isDataLoading = isBranchesLoading || isStaffLoading;
-
-  useEffect(() => {
-    if (
-      !loading &&
-      authenticated &&
-      requiresSetupCompletion &&
-      postAuthRedirect?.includes("/dashboard/setup")
-    ) {
-      startTransition(() => {
-        router.replace("/dashboard/setup");
-      });
-    }
-  }, [
-    authenticated,
-    loading,
-    postAuthRedirect,
-    requiresSetupCompletion,
-    router,
-  ]);
-
-  useEffect(() => {
-    if (!loading && authenticated && requiresSetupCompletion) {
-      startTransition(() => {
-        router.replace("/dashboard/setup");
-      });
-    }
-  }, [authenticated, loading, requiresSetupCompletion, router]);
 
   useEffect(() => {
     const syncTabFromUrl = () => {
@@ -433,7 +374,7 @@ export default function DashboardPage() {
     setToolStates(nextStates);
   }
 
-  if (loading || (authenticated && requiresSetupCompletion)) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background text-slate-900 flex items-center justify-center px-6">
         <div className="rounded-none border border-slate-200 bg-white px-8 py-6 shadow-xs">
@@ -457,6 +398,11 @@ export default function DashboardPage() {
 
   async function handleLaunchProduct(product: Product) {
     const access = toolStates[product.tool];
+
+    if (access?.state === "upgrade_plan") {
+      router.push(`/dashboard/checkout?${new URLSearchParams({ product: product.tool })}`);
+      return;
+    }
 
     if (product.status !== "active" || !access || access.state !== "open") {
       if (access?.redirectUrl) {
@@ -657,18 +603,18 @@ export default function DashboardPage() {
                   trend={subscription.founderPricingLocked ? "up" : "neutral"}
                 />
                 <StatCard
-                  label="Setup Status"
-                  value={onboarding?.setup_completed ? "100%" : "65%"}
+                  label="Company Details"
+                  value={onboarding?.setup_completed ? "Saved" : "Optional"}
                   hint={
-                    onboarding?.setup_completed ? "Completed" : "In Progress"
+                    onboarding?.setup_completed ? "Update in settings" : "Add when needed"
                   }
                   icon="task_alt"
                   trend={onboarding?.setup_completed ? "up" : "neutral"}
                 />
                 <StatCard
                   label="Profile Status"
-                  value={profile.profileCompleted ? "100%" : "80%"}
-                  hint={profile.profileCompleted ? "Complete" : "Needs Details"}
+                  value={profile.profileCompleted ? "Complete" : "Optional"}
+                  hint={profile.profileCompleted ? "Details saved" : "Add details in settings"}
                   icon="account_circle"
                   trend={profile.profileCompleted ? "up" : "neutral"}
                 />
@@ -990,11 +936,11 @@ export default function DashboardPage() {
                   />
                   <GuardrailItem
                     icon="task_alt"
-                    label="Onboarding"
+                    label="Company details"
                     value={
-                      onboarding?.setup_completed ? "Completed" : "Resume setup"
+                      onboarding?.setup_completed ? "Saved" : "Optional in settings"
                     }
-                    tone={onboarding?.setup_completed ? "good" : "warn"}
+                    tone={onboarding?.setup_completed ? "good" : "neutral"}
                   />
                   <GuardrailItem
                     icon="badge"
@@ -1057,6 +1003,7 @@ export default function DashboardPage() {
                   Update your business identity. These details appear on your
                   invoices and documents.
                 </p>
+                <Link href="/dashboard/settings" className="mt-4 inline-block underline">Profile & Company Settings</Link>
 
                 <div className="mt-8 p-8 rounded-none bg-primary/5 border border-primary/10">
                   <div className="flex items-center gap-3 text-primary mb-4">

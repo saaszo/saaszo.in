@@ -1,13 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { useAuthSession } from "@/components/AuthProvider";
-import {
-  clearSetupRedirectBypass,
-  hasSetupRedirectBypass,
-} from "@/lib/auth-client";
 import { appConfig } from "@/lib/config";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
@@ -25,16 +21,19 @@ function hasSessionCookie() {
 
 export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
   const pathname = usePathname();
-  const { authenticated, loading, onboarding, workspaceUser } = useAuthSession();
+  const { authenticated, loading } = useAuthSession();
   const { children } = props;
-  const [setupRedirectBypass, setSetupRedirectBypass] = useState(false);
   // Canonical www origin — used to force all redirects onto www.saaszo.in
   // regardless of whether the browser is currently on the apex (saaszo.in).
   // router.replace() is a client-side navigation and stays on the current
   // origin, which means apex-domain users would end up on saaszo.in/auth
   // where the middleware's canonical redirect doesn't apply.
   const wwwOrigin = (() => {
-    try { return new URL(appConfig.appUrl).origin; } catch { return "https://www.saaszo.in"; }
+    try {
+      return new URL(appConfig.appUrl).origin;
+    } catch {
+      return "https://www.saaszo.in";
+    }
   })();
 
   // Track whether we've seen a definitive "not authenticated" result
@@ -48,31 +47,6 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
   const graceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isSetupPage = pathname === "/dashboard/setup";
-
-  useEffect(() => {
-    setSetupRedirectBypass(hasSetupRedirectBypass());
-  }, [pathname]);
-
-  const requiresSetupCompletion = useMemo(() => {
-    const role = workspaceUser?.role ?? "";
-    const isPrimaryOwner = role === "owner" || role === "super_admin";
-    const setupComplete =
-      onboarding?.setup_completed || onboarding?.setup_skipped;
-
-    return isPrimaryOwner && !setupComplete && !setupRedirectBypass;
-  }, [
-    onboarding?.setup_completed,
-    onboarding?.setup_skipped,
-    setupRedirectBypass,
-    workspaceUser?.role,
-  ]);
-
-  useEffect(() => {
-    if (onboarding?.setup_completed || onboarding?.setup_skipped) {
-      clearSetupRedirectBypass();
-      setSetupRedirectBypass(false);
-    }
-  }, [onboarding?.setup_completed, onboarding?.setup_skipped]);
 
   // Start a grace timer once loading flips to false while unauthenticated.
   // If the saaszo_session cookie is present, Firebase's onIdTokenChanged
@@ -135,9 +109,7 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
 
     const query =
       typeof window === "undefined" ? "" : window.location.search || "";
-    const redirectTarget = pathname
-      ? `${pathname}${query}`
-      : "/dashboard";
+    const redirectTarget = pathname ? `${pathname}${query}` : "/dashboard";
 
     // Always use window.location.replace with the canonical www origin.
     // router.replace() is client-side and stays on the current domain;
@@ -147,20 +119,7 @@ export default function DashboardLayout(props: LayoutProps<"/dashboard">) {
     window.location.replace(target);
   }, [authenticated, loading, pathname, unauthGraceExpired, wwwOrigin]);
 
-  useEffect(() => {
-    if (loading || !authenticated || !requiresSetupCompletion || isSetupPage) {
-      return;
-    }
-
-    // Force absolute redirect to canonical www origin (same reason as above).
-    window.location.replace(`${wwwOrigin}/dashboard/setup`);
-  }, [authenticated, isSetupPage, loading, requiresSetupCompletion, wwwOrigin]);
-
-  if (
-    loading ||
-    !authenticated ||
-    (requiresSetupCompletion && !isSetupPage)
-  ) {
+  if (loading || !authenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">

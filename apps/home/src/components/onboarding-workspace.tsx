@@ -307,7 +307,7 @@ function syncGstRegistrationType(
   return safeValues;
 }
 
-export function OnboardingWorkspace() {
+export function OnboardingWorkspace({ settingsMode = false }: {settingsMode?: boolean} = {}) {
   const [form, setForm] = useState<OnboardingProfile>(defaultProfileForm);
   const [options, setOptions] = useState<OnboardingOptions>(defaultProfileOptions);
   const [personalization, setPersonalization] =
@@ -320,7 +320,7 @@ export function OnboardingWorkspace() {
   const [success, setSuccess] = useState("");
   const [fieldErrors, setFieldErrors] = useState<string[]>([]);
   const [validationTick, setValidationTick] = useState(0);
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(settingsMode);
   const [useCustomBank, setUseCustomBank] = useState(false);
   const [emailOtp, setEmailOtp] = useState("");
   const [emailOtpSent, setEmailOtpSent] = useState(false);
@@ -372,7 +372,7 @@ export function OnboardingWorkspace() {
     setOnboardingState,
     updatePassword,
   } = useAuthSession();
-  const setupAlreadyResolved = Boolean(
+  const setupAlreadyResolved = !settingsMode && Boolean(
     onboarding?.setup_completed || onboarding?.setup_skipped,
   );
   const setupResolvedRedirectTarget = onboarding?.setup_completed
@@ -650,17 +650,17 @@ export function OnboardingWorkspace() {
         registration_types: profile.registration_types || [],
       });
       setPersonalization(result.data.personalization || null);
-      if (profile.setup_completed) {
+      if (profile.setup_completed && !settingsMode) {
         navigateTo("/dashboard?tab=settings");
         return;
       }
-      if (profile.setup_skipped) {
+      if (profile.setup_skipped && !settingsMode) {
         navigateTo("/dashboard");
         return;
       }
       setStarted(
         Boolean(
-          profile.current_step ||
+          settingsMode || profile.current_step ||
             profile.setup_completed ||
             profile.setup_skipped,
         ),
@@ -675,7 +675,7 @@ export function OnboardingWorkspace() {
     return () => {
       active = false;
     };
-  }, [authenticated, sessionLoading, setupAlreadyResolved]);
+  }, [authenticated, sessionLoading, setupAlreadyResolved, settingsMode]);
 
   useEffect(() => {
     if (!form.bank_name) {

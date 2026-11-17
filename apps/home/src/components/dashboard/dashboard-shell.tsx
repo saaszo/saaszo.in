@@ -54,14 +54,17 @@ export function DashboardShell({ children }: DashboardShellProps) {
     pathname === "/dashboard/settings";
   const isBilling = pathname === "/dashboard/billing";
   const isPlatform = pathname === "/dashboard/platform";
+  const isProductConsole = pathname === "/dashboard/platform-products";
 
   // Breadcrumb title
-  const pageTitle = isPlatform
+  const pageTitle = isProductConsole
+    ? "Products & Workspaces"
+    : isPlatform
     ? "Platform Admin"
     : isBilling
       ? "Subscription & Billing"
       : isSettings
-        ? "Workspace Settings"
+        ? "Profile & Company Settings"
         : isBranches
           ? "Branches & Outlets"
           : isTeam
@@ -96,6 +99,12 @@ export function DashboardShell({ children }: DashboardShellProps) {
       group: "Account & Tools",
       items: [
         {
+          label: "Products & Workspaces",
+          href: "/dashboard/platform-products",
+          icon: Sparkles,
+          active: isProductConsole,
+        },
+        {
           label: "Billing & Plans",
           href: "/dashboard/billing",
           icon: CreditCard,
@@ -103,8 +112,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
           badge: planName,
         },
         {
-          label: "Settings",
-          href: "/dashboard?tab=settings",
+          label: "Profile & Company Settings",
+          href: "/dashboard/settings",
           icon: Settings,
           active: isSettings,
         },
@@ -315,7 +324,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       )}
 
       {/* ── Main Content Area ───────────────────────────────────────── */}
-      <div className="lg:pl-64 flex-1 flex flex-col min-h-screen">
+      <div className="lg:pl-64 min-w-0 flex-1 flex flex-col min-h-screen">
         {/* Top Header / Action Bar */}
         <header className="sticky top-0 z-20 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 flex items-center justify-between shadow-2xs shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -360,7 +369,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         </header>
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           {children}
         </main>
       </div>

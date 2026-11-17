@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "source": "_shared/web-collections/v1",
+  "files": {
+    "collection-card.jsx": "f018c2673474e8d2dd2e96e04ecc636e0618baa327285874df3c0a5a19931672",
+    "collection-card.module.css": "546fc105fd712928fe3f26d09e363f80fbcc796582d6a40d5cd180d6415f8dd8",
+    "collection-policy.mjs": "6f7157e217dfe7c0da014370e1aaab07e4caa96d7cfc35a48c6c32791345e1ef",
+    "collection-checkout.js": "92dae2f0f5fa0e290628d1fa56828fc26a70fdd5f2ff0e4f650134e361582341",
+    "collection-manager.jsx": "89cf56256580645b49a7e3bf36050d173035c05d0ef15aed8469c93d23370d43"
+  }
+}
