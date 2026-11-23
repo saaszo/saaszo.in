@@ -72,6 +72,7 @@ const PRODUCTS: Product[] = [
     { id: "task", name: "Task", tagline: "Projects & teamwork", description: "Open tasks and projects with your SaaSzo account.", icon: "task_alt" },
     { id: "connect", name: "Connect", tagline: "Team communication", description: "Open your company communication workspace.", icon: "forum" },
     { id: "engage", name: "Engage", tagline: "Messaging & campaigns", description: "Open your messaging automation workspace.", icon: "campaign" },
+    { id: "publish", name: "Publish", tagline: "Social media scheduling", description: "Create and schedule posts for Facebook, Instagram, Threads, LinkedIn and YouTube.", icon: "send" },
     { id: "seller", name: "Seller", tagline: "Seller operations", description: "Open your connected seller workspace.", icon: "storefront" },
     { id: "hrms", name: "HRMS", tagline: "People & teams", description: "Open your company's HR workspace.", icon: "groups" },
     { id: "studes", name: "Studes", tagline: "Learning products · Account foundation", description: "Use your shared SaaSzo account. Learning account features are in development.", icon: "school", ctaText: "Open Account" },
@@ -410,6 +411,11 @@ export default function DashboardPage() {
           resolveSafeRedirectTarget(access.redirectUrl, appConfig.appUrl),
         );
       }
+      return;
+    }
+
+    if (product.tool === "publish") {
+      router.push("/dashboard/publish");
       return;
     }
 
@@ -777,7 +783,7 @@ export default function DashboardPage() {
               )}
 
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {PRODUCTS.map((product) => {
+                {PRODUCTS.filter((product) => product.tool !== "publish" || toolStates.publish?.state === "open").map((product) => {
                   const fallbackState =
                     product.status === "active"
                       ? {
