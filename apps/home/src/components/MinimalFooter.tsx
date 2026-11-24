@@ -32,7 +32,7 @@ export function MinimalFooter() {
               Modern, offline-first GST Invoicing, Point of Sale, and smart inventory management for 1,50,000+ Indian retailers, restaurants, and wholesalers.
             </p>
             <div className="space-y-1 text-slate-500 text-[11px]">
-              <div className="font-bold text-slate-800">SaaSzo Technologies Private Limited</div>
+              <div className="font-bold text-slate-800">SaaSzo Technologies</div>
               <div>Tower-A, 4th Floor, Tech Park, Outer Ring Road, Bengaluru, Karnataka – 560103</div>
             </div>
 
@@ -159,7 +159,7 @@ export function MinimalFooter() {
         {/* Bottom Strip */}
         <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
           <div>
-            COPYRIGHT &copy; 2026 &mdash; SaaSzo Technologies Pvt. Ltd., India. All Rights Reserved.
+            COPYRIGHT &copy; 2026 &mdash; SaaSzo Technologies, India. All Rights Reserved.
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
